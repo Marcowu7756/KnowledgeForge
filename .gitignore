@@ -19,14 +19,12 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Runtime data (keep folder layout via .gitkeep)
+# Runtime outputs (keep directory layout)
 data/inbox/*
 !data/inbox/.gitkeep
 data/raw/*
 !data/raw/.gitkeep
 data/knowledge/**
-!data/knowledge/.gitkeep
-!data/knowledge/concepts/.gitkeep
-!data/knowledge/summaries/.gitkeep
-!data/knowledge/sources/.gitkeep
-!data/knowledge/index/.gitkeep
+!data/knowledge/
+!data/knowledge/**/
+!data/knowledge/**/.gitkeep
