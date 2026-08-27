@@ -1,4 +1,4 @@
-"""Slow integration — real BGE / Whisper smoke (KF_RUN_SLOW=1).
+r"""Slow integration — real BGE / Whisper smoke (KF_RUN_SLOW=1).
 
 Default `pytest tests -q` skips these via @pytest.mark.slow + skipif.
 Run:

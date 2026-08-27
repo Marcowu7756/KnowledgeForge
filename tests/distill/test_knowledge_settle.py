@@ -9,7 +9,7 @@ import pytest
 from app.expression.derive import derive_audio_from_ko, derive_visual_from_ko
 from app.harness.artifact import Artifact, sha256_file, write_json
 from app.harness.validator import ValidationError, validate_artifact
-from app.knowledge.object import from_knowledge_unit, relations_from_unit
+from app.knowledge.object import _parse_contrast_line, from_knowledge_unit, relations_from_unit
 from app.knowledge.parse import load_knowledge_object, load_unit_from_markdown, write_knowledge_object
 from app.models import KnowledgeUnit
 
@@ -56,6 +56,14 @@ def test_distill_relations_from_arrows(sample_unit: KnowledgeUnit):
     edges = relations_from_unit(sample_unit)
     assert any(e.from_node and e.to_node for e in edges)
     assert any("美债" in e.from_node or "美债" in e.to_node for e in edges)
+
+
+def test_distill_parse_contrast_relation_line():
+    edge = _parse_contrast_line("美债 vs 石油美元")
+    assert edge is not None
+    assert edge.type == "contrasts"
+    assert edge.from_node == "美债"
+    assert edge.to_node == "石油美元"
 
 
 def test_distill_roundtrip_knowledge_object_json(tmp_path: Path, sample_ko):

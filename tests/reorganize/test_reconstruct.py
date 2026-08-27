@@ -107,3 +107,10 @@ def test_reorganize_learning_path_has_stages(two_kos):
     assert len(view.sections) >= 1
     fp = stability_fingerprint(view)
     assert len(fp["fingerprint"]) == 40  # sha1 hex
+
+
+def test_reorganize_contrast_view_type_registered(two_kos):
+    graph = build_graph(two_kos)
+    view = reconstruct_view(graph, two_kos, view="contrast")
+    assert view.view_type == "contrast"
+    assert view.evidence.get("view") == "contrast"

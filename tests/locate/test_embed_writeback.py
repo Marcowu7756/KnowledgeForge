@@ -108,6 +108,27 @@ def test_build_ko_index_writeback_from_packages(tmp_path: Path, monkeypatch: pyt
     assert saved.embedding.model == "mock-embed"
 
 
+def test_build_ko_index_skips_writeback_when_disabled(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    _package_ko(tmp_path)
+    packages_root = tmp_path / "packages"
+    index_dir = tmp_path / "retrieve"
+    ko_path = packages_root / "run001" / "knowledge_object.json"
+    before = ko_path.read_text(encoding="utf-8")
+
+    monkeypatch.setattr("app.config.PACKAGES_DIR", packages_root)
+
+    with patch("app.retrieve.index_build.embed_texts", return_value=np.array([[1.0, 0.0]], dtype=np.float32)):
+        with patch("app.retrieve.index_build.model_path_str", return_value="mock-embed"):
+            _manifest, _kos, report = build_ko_index(
+                from_packages=True,
+                dest=index_dir,
+                write_back_packages=False,
+            )
+
+    assert report is None
+    assert ko_path.read_text(encoding="utf-8") == before
+
+
 def test_build_ko_index_writeback_dry_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     ko_path = _package_ko(tmp_path)
     before = ko_path.read_text(encoding="utf-8")

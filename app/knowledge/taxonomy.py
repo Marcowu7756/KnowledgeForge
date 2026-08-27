@@ -169,6 +169,28 @@ def infer_taxonomy_segments(source_path: str | Path) -> list[str]:
     return parts[-3:] if len(parts) > 3 else parts
 
 
+_REPO_NOISE = {
+    "fxtrading",
+    "reference",
+    "references",
+}
+
+
+def _dedupe_taxonomy_path(path: list[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for seg in path:
+        key = str(seg or "").strip()
+        if not key:
+            continue
+        low = key.lower()
+        if low in seen:
+            continue
+        seen.add(low)
+        out.append(key)
+    return out
+
+
 def build_taxonomy_for_ingest(
     *,
     project: str,
@@ -179,7 +201,14 @@ def build_taxonomy_for_ingest(
     inferred = infer_taxonomy_segments(source_path)
     merged = base
     if inferred:
-        merged = merged.extend(*inferred)
+        root_keys = {p.lower() for p in merged.path}
+        filtered = [
+            s
+            for s in inferred
+            if s.lower() not in root_keys and s.lower() not in _REPO_NOISE
+        ]
+        if filtered:
+            merged = merged.extend(*filtered)
     if llm_path:
         merged = merged.merged_with(TaxonomyBlock(path=llm_path))
-    return merged
+    return TaxonomyBlock(path=_dedupe_taxonomy_path(merged.path))

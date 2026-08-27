@@ -51,6 +51,17 @@ def test_taxonomy_build_for_ingest_merges_path_and_llm():
     assert tax.path[0] == "专有知识"
     assert tax.path[1] == "SETV"
     assert "状态转换" in tax.path
+    assert tax.path.count("SETV") == 1
+    assert "fxtrading" not in [p.lower() for p in tax.path]
+
+
+def test_taxonomy_dedupes_llm_duplicate_of_root():
+    tax = build_taxonomy_for_ingest(
+        project="setv",
+        source_path=r"D:\fxtrading\SETV\reference\changelog.md",
+        llm_path=["SETV", "方法论"],
+    )
+    assert tax.path.count("SETV") == 1
 
 
 def test_taxonomy_yaml_roundtrip(tmp_path: Path):
