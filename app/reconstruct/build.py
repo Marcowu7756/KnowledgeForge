@@ -43,6 +43,12 @@ def _ko_node_id(ko_id: str) -> str:
     return f"ko_{ko_id}" if not ko_id.startswith("ko_") else ko_id
 
 
+def _taxonomy_id(path: list[str]) -> str:
+    key = "/".join(path)
+    digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+    return f"tax_{digest}"
+
+
 def _edge_id(frm: str, to: str, kind: str, label: str = "") -> str:
     raw = f"{kind}|{frm}|{to}|{label}"
     digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
@@ -153,8 +159,50 @@ def build_graph(
             kind="knowledge_object",
             label=obj.content.title,
             ko_ids=[kid],
-            meta={"unit_id": obj.unit_id, "tags": tags},
+            meta={
+                "unit_id": obj.unit_id,
+                "tags": tags,
+                "taxonomy": obj.taxonomy.path,
+            },
         )
+
+        if obj.taxonomy.path:
+            parent_tid = ""
+            for depth, segment in enumerate(obj.taxonomy.path):
+                prefix = obj.taxonomy.path[: depth + 1]
+                tid = _taxonomy_id(prefix)
+                if tid not in nodes:
+                    nodes[tid] = GraphNode(
+                        id=tid,
+                        kind="theme",
+                        label=segment,
+                        meta={"taxonomy_path": prefix, "depth": depth + 1},
+                    )
+                if parent_tid:
+                    add_edge(
+                        frm=parent_tid,
+                        to=tid,
+                        type_="part_of",
+                        kind="intra_ko",
+                        label="taxonomy_parent",
+                        source_ko_ids=[kid],
+                        rule_id="taxonomy_part_of",
+                        weight=1.0,
+                        detail=segment,
+                    )
+                parent_tid = tid
+            if parent_tid:
+                add_edge(
+                    frm=parent_tid,
+                    to=knid,
+                    type_="part_of",
+                    kind="intra_ko",
+                    label="classified_as",
+                    source_ko_ids=[kid],
+                    rule_id="taxonomy_ko_leaf",
+                    weight=1.0,
+                    detail=obj.taxonomy.canonical,
+                )
 
         for concept in sorted(obj.content.atomic_concepts, key=lambda c: c.lower()):
             cid = upsert_concept(concept, kid)

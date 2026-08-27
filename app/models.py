@@ -6,6 +6,9 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from app.knowledge.access import AccessBlock
+from app.knowledge.taxonomy import TaxonomyBlock
+
 
 SourceType = Literal[
     "youtube",
@@ -56,3 +59,5 @@ class KnowledgeUnit(BaseModel):
     prerequisites: list[str] = Field(default_factory=list)
     unknowns: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
+    access: AccessBlock = Field(default_factory=AccessBlock)
+    taxonomy: TaxonomyBlock = Field(default_factory=TaxonomyBlock)

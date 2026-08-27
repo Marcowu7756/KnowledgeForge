@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from app import config
+from app.knowledge.access import access_dict, access_from_meta
+from app.knowledge.taxonomy import taxonomy_dict, taxonomy_from_meta
+from app.knowledge.yaml_meta import parse_card_yaml
 from app.models import KnowledgeUnit
 
 _YAML_BLOCK = re.compile(r"```yaml\n(.*?)\n```", re.DOTALL)
@@ -48,6 +51,8 @@ def record_from_unit(
         "summary": unit.summary,
         "path": markdown_path.replace("\\", "/"),
         "indexed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "access": access_dict(unit.access),
+        "taxonomy": taxonomy_dict(unit.taxonomy),
     }
 
 
@@ -221,13 +226,10 @@ def parse_knowledge_markdown(path: Path) -> dict[str, Any] | None:
     """Recover an index record from an existing Knowledge Unit markdown file."""
     text = path.read_text(encoding="utf-8")
     yaml_match = _YAML_BLOCK.search(text)
-    meta: dict[str, str] = {}
-    if yaml_match:
-        for line in yaml_match.group(1).splitlines():
-            if ":" not in line:
-                continue
-            key, value = line.split(":", 1)
-            meta[key.strip()] = value.strip().strip('"')
+    meta_raw: dict = parse_card_yaml(yaml_match.group(1)) if yaml_match else {}
+    meta = {k: str(v) for k, v in meta_raw.items() if k != "access" and not isinstance(v, (list, dict))}
+    access = access_from_meta(meta_raw)
+    taxonomy = taxonomy_from_meta(meta_raw)
 
     title_match = re.match(r"^# (.+)$", text, re.M)
     title = meta.get("title") or (title_match.group(1).strip() if title_match else path.stem)
@@ -240,11 +242,14 @@ def parse_knowledge_markdown(path: Path) -> dict[str, Any] | None:
             if line.startswith("- ") and line[2:].strip() not in {"", "(none)"}:
                 concepts.append(line[2:].strip())
 
-    tags_raw = meta.get("tags") or "[]"
-    try:
-        tags = json.loads(tags_raw) if tags_raw.startswith("[") else [tags_raw]
-    except json.JSONDecodeError:
-        tags = []
+    tags_raw = meta.get("tags") or meta_raw.get("tags") or "[]"
+    if isinstance(tags_raw, list):
+        tags = tags_raw
+    else:
+        try:
+            tags = json.loads(str(tags_raw)) if str(tags_raw).startswith("[") else [str(tags_raw)]
+        except json.JSONDecodeError:
+            tags = []
 
     rel = path.resolve().relative_to(config.ROOT).as_posix()
     return {
@@ -260,6 +265,8 @@ def parse_knowledge_markdown(path: Path) -> dict[str, Any] | None:
         "path": rel,
         "indexed_at": meta.get("created")
         or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "access": access_dict(access),
+        "taxonomy": taxonomy_dict(taxonomy),
     }
 
 

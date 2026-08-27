@@ -355,6 +355,60 @@ def view_by_learning_path(
     return _finalize(view, graph=graph, seed=seed)
 
 
+def view_by_taxonomy(
+    graph: ConceptGraph,
+    kos: list[KnowledgeObject],
+    *,
+    seed: str = "",
+) -> ReconstructedView:
+    """Hierarchy view: group KOs by taxonomy chain (纲举目张)."""
+    by_id = _ko_map(kos)
+    clusters: dict[str, list[str]] = defaultdict(list)
+    for obj in sorted(kos, key=lambda o: o.id):
+        path = obj.taxonomy.path
+        if not path:
+            key = "(未分类)"
+        else:
+            key = " > ".join(path)
+        if seed:
+            blob = key + " " + obj.content.title
+            if seed not in blob:
+                continue
+        clusters[key].append(obj.id)
+
+    ordered = sorted(clusters.items(), key=lambda kv: (kv[0] == "(未分类)", kv[0]))
+    sections: list[ViewSection] = []
+    for chain, ko_ids in ordered:
+        ko_ids = sorted(set(ko_ids))
+        depth = chain.count(" > ") + 1 if chain != "(未分类)" else 0
+        sections.append(
+            ViewSection(
+                title=chain,
+                kind="taxonomy_cluster",
+                ko_ids=ko_ids,
+                notes=[
+                    f"depth: {depth}",
+                    f"KOs: {len(ko_ids)}",
+                    *(f"card: {by_id[k].content.title}" for k in ko_ids[:8] if k in by_id),
+                ],
+                rationale=(
+                    f"Taxonomy chain '{chain}' groups {len(ko_ids)} knowledge cards"
+                ),
+            )
+        )
+
+    view = ReconstructedView(
+        view_type="taxonomy",
+        title=f"Taxonomy reconstruction ({len(sections)} chains)",
+        seed=seed,
+        graph_id=graph.id,
+        source_ko_ids=list(graph.source_ko_ids),
+        sections=sections,
+        evidence={"view": "taxonomy", "method": "taxonomy_path_cluster"},
+    )
+    return _finalize(view, graph=graph, seed=seed)
+
+
 def reconstruct_view(
     graph: ConceptGraph,
     kos: list[KnowledgeObject],
@@ -368,4 +422,8 @@ def reconstruct_view(
         return view_by_concept(graph, kos, seed=seed)
     if view in {"path", "learning_path", "learning"}:
         return view_by_learning_path(graph, kos, seed=seed)
-    raise ValueError(f"unknown view type: {view} (use theme|concept|learning_path)")
+    if view == "taxonomy":
+        return view_by_taxonomy(graph, kos, seed=seed)
+    raise ValueError(
+        f"unknown view type: {view} (use theme|concept|learning_path|taxonomy)"
+    )

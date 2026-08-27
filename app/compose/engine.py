@@ -16,6 +16,7 @@ from app.compose.prompt import (
 )
 from app.compose.render import render_lecture, render_paper
 from app.compose.validate import ComposePayloadError, validate_compose_payload
+from app.knowledge.access import is_compose_eligible
 from app.retrieve import run_query
 
 
@@ -66,6 +67,21 @@ def compose_from_query(
     hits = retrieved.result.hits
     if not hits:
         raise RuntimeError("retrieve returned no KnowledgeObjects")
+
+    provider = config.LLM_PROVIDER
+    eligible_hits = [
+        h for h in hits if is_compose_eligible(h.classification, llm_provider=provider)
+    ]
+    blocked = [h for h in hits if h not in eligible_hits]
+    if blocked:
+        labels = ", ".join(f"{h.ko_id}({h.classification})" for h in blocked[:5])
+        print(f"[compose] access filter blocked {len(blocked)} KO(s): {labels}", flush=True)
+    hits = eligible_hits
+    if not hits:
+        raise RuntimeError(
+            f"no compose-eligible KnowledgeObjects for provider={provider} "
+            "(secret never allowed; restricted blocked for cloud LLM)"
+        )
 
     packs: list[dict] = []
     sources: list[ComposeSourceHit] = []

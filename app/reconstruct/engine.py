@@ -172,6 +172,7 @@ def run_reconstruct(
     subdir: str | None = None,
     tag: str | None = None,
     concept: str | None = None,
+    taxonomy_prefix: str | None = None,
     limit: int | None = None,
     view: str | None = "theme",
     seed: str = "",
@@ -216,6 +217,7 @@ def run_reconstruct(
             subdir=subdir,
             tag=tag,
             concept=concept,
+            taxonomy_prefix=taxonomy_prefix,
             limit=limit,
         )
     else:

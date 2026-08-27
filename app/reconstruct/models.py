@@ -88,7 +88,7 @@ class ReconstructedView(BaseModel):
     schema_version: str = "0.2"
     id: str = ""
     created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    view_type: Literal["theme", "concept", "learning_path"] = "theme"
+    view_type: Literal["theme", "concept", "learning_path", "taxonomy"] = "theme"
     title: str = ""
     seed: str = ""
     graph_id: str = ""

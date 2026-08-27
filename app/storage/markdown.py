@@ -5,6 +5,8 @@ import re
 from pathlib import Path
 
 from app import config
+from app.knowledge.access import access_to_meta_lines
+from app.knowledge.taxonomy import taxonomy_to_meta_lines
 from app.models import KnowledgeUnit
 
 
@@ -22,6 +24,18 @@ def render_markdown(unit: KnowledgeUnit) -> str:
 
     created = unit.created.strftime("%Y-%m-%dT%H:%M:%SZ")
     source_line = unit.url or unit.source
+    access_lines = access_to_meta_lines(unit.access)
+    access_block = ("\n".join(access_lines) + "\n") if access_lines else ""
+    taxonomy_lines = taxonomy_to_meta_lines(unit.taxonomy)
+    taxonomy_block = ("\n".join(taxonomy_lines) + "\n") if taxonomy_lines else ""
+    taxonomy_section = ""
+    if unit.taxonomy.path:
+        chain = " > ".join(unit.taxonomy.path)
+        taxonomy_section = f"""
+## Taxonomy
+
+{chain}
+"""
     return f"""# {unit.title}
 
 ```yaml
@@ -32,12 +46,12 @@ type: {unit.type}
 url: {unit.url or ""}
 created: {created}
 tags: {json.dumps(unit.tags, ensure_ascii=False)}
-```
+{access_block}{taxonomy_block}```
 
 ## Core Idea
 
 {unit.summary}
-
+{taxonomy_section}
 ## Concepts
 
 {bullets(unit.concepts)}

@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.models import KnowledgeUnit, SourceType
+from app.knowledge.taxonomy import TaxonomyBlock, taxonomy_from_payload
 
 _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
 _JSON_OBJECT = re.compile(r"\{.*\}", re.DOTALL)
@@ -68,6 +69,7 @@ def knowledge_unit_from_payload(
     source_type: SourceType,
     url: str | None,
     fallback_title: str,
+    taxonomy: TaxonomyBlock | None = None,
 ) -> KnowledgeUnit:
     title = str(payload.get("title") or fallback_title).strip() or fallback_title
     summary = str(
@@ -78,6 +80,10 @@ def knowledge_unit_from_payload(
     ).strip()
     if not summary:
         raise CompressParseError("LLM JSON missing required field: summary")
+
+    tax = taxonomy or taxonomy_from_payload(
+        payload.get("taxonomy_path") or payload.get("taxonomy")
+    )
 
     try:
         return KnowledgeUnit(
@@ -99,6 +105,7 @@ def knowledge_unit_from_payload(
             prerequisites=_as_str_list(payload.get("prerequisites")),
             unknowns=_as_str_list(payload.get("unknowns")),
             tags=_as_str_list(payload.get("tags")),
+            taxonomy=tax,
         )
     except ValidationError as exc:
         raise CompressParseError(str(exc)) from exc

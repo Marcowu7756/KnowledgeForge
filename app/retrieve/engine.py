@@ -33,6 +33,7 @@ def run_index(
     from_packages: bool = False,
     subdir: str | None = None,
     tag: str | None = None,
+    taxonomy_prefix: str | None = None,
     limit: int | None = None,
 ) -> IndexBuildResult:
     dest = retrieve_dir()
@@ -42,6 +43,7 @@ def run_index(
         from_packages=from_packages,
         subdir=subdir,
         tag=tag,
+        taxonomy_prefix=taxonomy_prefix,
         limit=limit,
         dest=dest,
     )

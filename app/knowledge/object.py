@@ -6,6 +6,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from app.knowledge.access import AccessBlock
+from app.knowledge.taxonomy import TaxonomyBlock
 from app.models import KnowledgeUnit, SourceType
 
 RelationType = Literal[
@@ -115,6 +117,8 @@ class KnowledgeObject(BaseModel):
     schema_version: str = "0.1"
     id: str = Field(default_factory=lambda: f"ko_{uuid4().hex[:12]}")
     source: SourceRef = Field(default_factory=SourceRef)
+    access: AccessBlock = Field(default_factory=AccessBlock)
+    taxonomy: TaxonomyBlock = Field(default_factory=TaxonomyBlock)
     content: ContentBlock
     relations: list[RelationEdge] = Field(default_factory=list)
     visual: VisualRef = Field(default_factory=VisualRef)
@@ -173,6 +177,7 @@ def from_knowledge_unit(
     *,
     source: SourceRef | None = None,
     knowledge_md: str = "",
+    access: AccessBlock | None = None,
 ) -> KnowledgeObject:
     src = source or SourceRef(
         type=unit.type,
@@ -185,6 +190,8 @@ def from_knowledge_unit(
         id=f"ko_{unit.id}",
         unit_id=unit.id,
         source=src,
+        access=access or unit.access,
+        taxonomy=unit.taxonomy,
         content=ContentBlock(
             title=unit.title,
             summary=unit.summary,

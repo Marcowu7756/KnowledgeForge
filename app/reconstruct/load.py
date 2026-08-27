@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app import config
+from app.knowledge.access import AccessBlock, is_retrievable
 from app.knowledge.object import KnowledgeObject
+from app.knowledge.taxonomy import TaxonomyBlock
 from app.knowledge.parse import load_knowledge_object
 from app.storage.index import global_jsonl_path, load_jsonl
 
@@ -54,6 +55,8 @@ def collect_from_index(
     subdir: str | None = None,
     tag: str | None = None,
     concept: str | None = None,
+    classification: str | None = None,
+    taxonomy_prefix: str | None = None,
     limit: int | None = None,
 ) -> list[KnowledgeObject]:
     records = load_jsonl(global_jsonl_path())
@@ -78,6 +81,22 @@ def collect_from_index(
             continue
         if concept and concept not in (rec.get("concepts") or []):
             continue
+        access_raw = rec.get("access") if isinstance(rec.get("access"), dict) else {}
+        rec_class = str(access_raw.get("classification") or "public")
+        if classification and rec_class != classification:
+            continue
+        if not is_retrievable(rec_class):
+            continue
+        tax_raw = rec.get("taxonomy") if isinstance(rec.get("taxonomy"), dict) else {}
+        tax_path = list(tax_raw.get("path") or [])
+        if taxonomy_prefix:
+            prefix = [
+                p.strip()
+                for p in taxonomy_prefix.replace("\\", "/").split("/")
+                if p.strip()
+            ]
+            if prefix and not TaxonomyBlock(path=tax_path).matches_prefix(prefix):
+                continue
         filtered.append(rec)
 
     # Prefer richer / filter-aligned records before applying limit (not jsonl order)

@@ -20,6 +20,7 @@ class RetrieveHit(BaseModel):
     summary: str = ""
     why: list[str] = Field(default_factory=list)  # explainability
     vector_id: str = ""
+    classification: str = "public"
 
 
 class RetrieveResult(BaseModel):
@@ -43,6 +44,10 @@ class IndexRecord(BaseModel):
     summary: str = ""
     text_hash: str = ""
     indexed_at: str = ""
+    classification: str = "public"
+    source_project: str = ""
+    export_policy: str = "export_ok"
+    taxonomy_path: list[str] = Field(default_factory=list)
 
 
 class IndexManifest(BaseModel):

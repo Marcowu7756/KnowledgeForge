@@ -24,6 +24,7 @@ from app.voice import (
     set_default_voice,
     speak_with_voice,
 )
+from app.ingest.ecosystem import run_ecosystem_ingest
 from app.pipeline import (
     AudioIngestError,
     BilibiliIngestError,
@@ -53,12 +54,13 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py audio <WAV|MP3|...>
   python main.py pdf <FILE>
   python main.py search <ROOT> ... --keyword <WORD>
+  python main.py ecosystem ingest setv|factorlib|asharelib <ROOT> ... [--dry-run] [--limit N]
   python main.py derive <KNOWLEDGE.md> [--mode auto|english|physics|generic]
   python main.py express <KNOWLEDGE.md> [--voice NAME] [--no-animation] [--no-narration]
   python main.py animate <KNOWLEDGE.md> [--fast]
   python main.py compile <SOURCE|CARD.md> [--animate] [--narrate] [--fast]
   python main.py compile --rerun-step animation|expression|manifest --package DIR
-  python main.py reconstruct --from-index [--view theme|concept|learning_path] [--seed X]
+  python main.py reconstruct --from-index [--view theme|concept|learning_path|taxonomy] [--seed X]
   python main.py reconstruct --from-index --min-confidence 0.5
   python main.py reconstruct --evolve data\\reconstruct\\<id> --add CARD.md
   python main.py reconstruct --from-packages [--view theme]
@@ -199,6 +201,38 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_index_flag(search)
 
+    ecosystem = sub.add_parser(
+        "ecosystem",
+        help="Ingest SETV / FactorLib / AShareLib design docs → hierarchical KOs",
+    )
+    eco_sub = ecosystem.add_subparsers(dest="ecosystem_command")
+    eco_ingest = eco_sub.add_parser(
+        "ingest",
+        help="Compile external design docs (conclusions only, no raw data)",
+    )
+    eco_ingest.add_argument(
+        "project",
+        choices=["setv", "factorlib", "asharelib"],
+        help="Source ecosystem project",
+    )
+    eco_ingest.add_argument(
+        "roots",
+        nargs="+",
+        help="Read-only doc roots to scan (.md/.txt)",
+    )
+    eco_ingest.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Process at most N matched files",
+    )
+    eco_ingest.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="List matches only; do not call the LLM",
+    )
+    _add_index_flag(eco_ingest)
+
     index = sub.add_parser("index", help="Manage knowledge indexes (optional feature)")
     index_sub = index.add_subparsers(dest="index_command")
     rebuild = index_sub.add_parser(
@@ -324,8 +358,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Max KOs when using --from-index",
     )
     reconstruct.add_argument(
+        "--taxonomy-prefix",
+        default=None,
+        help="Filter index by taxonomy path prefix, e.g. 专有知识/SETV",
+    )
+    reconstruct.add_argument(
         "--view",
-        choices=["theme", "concept", "learning_path", "none"],
+        choices=["theme", "concept", "learning_path", "taxonomy", "none"],
         default="theme",
         help="Reconstructed view type (default: theme)",
     )
@@ -373,6 +412,11 @@ def build_parser() -> argparse.ArgumentParser:
     r_index.add_argument("--from-packages", action="store_true")
     r_index.add_argument("--subdir", default=None)
     r_index.add_argument("--tag", default=None)
+    r_index.add_argument(
+        "--taxonomy-prefix",
+        default=None,
+        help="Filter index by taxonomy path prefix",
+    )
     r_index.add_argument("--limit", type=int, default=None)
     r_query = retrieve_sub.add_parser(
         "query",
@@ -805,6 +849,51 @@ def cmd_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ecosystem(args: argparse.Namespace) -> int:
+    if args.ecosystem_command != "ingest":
+        print(
+            "Usage: python main.py ecosystem ingest setv|factorlib|asharelib <ROOT> ...",
+            file=sys.stderr,
+        )
+        return 2
+    print(f"[ecosystem] project={args.project}")
+    for root in args.roots:
+        print(f"[ecosystem] root={root}")
+    print(f"[llm] provider={config.LLM_PROVIDER}")
+    try:
+        batch = run_ecosystem_ingest(
+            args.project,
+            args.roots,
+            limit=args.limit,
+            dry_run=args.dry_run,
+            index=False if args.no_index else None,
+        )
+    except (FileNotFoundError, NotADirectoryError, ValueError) as exc:
+        print(f"Ecosystem ingest failed: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:  # noqa: BLE001
+        print(f"Ecosystem ingest failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"[ecosystem] matched={len(batch.hits)}")
+    for hit in batch.hits:
+        print(f"  - {hit.path}")
+
+    if args.dry_run:
+        print("[dry-run] no LLM calls; external sources untouched")
+        return 0
+
+    for result in batch.results:
+        _print_result(result)
+        print(f"  taxonomy: {result.unit.taxonomy.canonical}")
+    for path, reason in batch.skipped:
+        print(f"[skip] {path}: {reason}", file=sys.stderr)
+    print(
+        f"[done] compressed={len(batch.results)} skipped={len(batch.skipped)}"
+    )
+    return 0
+
+
 def cmd_express(
     card: str,
     *,
@@ -862,6 +951,7 @@ def cmd_reconstruct(args: argparse.Namespace) -> int:
             subdir=args.subdir,
             tag=args.tag,
             concept=args.concept,
+            taxonomy_prefix=args.taxonomy_prefix,
             limit=args.limit,
             view=view,
             seed=args.seed,
@@ -939,6 +1029,7 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
                 from_packages=args.from_packages,
                 subdir=args.subdir,
                 tag=args.tag,
+                taxonomy_prefix=args.taxonomy_prefix,
                 limit=args.limit,
             )
         except (ReconstructLoadError, EmbedderError, FileNotFoundError) as exc:
@@ -1144,6 +1235,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_audio(args.file, args.dest_subdir, no_index=args.no_index)
     if args.command == "search":
         return cmd_search(args)
+    if args.command == "ecosystem":
+        return cmd_ecosystem(args)
     if args.command == "index":
         if args.index_command == "rebuild":
             return cmd_index_rebuild(args.subdir)

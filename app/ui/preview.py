@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app import config
+from app.knowledge.parse import load_knowledge_object
 
 _ALLOWED_SUFFIX = {".md", ".txt", ".json", ".gif", ".wav", ".png", ".jpg", ".jpeg", ".webp"}
 
@@ -13,6 +14,16 @@ def allowed_roots() -> list[Path]:
     return [
         config.DATA_DIR.resolve(),
     ]
+
+
+def _classification_for_path(path: Path) -> str:
+    if path.suffix.lower() != ".md":
+        return "public"
+    try:
+        obj = load_knowledge_object(path)
+        return obj.access.classification
+    except Exception:
+        return "public"
 
 
 def resolve_data_path(raw: str) -> Path:
@@ -40,6 +51,9 @@ def resolve_data_path(raw: str) -> Path:
 
     if path.suffix.lower() not in _ALLOWED_SUFFIX:
         raise ValueError(f"unsupported preview type: {path.suffix}")
+
+    if _classification_for_path(path) == "secret":
+        raise PermissionError("preview blocked for secret classification")
     return path
 
 

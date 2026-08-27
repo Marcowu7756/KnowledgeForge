@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from app import config
+from app.knowledge.access import default_access_for_ingest
 from app.compression.llm import compress
 from app.compression.parse import CompressParseError
 from app.ingest.bilibili import BilibiliIngestError, ingest_bilibili
@@ -115,6 +116,17 @@ def _finalize(
         unit.unknowns.append(
             "Source text exceeded compressor context; only the first chunk was compressed."
         )
+    dest_rel = ""
+    if dest_dir is not None:
+        try:
+            dest_rel = dest_dir.relative_to(config.ROOT).as_posix()
+        except ValueError:
+            dest_rel = str(dest_dir)
+    unit.access = default_access_for_ingest(
+        source_path=source.path or source.source,
+        dest_path=dest_rel,
+        tags=unit.tags,
+    )
     filename_stem = None
     if source.path:
         filename_stem = f"{Path(source.path).stem}_{source.source_type}"

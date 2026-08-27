@@ -19,6 +19,7 @@ class Compressor(Protocol):
         source_type: str,
         source: str | None = None,
         url: str | None = None,
+        system: str | None = None,
     ) -> KnowledgeUnit:
         ...
 
@@ -30,6 +31,7 @@ def compress(
     source_type: str = "notes",
     source: str | None = None,
     url: str | None = None,
+    system: str | None = None,
 ) -> KnowledgeUnit:
     """Provider-agnostic entry. Swap LLM_PROVIDER without changing callers."""
     return get_compressor().compress(
@@ -38,6 +40,7 @@ def compress(
         source_type=source_type,
         source=source,
         url=url,
+        system=system,
     )
 
 
@@ -75,6 +78,7 @@ class _BaseCompressor:
         source_type: str,
         source: str | None = None,
         url: str | None = None,
+        system: str | None = None,
     ) -> KnowledgeUnit:
         typed: SourceType = source_type if source_type in (
             "youtube",
@@ -89,7 +93,7 @@ class _BaseCompressor:
             "notes",
         ) else "notes"
         raw = self._complete(
-            COMPRESS_SYSTEM,
+            system or COMPRESS_SYSTEM,
             build_user_prompt(title or "untitled", typed, text),
         )
         payload = extract_json_object(raw)

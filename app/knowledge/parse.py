@@ -4,11 +4,14 @@ import json
 import re
 from pathlib import Path
 
+from app.knowledge.access import AccessBlock, access_from_meta
 from app.knowledge.object import (
     KnowledgeObject,
     SourceRef,
     from_knowledge_unit,
 )
+from app.knowledge.taxonomy import TaxonomyBlock, taxonomy_from_meta
+from app.knowledge.yaml_meta import parse_card_yaml
 from app.models import KnowledgeUnit, SourceType
 
 _YAML_BLOCK = re.compile(r"```yaml\n(.*?)\n```", re.DOTALL)
@@ -25,13 +28,28 @@ def _bullets(body: str) -> list[str]:
 
 
 def _yaml_map(block: str) -> dict[str, str]:
+    meta = parse_card_yaml(block)
     out: dict[str, str] = {}
-    for raw in block.splitlines():
-        if ":" not in raw:
+    for key, value in meta.items():
+        if key == "access" and isinstance(value, dict):
             continue
-        key, value = raw.split(":", 1)
-        out[key.strip()] = value.strip().strip('"')
+        if isinstance(value, (list, dict)):
+            out[key] = json.dumps(value, ensure_ascii=False)
+        elif value is None:
+            out[key] = ""
+        else:
+            out[key] = str(value)
     return out
+
+
+def _access_from_block(block: str) -> AccessBlock:
+    meta = parse_card_yaml(block)
+    return access_from_meta(meta)
+
+
+def _taxonomy_from_block(block: str) -> TaxonomyBlock:
+    meta = parse_card_yaml(block)
+    return taxonomy_from_meta(meta)
 
 
 def load_unit_from_markdown(path: Path) -> KnowledgeUnit:
@@ -42,6 +60,8 @@ def load_unit_from_markdown(path: Path) -> KnowledgeUnit:
 
     yaml_match = _YAML_BLOCK.search(text)
     meta = _yaml_map(yaml_match.group(1)) if yaml_match else {}
+    access = _access_from_block(yaml_match.group(1)) if yaml_match else AccessBlock()
+    taxonomy = _taxonomy_from_block(yaml_match.group(1)) if yaml_match else TaxonomyBlock()
 
     sections: dict[str, str] = {}
     for match in _SECTION.finditer(text):
@@ -83,6 +103,8 @@ def load_unit_from_markdown(path: Path) -> KnowledgeUnit:
         prerequisites=_bullets(sections.get("Prerequisites", "")),
         unknowns=_bullets(sections.get("Unknowns", "")),
         tags=json.loads(meta["tags"]) if meta.get("tags", "").startswith("[") else [],
+        access=access,
+        taxonomy=taxonomy,
     )
 
 

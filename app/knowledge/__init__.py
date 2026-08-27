@@ -1,9 +1,3 @@
-from app.knowledge.object import KnowledgeObject, from_knowledge_unit
-from app.knowledge.parse import load_knowledge_object, write_knowledge_object
+"""Knowledge layer package — import submodules explicitly to avoid import cycles."""
 
-__all__ = [
-    "KnowledgeObject",
-    "from_knowledge_unit",
-    "load_knowledge_object",
-    "write_knowledge_object",
-]
+__all__: list[str] = []

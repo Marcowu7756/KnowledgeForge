@@ -52,6 +52,18 @@ RULES: dict[str, RelationRule] = {
         base_confidence=0.45,
         reason="Same tag shared by ≥2 KnowledgeObjects (soft link)",
     ),
+    "taxonomy_part_of": RelationRule(
+        rule_id="taxonomy_part_of",
+        kind="intra_ko",
+        base_confidence=0.95,
+        reason="Taxonomy parent → child part_of chain (纲举目张)",
+    ),
+    "taxonomy_ko_leaf": RelationRule(
+        rule_id="taxonomy_ko_leaf",
+        kind="intra_ko",
+        base_confidence=0.93,
+        reason="Taxonomy leaf node classifies a KnowledgeObject",
+    ),
 }
 
 RULES_VERSION = "rq_v0.2"

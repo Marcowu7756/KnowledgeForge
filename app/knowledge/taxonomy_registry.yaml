@@ -1,0 +1,53 @@
+# Controlled taxonomy roots for proprietary ecosystem ingest (§8).
+# Full chain = root + path segments + LLM topic leaf.
+projects:
+  setv:
+    root: ["专有知识", "SETV"]
+    dest_subdir: restricted/setv
+    classification: restricted
+    doc_globs:
+      - "**/*.md"
+      - "**/*.txt"
+    exclude_dir_names:
+      - node_modules
+      - .git
+      - __pycache__
+      - raw
+      - data
+    compress_focus: |
+      SETV methodology only: state / failure / transition / reconfirm / risk control.
+      Extract conclusions, trigger conditions, invalidation rules — NOT raw trade logs.
+  factorlib:
+    root: ["专有知识", "FactorLib"]
+    dest_subdir: restricted/factorlib
+    classification: restricted
+    doc_globs:
+      - "**/*.md"
+      - "**/*.txt"
+    exclude_dir_names:
+      - node_modules
+      - .git
+      - __pycache__
+      - raw
+      - data
+      - params
+    compress_focus: |
+      Factor contracts, known gaps, experiment conclusions only.
+      Do NOT ingest raw parameters, undisclosed strategy code, or backtest dumps.
+  asharelib:
+    root: ["专有知识", "AShareLib"]
+    dest_subdir: restricted/asharelib
+    classification: restricted
+    doc_globs:
+      - "**/*.md"
+      - "**/*.txt"
+    exclude_dir_names:
+      - node_modules
+      - .git
+      - __pycache__
+      - raw
+      - data
+      - market
+    compress_focus: |
+      A-share constraints, observation contracts, domain boundaries.
+      Do NOT ingest tick data, account info, file paths, or live quotes.

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
+from app.knowledge.access import is_compose_eligible, is_retrievable
 from app.reconstruct.evolve import load_graph
 from app.reconstruct.models import ConceptGraph
 from app.retrieve.embedder import embed_query
@@ -99,8 +100,19 @@ def retrieve_kos(
         raise ValueError("empty query")
 
     manifest = load_manifest(index_dir)
-    records = load_records(index_dir)
-    matrix = load_vectors(index_dir)
+    all_records = load_records(index_dir)
+    all_matrix = load_vectors(index_dir)
+    pairs = [
+        (i, rec)
+        for i, rec in enumerate(all_records)
+        if is_retrievable(rec.classification)
+    ]
+    records = [rec for _, rec in pairs]
+    if pairs and all_matrix.size:
+        row_idx = [i for i, _ in pairs]
+        matrix = all_matrix[row_idx]
+    else:
+        matrix = all_matrix
     if not records or matrix.size == 0:
         raise FileNotFoundError(
             "empty retrieve index — run: python main.py retrieve index --from-index"
@@ -178,6 +190,7 @@ def retrieve_kos(
                 summary=rec.summary,
                 why=why,
                 vector_id=rec.vector_id,
+                classification=rec.classification,
             )
         )
 

@@ -25,6 +25,7 @@ def _collect(
     from_packages: bool,
     subdir: str | None,
     tag: str | None,
+    taxonomy_prefix: str | None,
     limit: int | None,
 ) -> list[KnowledgeObject]:
     if paths:
@@ -32,7 +33,7 @@ def _collect(
     if from_packages:
         return collect_from_packages()
     if from_index:
-        return collect_from_index(subdir=subdir, tag=tag, limit=limit)
+        return collect_from_index(subdir=subdir, tag=tag, limit=limit, taxonomy_prefix=taxonomy_prefix)
     raise ReconstructLoadError("specify paths, --from-index, or --from-packages")
 
 
@@ -43,6 +44,7 @@ def build_ko_index(
     from_packages: bool = False,
     subdir: str | None = None,
     tag: str | None = None,
+    taxonomy_prefix: str | None = None,
     limit: int | None = None,
     dest: Path | None = None,
 ) -> tuple[IndexManifest, list[KnowledgeObject]]:
@@ -53,6 +55,7 @@ def build_ko_index(
         from_packages=from_packages,
         subdir=subdir,
         tag=tag,
+        taxonomy_prefix=taxonomy_prefix,
         limit=limit,
     )
     kos = sorted({o.id: o for o in kos}.values(), key=lambda o: o.id)
@@ -81,6 +84,10 @@ def build_ko_index(
                 summary=(obj.content.summary or "")[:400],
                 text_hash=text_hash(text),
                 indexed_at=stamp,
+                classification=obj.access.classification,
+                source_project=obj.access.source_project,
+                export_policy=obj.access.export_policy,
+                taxonomy_path=list(obj.taxonomy.path),
             )
         )
         # Mark embedding status on in-memory object (packages not rewritten here)

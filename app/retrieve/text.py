@@ -21,6 +21,8 @@ def ko_embed_text(obj: KnowledgeObject) -> str:
         "关系: " + "；".join(relations),
         "标签: " + "、".join(c.tags[:12]),
     ]
+    if obj.taxonomy.path:
+        parts.append("分类: " + " > ".join(obj.taxonomy.path))
     text = "\n".join(p for p in parts if p and not p.endswith(": "))
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     return text[:4000]
