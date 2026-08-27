@@ -74,6 +74,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py index rebuild [--subdir NAME]
   python main.py models status
   python main.py models pull [--only whisper,embed,ollama,tts,vocos,ocr,pix2tex]
+  python main.py ui [--port 8765] [--desktop]
   python main.py status
 """
 
@@ -454,6 +455,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="whisper,embed,ollama,tts,vocos,ocr,pix2tex or 'all'",
     )
     models_pull.add_argument("--force", action="store_true")
+
+    ui = sub.add_parser("ui", help="Launch local Windows workshop UI (FastAPI)")
+    ui.add_argument("--host", default="127.0.0.1")
+    ui.add_argument("--port", type=int, default=8765)
+    ui.add_argument(
+        "--desktop",
+        action="store_true",
+        help="Open pywebview desktop window (optional dependency)",
+    )
 
     return parser
 
@@ -1166,8 +1176,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.models_command == "verify":
             return cmd_models_verify()
         return cmd_models_status()
+    if args.command == "ui":
+        return cmd_ui(args)
     parser.print_help()
     return 2
+
+
+def cmd_ui(args: argparse.Namespace) -> int:
+    from app.ui.server import serve
+
+    serve(host=args.host, port=args.port, desktop=bool(args.desktop))
+    return 0
 
 
 if __name__ == "__main__":

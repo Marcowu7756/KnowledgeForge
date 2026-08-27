@@ -68,7 +68,9 @@ elevenlabs>=1.50.0
 # ---- K. Animation / media ----
 manim>=0.19.0
 
-# ---- L. API / quick UI (later phases, installed now per request) ----
+# ---- L. API / Windows UI ----
 fastapi>=0.115.0
 uvicorn>=0.34.0
 streamlit>=1.40.0
+# Optional native window: python main.py ui --desktop
+pywebview>=5.3.0

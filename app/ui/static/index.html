@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KnowledgeForge — PAILE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="top">
+      <a class="brand" href="#home" data-stage="home">
+        <span class="brand-mark">KF</span>
+        <span class="brand-name">KnowledgeForge</span>
+      </a>
+      <nav class="top-nav" aria-label="Primary">
+        <button type="button" class="linkish" data-stage="workshop">车间</button>
+        <button type="button" class="linkish" data-stage="settings">设置</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="stage-home" class="stage active" data-stage-panel="home">
+        <p class="eyebrow">PAILE · Personal AI Learning Engine</p>
+        <h1 class="hero-brand">KnowledgeForge</h1>
+        <p class="lede">
+          把资料拆解、抽象、重组，再表达成你能理解与使用的知识形态。
+        </p>
+        <div class="cta-row">
+          <button type="button" class="btn primary" data-stage="workshop">进入车间</button>
+          <button type="button" class="btn ghost" data-stage="settings">查看本机状态</button>
+        </div>
+        <p class="pipe-hint">获取 → 沉淀 → 重组 → 检索 → 表达</p>
+      </section>
+
+      <section id="stage-workshop" class="stage" data-stage-panel="workshop" hidden>
+        <nav class="rail" aria-label="Pipeline stages">
+          <button type="button" class="rail-item active" data-panel="capture">获取</button>
+          <button type="button" class="rail-item" data-panel="distill">沉淀</button>
+          <button type="button" class="rail-item" data-panel="reconstruct">重组</button>
+          <button type="button" class="rail-item" data-panel="retrieve">检索</button>
+          <button type="button" class="rail-item" data-panel="express">表达</button>
+        </nav>
+
+        <div class="panel active" data-panel-view="capture">
+          <h2>获取知识</h2>
+          <p class="panel-lede">把一条 URL 或本地文件送进管线，产出知识卡片。</p>
+          <form id="form-capture" class="stack">
+            <label>
+              类型
+              <select name="kind">
+                <option value="file">本地文件 / PDF</option>
+                <option value="youtube">YouTube</option>
+                <option value="bilibili">Bilibili</option>
+                <option value="audio">音频</option>
+                <option value="image">图片 OCR</option>
+              </select>
+            </label>
+            <label>
+              路径或 URL
+              <input name="target" type="text" required placeholder="D:\notes\card.md 或 https://…" />
+            </label>
+            <button class="btn primary" type="submit">开始获取</button>
+          </form>
+          <pre class="out" id="out-capture" hidden></pre>
+        </div>
+
+        <div class="panel" data-panel-view="distill" hidden>
+          <h2>沉淀为 KnowledgeObject</h2>
+          <p class="panel-lede">从已有卡片编译 KO 包。知识与表达分离。</p>
+          <form id="form-compile" class="stack">
+            <label>
+              知识卡片路径
+              <input name="path" type="text" required placeholder="data\knowledge\…\CARD.md" />
+            </label>
+            <label class="check">
+              <input name="animate" type="checkbox" /> 同时生成动画（慢）
+            </label>
+            <button class="btn primary" type="submit">Compile</button>
+          </form>
+          <div class="split">
+            <div>
+              <h3>最近 packages</h3>
+              <ul id="package-list" class="quiet-list"></ul>
+            </div>
+            <pre class="out" id="out-compile" hidden></pre>
+          </div>
+        </div>
+
+        <div class="panel" data-panel-view="reconstruct" hidden>
+          <h2>重组关系图</h2>
+          <p class="panel-lede">多 KO → Relation → Graph → View。不改写原知识对象。</p>
+          <form id="form-reconstruct" class="stack">
+            <label>
+              View
+              <select name="view">
+                <option value="theme">theme</option>
+                <option value="concept">concept</option>
+                <option value="learning_path">learning_path</option>
+              </select>
+            </label>
+            <button class="btn primary" type="submit">从 index 重建</button>
+          </form>
+          <pre class="out" id="out-reconstruct" hidden></pre>
+        </div>
+
+        <div class="panel" data-panel-view="retrieve" hidden>
+          <h2>检索 KnowledgeObject</h2>
+          <p class="panel-lede">整卡嵌入检索（非 chunk）。可叠加 ConceptGraph 重排。</p>
+          <form id="form-retrieve" class="stack">
+            <label>
+              查询
+              <input name="query" type="text" required placeholder="美债与美元信用" />
+            </label>
+            <label>
+              Top K
+              <input name="top_k" type="number" min="1" max="20" value="5" />
+            </label>
+            <button class="btn primary" type="submit">检索</button>
+          </form>
+          <pre class="out" id="out-retrieve" hidden></pre>
+        </div>
+
+        <div class="panel" data-panel-view="express" hidden>
+          <h2>表达 · Compose / Artifact</h2>
+          <p class="panel-lede">用检索到的 KO 生成讲解稿或论文草稿；浏览已有表达产物。</p>
+          <form id="form-compose" class="stack">
+            <label>
+              主题
+              <input name="query" type="text" required placeholder="讲解美债收益率与美元" />
+            </label>
+            <label>
+              形态
+              <select name="kind">
+                <option value="lecture">讲解稿</option>
+                <option value="paper">论文草稿</option>
+              </select>
+            </label>
+            <button class="btn primary" type="submit">Compose</button>
+          </form>
+          <pre class="out" id="out-compose" hidden></pre>
+          <h3>最近产物</h3>
+          <ul id="artifact-list" class="quiet-list"></ul>
+        </div>
+      </section>
+
+      <section id="stage-settings" class="stage" data-stage-panel="settings" hidden>
+        <h2>本机状态</h2>
+        <p class="panel-lede">本地模型与数据路径。UI 不上传云端。</p>
+        <pre class="out show" id="out-status">加载中…</pre>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>Local · 127.0.0.1</span>
+      <span id="health-line">…</span>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

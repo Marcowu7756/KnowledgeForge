@@ -26,7 +26,7 @@ rule: 先易后难；未关闭项不宣称 FIXED；HOLD 项不启动
 | **A7** | F-P2-01 无集成测 | 难 | `tests/integration` + `@pytest.mark.slow` | ✅ DONE |
 | **A8** | F-P1-04 跨卡边偏软 | 难 | vs 关键词扩展 + inter-KO prerequisite | ✅ DONE (light) |
 | **A9** | F-P3-01 控制台乱码 | 观察 | README UTF-8 终端说明 | ✅ DONE |
-| — | F-P3-02 UI/多卡/renderer | HOLD | **不启动** | ⏸ HOLD |
+| — | F-P3-02 UI/多卡/renderer | HOLD→部分解冻 | Windows UI v0 scaffold（一源多卡仍 HOLD） | 🟡 UI shell ACTIVE |
 
 ## Verification
 

@@ -1,0 +1,346 @@
+:root {
+  --ink: #1c2b2a;
+  --muted: #5a6b68;
+  --paper: #e7ece8;
+  --paper-2: #f3f6f2;
+  --brass: #9a7b2f;
+  --brass-deep: #6e5620;
+  --line: rgba(28, 43, 42, 0.12);
+  --danger: #8b3a2f;
+  --radius: 2px;
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-body: "Manrope", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #dfe8e1 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #d5e0dc 0%, transparent 50%),
+    linear-gradient(165deg, var(--paper-2), var(--paper));
+  line-height: 1.5;
+}
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+.top,
+main,
+.foot {
+  position: relative;
+  z-index: 1;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+.top-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.linkish {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.35rem 0.6rem;
+}
+
+.linkish:hover {
+  color: var(--ink);
+}
+
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.stage[hidden] {
+  display: none !important;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.hero-brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.8rem, 8vw, 4.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  animation: rise 0.7s ease-out both;
+}
+
+.lede {
+  margin: 1rem 0 0;
+  max-width: 34rem;
+  font-size: 1.1rem;
+  color: var(--muted);
+  animation: rise 0.7s ease-out 0.08s both;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  animation: rise 0.7s ease-out 0.16s both;
+}
+
+.pipe-hint {
+  margin-top: 2.5rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  animation: rise 0.7s ease-out 0.24s both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.7rem 1.15rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: var(--ink);
+  color: var(--paper-2);
+}
+
+.btn.primary:hover {
+  background: #243938;
+}
+
+.btn.ghost:hover {
+  border-color: var(--brass-deep);
+  color: var(--brass-deep);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.rail-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.rail-item.active {
+  color: var(--ink);
+  border-bottom-color: var(--brass);
+}
+
+.panel[hidden] {
+  display: none !important;
+}
+
+.panel h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 700;
+}
+
+.panel-lede {
+  margin: 0.5rem 0 1.25rem;
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.stack {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 36rem;
+}
+
+.stack label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stack label.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink);
+  border-radius: var(--radius);
+}
+
+.out {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: rgba(28, 43, 42, 0.04);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.82rem;
+  max-height: 22rem;
+  overflow: auto;
+}
+
+.out.show,
+.out:not([hidden]) {
+  display: block;
+}
+
+.out.error {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  color: var(--danger);
+}
+
+.split {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 800px) {
+  .split {
+    grid-template-columns: 1fr 1.2fr;
+  }
+}
+
+.quiet-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.quiet-list li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.quiet-list strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.75rem 1.25rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .top {
+    padding: 0.9rem 1rem;
+  }
+  main {
+    padding: 1.75rem 1rem 3rem;
+  }
+  .hero-brand {
+    font-size: 2.6rem;
+  }
+}

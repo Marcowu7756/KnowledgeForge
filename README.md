@@ -75,7 +75,7 @@ Math view:
 | 1 Input | OCR / ASR / parsers / YouTube / Bilibili / Twitter | YouTube + Bilibili + Twitter + MD/TXT/PDF + image OCR + folder search |
 | 2 Distill | Atomic Knowledge Units | LLM compress → Markdown/JSON |
 | 3 Reconstruct | Reorganize by concept / stage / question | 🔜 next after asset density |
-| 4 Express | Notes, TTS, Manim, interactive | animate GIF + express GIF+TTS MVP |
+| 4 Express | Notes, TTS, Manim, interactive | animate GIF + express GIF+TTS + **Windows UI v0** |
 | 5 Feedback | Mastery / gaps / next path | later |
 
 ---
@@ -309,7 +309,7 @@ Aligned toward PAILE distill targets (additive later):
 | **P2** | Multiple KO → Concept Graph → Reconstruction views | ✅ CLOSED (v0.2) |
 | **P3 (active)** | KO + Graph + Embedding → KO Retrieval + Compose (paper/lecture) | 🟡 ACTIVE |
 | deferred | derive → animate（manim_beats）；extra renderers（Manim/SVG/WebGL） | ⏸ DEFER |
-| later | Windows desktop UI → `.exe` | 🔜 |
+| later | Windows desktop UI → `.exe` | 🔜 v0 scaffold: `python main.py ui` |
 
 **Frozen boundary:** Expression Layer proves KO can drive multimodal consumers without polluting the knowledge ontology. Renderer expansion ≠ Expression Layer work. P2 reorganizes **structure across KOs**, not text rewrite. Original KO remains immutable; Reconstruct outputs live under `data/reconstruct/`.
 
@@ -346,6 +346,18 @@ Amplifies learning speed, depth, cross-domain links, and creation — it does no
 | `tests/reorganize/` | Relation 规则、Graph、Evolution、Views |
 
 单元测试默认不打外网、不加载 Whisper/BGE/Ollama 权重。
+
+### Windows 车间 UI（v0）
+
+```powershell
+.\.venv\Scripts\python.exe main.py ui
+# 浏览器打开 http://127.0.0.1:8765
+# 可选桌面窗：
+.\.venv\Scripts\python.exe -m pip install pywebview
+.\.venv\Scripts\python.exe main.py ui --desktop
+```
+
+设计说明：`docs/ui/WINDOWS_UI_v0.md`（获取→沉淀→重组→检索→表达）。
 
 慢速集成（可选）：
 
