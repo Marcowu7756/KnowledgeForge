@@ -44,22 +44,13 @@ def record_wav(
 
 
 def transcribe_sample(wav_path: Path) -> str:
-    """Use local Whisper to caption the voice sample (needed by clone TTS)."""
-    from faster_whisper import WhisperModel
+    """Use local Whisper via unified ASR entry (app.ingest.asr)."""
+    from app.ingest.asr import AsrError, transcribe_file
 
-    from app import config
-
-    model = WhisperModel(
-        config.WHISPER_MODEL,
-        device="cpu",
-        compute_type="int8",
-    )
-    segments, _info = model.transcribe(
-        str(wav_path),
-        language=config.WHISPER_LANGUAGE,
-        vad_filter=True,
-    )
-    text = " ".join(seg.text.strip() for seg in segments if seg.text and seg.text.strip())
+    try:
+        text, _lang = transcribe_file(wav_path)
+    except AsrError as exc:
+        raise VoiceRecordError(str(exc)) from exc
     return text.strip()
 
 

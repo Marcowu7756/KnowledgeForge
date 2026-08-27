@@ -60,40 +60,15 @@ def download_audio(url: str, dest_dir: Path) -> Path:
 
 
 def asr_transcribe(url: str, *, label: str) -> tuple[str, str]:
-    """Download audio and transcribe with faster-whisper."""
-    try:
-        from faster_whisper import WhisperModel
-    except ImportError as exc:  # pragma: no cover
-        raise VideoIngestError(
-            f"no subtitles and faster-whisper is not installed ({label})"
-        ) from exc
+    """Download audio and transcribe via unified ASR entry."""
+    from app.ingest.asr import AsrError, transcribe_file
 
     with tempfile.TemporaryDirectory(prefix=f"kf_{label}_") as tmp:
         audio_path = download_audio(url, Path(tmp))
-        model = WhisperModel(
-            config.WHISPER_MODEL,
-            device="cpu",
-            compute_type="int8",
-        )
-        segments, info = model.transcribe(
-            str(audio_path),
-            language=config.WHISPER_LANGUAGE,
-            vad_filter=True,
-        )
-        lines = [seg.text.strip() for seg in segments if seg.text and seg.text.strip()]
-        if not lines and config.WHISPER_LANGUAGE:
-            segments, info = model.transcribe(
-                str(audio_path),
-                language=None,
-                vad_filter=True,
-            )
-            lines = [
-                seg.text.strip() for seg in segments if seg.text and seg.text.strip()
-            ]
-        if not lines:
-            raise VideoIngestError(f"ASR produced empty transcript for {url}")
-        lang = getattr(info, "language", None) or config.WHISPER_LANGUAGE or "asr"
-        return "\n".join(lines), f"whisper:{lang}:{config.WHISPER_MODEL}"
+        try:
+            return transcribe_file(audio_path)
+        except AsrError as exc:
+            raise VideoIngestError(str(exc)) from exc
 
 
 _SRT_TIME_RE = re.compile(

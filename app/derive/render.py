@@ -121,7 +121,16 @@ def render_physics_derive(payload: dict[str, Any], *, parent_path: str) -> str:
     lines.extend(["", "## Check questions", ""])
     questions = payload.get("check_questions") or []
     lines.extend([f"- {q}" for q in questions] or ["- (none)"])
-    lines.extend(["", "## Manim beats (storyboard for later animation)", ""])
+    lines.extend(
+        [
+            "",
+            "## Manim beats (DEFER — storyboard only; not wired to expression)",
+            "",
+            "> Status: `not_wired_to_expression`. These beats are planning text only;",
+            "> they do **not** drive GIF/Manim renderers in the current pipeline.",
+            "",
+        ]
+    )
     for beat in payload.get("manim_beats") or []:
         if not isinstance(beat, dict):
             lines.append(f"- {beat}")

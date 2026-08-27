@@ -40,7 +40,8 @@ Rules:
 PHYSICS_SYSTEM = """You are a physics cognition engine inside PAILE.
 Given an abstract physics knowledge unit, DERIVE a vivid process decomposition.
 Goal: restore the abstract idea as a sequence a learner can see and feel.
-This text form is a storyboard for later animation (Manim) — write visual beats.
+This text form is a DEFER storyboard for later animation (Manim) — write visual beats.
+Do NOT claim beats are wired to expression/renderers; they are planning text only.
 
 Return JSON only:
 {
@@ -73,7 +74,7 @@ Return JSON only:
 Rules:
 - 4-8 process steps from concrete situation → abstract law (or reverse).
 - visual must be concrete (objects, arrows, motion), not jargon-only.
-- manim_beats: 3-6 animation-ready scenes.
+- manim_beats: 3-6 storyboard scenes (not wired to expression; DEFER).
 - Keep symbols consistent with the source formulas when present.
 """
 

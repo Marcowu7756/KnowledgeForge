@@ -28,6 +28,10 @@ def vectors_path(root: Path | None = None) -> Path:
     return (root or retrieve_dir()) / "vectors.npy"
 
 
+def embeddings_path(root: Path | None = None) -> Path:
+    return (root or retrieve_dir()) / "embeddings.json"
+
+
 def save_index(
     *,
     records: list[IndexRecord],
@@ -65,6 +69,26 @@ def save_index(
         for rec in records:
             handle.write(rec.model_dump_json() + "\n")
     np.save(vectors_path(root), vectors.astype(np.float32))
+
+    # Sidecar EmbeddingRef map (packages not rewritten; F-P2-02)
+    sidecar = {
+        "kind": "embedding_refs",
+        "model": model,
+        "updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "refs": {
+            r.ko_id: {
+                "vector_id": r.vector_id,
+                "text_hash": r.text_hash,
+                "path": r.path,
+                "status": "ready",
+            }
+            for r in records
+        },
+    }
+    embeddings_path(root).write_text(
+        json.dumps(sidecar, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     return manifest
 
 

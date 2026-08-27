@@ -1,14 +1,37 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
 
 from app.reconstruct.evolve import load_graph
 from app.reconstruct.models import ConceptGraph
-from app.retrieve.embedder import embed_query, model_path_str
-from app.retrieve.models import RetrieveHit, RetrieveResult
+from app.retrieve.embedder import embed_query
+from app.retrieve.models import IndexRecord, RetrieveHit, RetrieveResult
 from app.retrieve.store import cosine_top_k, load_manifest, load_records, load_vectors
+
+_TOKEN_RE = re.compile(r"[\w\u4e00-\u9fff]+", re.UNICODE)
+
+
+def _tokens(text: str) -> set[str]:
+    return {t.lower() for t in _TOKEN_RE.findall(text or "") if len(t) > 1}
+
+
+def _query_overlap(query: str, rec: IndexRecord) -> float:
+    """Fraction of query tokens that appear in title/concepts/tags (0..1)."""
+    q = _tokens(query)
+    if not q:
+        return 0.0
+    bag: set[str] = set()
+    bag |= _tokens(rec.title)
+    for c in rec.concepts:
+        bag |= _tokens(c)
+    for t in rec.tags:
+        bag |= _tokens(t)
+    if not bag:
+        return 0.0
+    return len(q & bag) / len(q)
 
 
 def _graph_neighbor_scores(
@@ -16,13 +39,20 @@ def _graph_neighbor_scores(
     seed_ko_ids: list[str],
     *,
     min_confidence: float = 0.5,
+    allowed: set[str] | None = None,
 ) -> dict[str, tuple[float, str]]:
-    """Boost KOs linked to semantic seeds via shared_concept / shared_tag edges."""
+    """Boost KOs linked to semantic seeds via shared_concept / shared_tag edges.
+
+    When ``allowed`` is set, only members inside that set receive boost
+    (tightens noise: no out-of-pool graph expansion).
+    """
     seeds = set(seed_ko_ids)
     scores: dict[str, tuple[float, str]] = {}
 
     def consider(kid: str, boost: float, reason: str) -> None:
         if not kid or kid in seeds:
+            return
+        if allowed is not None and kid not in allowed:
             return
         prev = scores.get(kid)
         if prev is None or boost > prev[0]:
@@ -61,7 +91,7 @@ def retrieve_kos(
     """
     Graph-aware KO retrieval:
       semantic embed(query) → top pool
-      + ConceptGraph neighbor boost
+      + ConceptGraph neighbor boost (within pool only)
       → re-rank KnowledgeObjects (never document chunks)
     """
     query = query.strip()
@@ -82,11 +112,12 @@ def retrieve_kos(
     ranked = cosine_top_k(qvec, matrix, top_k=pool)
 
     by_id = {r.ko_id: (i, r) for i, r in enumerate(records)}
-    # Full semantic scores for explainable re-rank (still KO-level, not chunks)
-    full_scores = matrix @ qvec.astype(np.float32)
     semantic: dict[str, float] = {}
     for idx, score in ranked:
         semantic[records[idx].ko_id] = float(score)
+
+    # Candidates = semantic pool only (F-P1-01: no out-of-pool graph noise)
+    candidates = set(semantic.keys())
 
     g = graph
     if g is None and graph_path:
@@ -99,20 +130,12 @@ def retrieve_kos(
             kid for kid, _ in sorted(semantic.items(), key=lambda x: -x[1])[: max(3, top_k)]
         ]
         graph_scores = _graph_neighbor_scores(
-            g, seeds, min_confidence=min_graph_confidence
+            g,
+            seeds,
+            min_confidence=min_graph_confidence,
+            allowed=candidates,
         )
         mode = "graph_aware"
-        # Ensure graph neighbors carry their true semantic similarity
-        for kid in graph_scores:
-            if kid in semantic or kid not in by_id:
-                continue
-            idx, _ = by_id[kid]
-            semantic[kid] = float(full_scores[idx])
-
-    candidates = set(semantic.keys())
-    if mode == "graph_aware":
-        # Keep semantic pool; add graph neighbors that are in the KO index
-        candidates |= {kid for kid in graph_scores if kid in by_id}
 
     alpha = 1.0 - graph_weight if mode == "graph_aware" else 1.0
     beta = graph_weight if mode == "graph_aware" else 0.0
@@ -126,17 +149,20 @@ def retrieve_kos(
         _, rec = pair
         sem = semantic.get(kid, 0.0)
         gscore, greason = graph_scores.get(kid, (0.0, ""))
-        # Soft-gate: graph boost only counts when semantic is not near-zero
-        effective_graph = gscore if sem >= 0.15 else gscore * 0.25
-        final = alpha * sem + beta * effective_graph
+        overlap = _query_overlap(query, rec)
+        # Query-token overlap scales graph boost; soft-gate near-zero semantic
+        overlap_factor = 0.25 + 0.75 * overlap if gscore > 0 else 1.0
+        gated = gscore * overlap_factor
+        if sem < 0.15:
+            gated *= 0.25
+        final = alpha * sem + beta * gated
         why = [f"semantic={sem:.4f}"]
         if greason:
             why.append(
-                f"graph_boost={effective_graph:.4f} ({greason})"
+                f"graph_boost={gated:.4f} ({greason}; overlap={overlap:.2f})"
                 + ("" if sem >= 0.15 else "; gated_low_semantic")
             )
-        if top_sem > 0 and sem >= top_sem * 0.98 and kid in dict(ranked):
-            # mark seeds from initial pool
+        if top_sem > 0 and sem >= top_sem * 0.98:
             if any(records[i].ko_id == kid for i, _ in ranked[: max(3, top_k)]):
                 why.append("semantic_seed")
         hits.append(
@@ -145,7 +171,7 @@ def retrieve_kos(
                 title=rec.title,
                 score=round(final, 6),
                 semantic_score=round(sem, 6),
-                graph_score=round(effective_graph, 6),
+                graph_score=round(gated, 6),
                 path=rec.path,
                 concepts=list(rec.concepts[:12]),
                 tags=list(rec.tags[:8]),
@@ -164,13 +190,11 @@ def retrieve_kos(
         top_k=top_k,
         hits=hits,
         evidence={
-            "pipeline": "retrieve_v0.1",
-            "unit": "knowledge_object",
-            "embed_model": manifest.model or model_path_str(),
-            "index_count": manifest.count,
-            "graph_id": g.id if g else None,
-            "graph_weight": beta,
+            "model": manifest.model,
+            "graph_id": g.id if g is not None else None,
             "semantic_pool": pool,
-            "min_graph_confidence": min_graph_confidence,
+            "graph_weight": graph_weight if mode == "graph_aware" else 0.0,
+            "candidates": len(candidates),
+            "graph_boost_in_pool_only": True,
         },
     )

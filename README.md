@@ -347,6 +347,22 @@ Amplifies learning speed, depth, cross-domain links, and creation — it does no
 
 单元测试默认不打外网、不加载 Whisper/BGE/Ollama 权重。
 
+慢速集成（可选）：
+
+```powershell
+$env:KF_RUN_SLOW="1"
+.\.venv\Scripts\python.exe -m pytest tests/integration -q
+```
+
+### Windows 控制台中文
+
+源文件与产物均为 UTF-8。若 PowerShell/cmd 打印中文为 `??`，先切 UTF-8 终端再跑 CLI：
+
+```powershell
+chcp 65001
+$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+```
+
 ---
 
 ## Layout

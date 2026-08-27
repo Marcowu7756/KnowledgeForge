@@ -109,32 +109,15 @@ def _download_audio(url: str, dest_dir: Path) -> Path:
 
 
 def _asr_text(url: str, video_id: str) -> tuple[str, str]:
-    """Download audio and transcribe with faster-whisper."""
-    try:
-        from faster_whisper import WhisperModel
-    except ImportError as exc:  # pragma: no cover
-        raise YouTubeIngestError(
-            "no captions and faster-whisper is not installed"
-        ) from exc
+    """Download audio and transcribe via unified ASR entry."""
+    from app.ingest.asr import AsrError, transcribe_file
 
     with tempfile.TemporaryDirectory(prefix="kf_yt_") as tmp:
         audio_path = _download_audio(url, Path(tmp))
-        # CPU is reliable on Windows + AMD; float32 for small/base models.
-        model = WhisperModel(
-            config.WHISPER_MODEL,
-            device="cpu",
-            compute_type="int8",
-        )
-        segments, info = model.transcribe(
-            str(audio_path),
-            language=config.WHISPER_LANGUAGE,
-            vad_filter=True,
-        )
-        lines = [seg.text.strip() for seg in segments if seg.text and seg.text.strip()]
-        if not lines:
-            raise YouTubeIngestError(f"ASR produced empty transcript for {video_id}")
-        lang = getattr(info, "language", None) or config.WHISPER_LANGUAGE or "asr"
-        return "\n".join(lines), f"whisper:{lang}:{config.WHISPER_MODEL}"
+        try:
+            return transcribe_file(audio_path)
+        except AsrError as exc:
+            raise YouTubeIngestError(str(exc)) from exc
 
 
 def ingest_youtube(url: str) -> IngestedSource:

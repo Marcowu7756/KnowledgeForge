@@ -242,6 +242,46 @@ def build_graph(
                     detail=f"shared_tag={tag}",
                 )
 
+    # Inter-KO prerequisite: match prerequisite text → other KO title / concept
+    title_index: dict[str, str] = {
+        _norm_concept(o.content.title).lower(): o.id
+        for o in kos
+        if _norm_concept(o.content.title)
+    }
+    concept_label_index: dict[str, set[str]] = defaultdict(set)
+    for cid, ko_set in concept_to_kos.items():
+        label = nodes[cid].label.lower() if cid in nodes else ""
+        if label:
+            concept_label_index[label] |= set(ko_set)
+
+    for obj in kos:
+        for pre in obj.content.prerequisites:
+            key = _norm_concept(pre).lower()
+            if not key:
+                continue
+            targets: set[str] = set()
+            if key in title_index:
+                targets.add(title_index[key])
+            # substring / containment soft match on titles
+            for title_key, tid in title_index.items():
+                if key in title_key or title_key in key:
+                    targets.add(tid)
+            if key in concept_label_index:
+                targets |= concept_label_index[key]
+            targets.discard(obj.id)
+            for tid in sorted(targets):
+                add_edge(
+                    frm=_ko_node_id(tid),
+                    to=_ko_node_id(obj.id),
+                    type_="depends_on",
+                    kind="prerequisite",
+                    label="prerequisite",
+                    source_ko_ids=[obj.id, tid],
+                    rule_id="prerequisite_inter_ko",
+                    weight=0.85,
+                    detail=f"prereq_match={pre[:80]}",
+                )
+
     # Filter + stable sort
     kept = [e for e in edges.values() if e.confidence >= min_confidence]
     kept.sort(key=lambda e: (e.kind, -e.confidence, e.id))

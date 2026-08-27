@@ -80,6 +80,22 @@ def collect_from_index(
             continue
         filtered.append(rec)
 
+    # Prefer richer / filter-aligned records before applying limit (not jsonl order)
+    def _priority(rec: dict) -> tuple:
+        concepts = list(rec.get("concepts") or [])
+        tags = list(rec.get("tags") or [])
+        score = len(concepts) * 2 + len(tags)
+        if concept and concept in concepts:
+            score += 20
+        if tag and tag in tags:
+            score += 10
+        if str(rec.get("summary") or "").strip():
+            score += 1
+        # higher score first; stable path tie-break
+        return (-score, str(rec.get("path") or ""))
+
+    filtered.sort(key=_priority)
+
     if limit is not None:
         filtered = filtered[:limit]
 

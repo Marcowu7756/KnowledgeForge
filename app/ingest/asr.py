@@ -48,6 +48,14 @@ def transcribe_file(path: str | Path) -> tuple[str, str]:
         vad_filter=True,
     )
     lines = [seg.text.strip() for seg in segments if seg.text and seg.text.strip()]
+    if not lines and config.WHISPER_LANGUAGE:
+        # Retry without forced language when configured language yields silence
+        segments, info = model.transcribe(
+            str(audio),
+            language=None,
+            vad_filter=True,
+        )
+        lines = [seg.text.strip() for seg in segments if seg.text and seg.text.strip()]
     if not lines:
         raise AsrError(f"ASR produced empty transcript for {audio}")
     lang = getattr(info, "language", None) or (config.WHISPER_LANGUAGE or "auto")

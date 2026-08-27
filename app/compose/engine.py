@@ -15,6 +15,7 @@ from app.compose.prompt import (
     build_compose_user_prompt,
 )
 from app.compose.render import render_lecture, render_paper
+from app.compose.validate import ComposePayloadError, validate_compose_payload
 from app.retrieve import run_query
 
 
@@ -114,6 +115,41 @@ def compose_from_query(
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = config.COMPOSE_DIR / f"{stamp}_{uuid4().hex[:8]}"
     out.mkdir(parents=True, exist_ok=True)
+
+    try:
+        validate_compose_payload(kind, payload)
+    except ComposePayloadError as exc:
+        fail_path = out / "FAILED.md"
+        fail_body = "\n".join(
+            [
+                f"# Compose FAILED — {kind}",
+                "",
+                f"query: {query}",
+                "",
+                "## Validation errors",
+                "",
+                *[f"- {line}" for line in str(exc).splitlines()],
+                "",
+                "## Raw payload",
+                "",
+                "```json",
+                __import__("json").dumps(payload, ensure_ascii=False, indent=2),
+                "```",
+                "",
+            ]
+        )
+        fail_path.write_text(fail_body, encoding="utf-8")
+        meta.evidence = {**(meta.evidence or {}), "status": "failed", "errors": str(exc)}
+        meta_path = out / "compose.json"
+        meta_path.write_text(meta.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        (out / "payload.json").write_text(
+            __import__("json").dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        raise ComposePayloadError(
+            f"compose payload invalid — see {fail_path}"
+        ) from exc
+
     draft = render_paper(payload, meta) if kind == "paper" else render_lecture(payload, meta)
     draft_path = out / ("PAPER.md" if kind == "paper" else "LECTURE.md")
     draft_path.write_text(draft, encoding="utf-8")

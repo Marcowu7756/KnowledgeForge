@@ -28,6 +28,12 @@ RULES: dict[str, RelationRule] = {
         base_confidence=0.78,
         reason="Prerequisite field on KO mapped to depends_on edge",
     ),
+    "prerequisite_inter_ko": RelationRule(
+        rule_id="prerequisite_inter_ko",
+        kind="prerequisite",
+        base_confidence=0.72,
+        reason="Prerequisite text matched another KO title/concept (inter-KO depends_on)",
+    ),
     "ko_mentions_concept": RelationRule(
         rule_id="ko_mentions_concept",
         kind="ko_mentions",
@@ -75,9 +81,22 @@ def infer_relation_type(label: str, declared: str = "related") -> str:
         return "controls"
     if any(k in text for k in ("cause", "导致", "引起", "→", "->", "because")):
         return "causes"
-    if any(k in text for k in ("depend", "依赖", "基于", "prerequisite", "前置")):
+    if any(k in text for k in ("depend", "依赖", "基于", "prerequisite", "前置", "先修")):
         return "depends_on"
-    if any(k in text for k in ("vs", "versus", "对比", "相对", "contrast")):
+    if any(
+        k in text
+        for k in (
+            "vs",
+            "versus",
+            "对比",
+            "相对",
+            "contrast",
+            "对照",
+            "区别于",
+            "不同于",
+            "对比于",
+        )
+    ):
         return "contrasts"
     if any(k in text for k in ("part", "组成", "属于", "包含")):
         return "part_of"
