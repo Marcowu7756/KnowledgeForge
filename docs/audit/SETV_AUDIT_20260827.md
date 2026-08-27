@@ -213,10 +213,8 @@ Risk: do not expand renderer/UI until P1 retrieve/compose debts shrink
 
 ---
 
-## 8. Follow-ups（有序）
+## 9. Publish note (2026-08-27)
 
-1. 关闭 F-P0-01（gitignore）  
-2. 关闭 F-P0-02（GitHub remote + push）  
-3. F-P1-02 compose payload 校验  
-4. F-P1-01 graph boost 收紧  
-5. F-P2-01 slow integration 测试（可选）
+- Commit landed locally with scenario tests + this audit.
+- F-P0-01 addressed via `.gitignore` for compose/retrieve/reconstruct + `.venv`.
+- F-P0-02: GitHub remote created at publish time (`Marcowu7756/KnowledgeForge`).
