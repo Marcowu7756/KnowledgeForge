@@ -5,6 +5,7 @@ import json
 from collections import defaultdict
 
 from app.knowledge.object import KnowledgeObject
+from app.reconstruct.contrast import contrast_clusters_from_edges
 from app.reconstruct.models import (
     RECONSTRUCT_VERSION,
     ConceptGraph,
@@ -409,6 +410,100 @@ def view_by_taxonomy(
     return _finalize(view, graph=graph, seed=seed)
 
 
+def view_by_contrast(
+    graph: ConceptGraph,
+    kos: list[KnowledgeObject],
+    *,
+    seed: str = "",
+) -> ReconstructedView:
+    """Cluster KOs linked by explicit cross-card ``vs`` / contrast edges."""
+    by_id = _ko_map(kos)
+    ko_ids = set(by_id.keys())
+    contrast_edges = [
+        e for e in graph.relations.edges if e.kind == "contrast_cross_ko"
+    ]
+    clusters = contrast_clusters_from_edges(contrast_edges, ko_ids=ko_ids)
+
+    sections: list[ViewSection] = []
+    multi = [(root, members) for root, members in clusters.items() if len(members) >= 2]
+    multi.sort(key=lambda item: (-len(item[1]), sorted(item[1])[0]))
+
+    for _root, members in multi:
+        ordered = sorted(members)
+        if seed:
+            seed_l = seed.strip().lower()
+            blob = " ".join(
+                by_id[k].content.title + " " + " ".join(by_id[k].content.atomic_concepts[:8])
+                for k in ordered
+                if k in by_id
+            ).lower()
+            if seed_l not in blob:
+                continue
+        titles = [by_id[k].content.title for k in ordered if k in by_id]
+        title = " ↔ ".join(titles[:4])
+        if len(titles) > 4:
+            title += f" (+{len(titles) - 4})"
+
+        cluster_edges = [
+            e
+            for e in contrast_edges
+            if set(e.source_ko_ids) & set(ordered)
+        ]
+        cluster_edges.sort(key=lambda e: (-e.confidence, e.id))
+        bridge_labels = [
+            f"{e.label or e.evidence.rule_id}@{e.confidence:.2f}" for e in cluster_edges[:6]
+        ]
+
+        sections.append(
+            ViewSection(
+                title=title,
+                kind="contrast_cluster",
+                ko_ids=ordered,
+                edges=[e.id for e in cluster_edges[:12]],
+                notes=[
+                    f"KOs: {len(ordered)}",
+                    *[f"card: {t}" for t in titles[:6]],
+                    *([f"contrast: {lbl}" for lbl in bridge_labels] if bridge_labels else []),
+                ],
+                rationale=(
+                    f"Explicit cross-KO contrast cluster ({len(ordered)} cards, "
+                    f"{len(cluster_edges)} contrast edges)"
+                ),
+            )
+        )
+
+    if not sections and contrast_edges:
+        for e in sorted(contrast_edges, key=lambda x: (-x.confidence, x.id))[:8]:
+            kids = sorted(k for k in e.source_ko_ids if k in by_id)
+            if len(kids) < 2:
+                continue
+            sections.append(
+                ViewSection(
+                    title=e.label or "contrast pair",
+                    kind="contrast_pair",
+                    ko_ids=kids,
+                    edges=[e.id],
+                    notes=[f"edge: {e.label} ({e.confidence:.2f})"],
+                    rationale="Pairwise contrast_cross_ko edge",
+                )
+            )
+
+    view = ReconstructedView(
+        view_type="contrast",
+        title=f"Contrast clusters ({len(sections)} groups)",
+        seed=seed,
+        graph_id=graph.id,
+        source_ko_ids=list(graph.source_ko_ids),
+        sections=sections,
+        evidence={
+            "view": "contrast",
+            "method": "contrast_cross_ko_union_find",
+            "contrast_edges": len(contrast_edges),
+        },
+    )
+    return _finalize(view, graph=graph, seed=seed)
+
+
 def reconstruct_view(
     graph: ConceptGraph,
     kos: list[KnowledgeObject],
@@ -424,6 +519,8 @@ def reconstruct_view(
         return view_by_learning_path(graph, kos, seed=seed)
     if view == "taxonomy":
         return view_by_taxonomy(graph, kos, seed=seed)
+    if view == "contrast":
+        return view_by_contrast(graph, kos, seed=seed)
     raise ValueError(
-        f"unknown view type: {view} (use theme|concept|learning_path|taxonomy)"
+        f"unknown view type: {view} (use theme|concept|learning_path|taxonomy|contrast)"
     )

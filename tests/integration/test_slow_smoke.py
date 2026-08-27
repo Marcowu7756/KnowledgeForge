@@ -63,7 +63,7 @@ def test_slow_bge_retrieve_roundtrip(slow_retrieve_cards):
         pytest.skip("embed model not ready")
 
     card_a, card_b, index_dir = slow_retrieve_cards
-    manifest, kos = build_ko_index(
+    manifest, kos, _writeback = build_ko_index(
         paths=[str(card_a), str(card_b)],
         dest=index_dir,
     )

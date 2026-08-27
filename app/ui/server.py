@@ -38,7 +38,7 @@ class CompileBody(BaseModel):
 
 class ReconstructBody(BaseModel):
     from_index: bool = True
-    view: Literal["theme", "concept", "learning_path", "taxonomy"] = "theme"
+    view: Literal["theme", "concept", "learning_path", "taxonomy", "contrast"] = "theme"
     evolve_dir: str | None = None
     async_job: bool = True
 

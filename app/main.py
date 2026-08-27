@@ -60,7 +60,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py animate <KNOWLEDGE.md> [--fast]
   python main.py compile <SOURCE|CARD.md> [--animate] [--narrate] [--fast]
   python main.py compile --rerun-step animation|expression|manifest --package DIR
-  python main.py reconstruct --from-index [--view theme|concept|learning_path|taxonomy] [--seed X]
+  python main.py reconstruct --from-index [--view theme|concept|learning_path|taxonomy|contrast] [--seed X]
   python main.py reconstruct --from-index --min-confidence 0.5
   python main.py reconstruct --evolve data\\reconstruct\\<id> --add CARD.md
   python main.py reconstruct --from-packages [--view theme]
@@ -364,7 +364,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reconstruct.add_argument(
         "--view",
-        choices=["theme", "concept", "learning_path", "taxonomy", "none"],
+        choices=["theme", "concept", "learning_path", "taxonomy", "contrast", "none"],
         default="theme",
         help="Reconstructed view type (default: theme)",
     )
@@ -418,6 +418,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Filter index by taxonomy path prefix",
     )
     r_index.add_argument("--limit", type=int, default=None)
+    r_index.add_argument(
+        "--no-write-back-packages",
+        action="store_true",
+        help="Skip writing EmbeddingRef back to data/packages/*/knowledge_object.json",
+    )
+    r_index.add_argument(
+        "--write-back-dry-run",
+        action="store_true",
+        help="Report package write-back targets without modifying files",
+    )
     r_query = retrieve_sub.add_parser(
         "query",
         help="Query KnowledgeObjects (optional ConceptGraph boost)",
@@ -1031,6 +1041,8 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
                 tag=args.tag,
                 taxonomy_prefix=args.taxonomy_prefix,
                 limit=args.limit,
+                write_back_packages=not args.no_write_back_packages,
+                write_back_dry_run=args.write_back_dry_run,
             )
         except (ReconstructLoadError, EmbedderError, FileNotFoundError) as exc:
             print(f"Retrieve index failed: {exc}", file=sys.stderr)
@@ -1042,6 +1054,14 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
         print(f"[ok] count:     {built.count}")
         print(f"[ok] dim:       {built.manifest.dim}")
         print(f"[ok] model:     {built.manifest.model}")
+        if built.writeback is not None:
+            wb = built.writeback
+            print(
+                f"[ok] writeback: updated={wb.updated} "
+                f"missing={wb.missing} skipped={wb.skipped}"
+            )
+            if wb.errors:
+                print(f"[warn] writeback errors: {len(wb.errors)}", file=sys.stderr)
         return 0
 
     if args.retrieve_command == "query":

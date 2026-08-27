@@ -6,6 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from app import config
+from app.retrieve.embed_writeback import EmbeddingWritebackReport
 from app.retrieve.index_build import build_ko_index
 from app.retrieve.models import IndexManifest, RetrieveResult
 from app.retrieve.query import retrieve_kos
@@ -17,6 +18,7 @@ class IndexBuildResult:
     manifest: IndexManifest
     index_dir: Path
     count: int
+    writeback: EmbeddingWritebackReport | None = None
 
 
 @dataclass
@@ -35,9 +37,11 @@ def run_index(
     tag: str | None = None,
     taxonomy_prefix: str | None = None,
     limit: int | None = None,
+    write_back_packages: bool = True,
+    write_back_dry_run: bool = False,
 ) -> IndexBuildResult:
     dest = retrieve_dir()
-    manifest, kos = build_ko_index(
+    manifest, kos, writeback = build_ko_index(
         paths=paths,
         from_index=from_index,
         from_packages=from_packages,
@@ -46,8 +50,15 @@ def run_index(
         taxonomy_prefix=taxonomy_prefix,
         limit=limit,
         dest=dest,
+        write_back_packages=write_back_packages,
+        write_back_dry_run=write_back_dry_run,
     )
-    return IndexBuildResult(manifest=manifest, index_dir=dest, count=len(kos))
+    return IndexBuildResult(
+        manifest=manifest,
+        index_dir=dest,
+        count=len(kos),
+        writeback=writeback,
+    )
 
 
 def run_query(

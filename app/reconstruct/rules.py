@@ -64,9 +64,15 @@ RULES: dict[str, RelationRule] = {
         base_confidence=0.93,
         reason="Taxonomy leaf node classifies a KnowledgeObject",
     ),
+    "contrast_cross_ko": RelationRule(
+        rule_id="contrast_cross_ko",
+        kind="contrast_cross_ko",
+        base_confidence=0.84,
+        reason="Explicit vs/contrast relation resolved across ≥2 KnowledgeObjects",
+    ),
 }
 
-RULES_VERSION = "rq_v0.2"
+RULES_VERSION = "rq_v0.3"
 
 # Confidence floors / caps
 MIN_CONFIDENCE = 0.05

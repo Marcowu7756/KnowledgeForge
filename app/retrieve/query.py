@@ -62,7 +62,7 @@ def _graph_neighbor_scores(
     for edge in graph.relations.edges:
         if edge.confidence < min_confidence:
             continue
-        if edge.kind not in {"shared_concept", "shared_tag"}:
+        if edge.kind not in {"shared_concept", "shared_tag", "contrast_cross_ko"}:
             continue
         members = set(edge.source_ko_ids)
         for node_id in (edge.from_node, edge.to_node):
@@ -70,7 +70,12 @@ def _graph_neighbor_scores(
                 members.add(node_id[3:])
         if not (members & seeds):
             continue
-        weight = 1.0 if edge.kind == "shared_concept" else 0.55
+        if edge.kind == "shared_concept":
+            weight = 1.0
+        elif edge.kind == "contrast_cross_ko":
+            weight = 0.8
+        else:
+            weight = 0.55
         boost = float(edge.confidence) * weight
         reason = f"{edge.kind}:{edge.label or edge.evidence.rule_id}@{edge.confidence:.2f}"
         for kid in members:

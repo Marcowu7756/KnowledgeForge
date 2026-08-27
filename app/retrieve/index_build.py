@@ -9,8 +9,12 @@ from app.knowledge.object import KnowledgeObject
 from app.reconstruct.load import (
     ReconstructLoadError,
     collect_from_index,
-    collect_from_packages,
-    collect_from_paths,
+    collect_from_packages_with_sources,
+    collect_from_paths_with_sources,
+)
+from app.retrieve.embed_writeback import (
+    EmbeddingWritebackReport,
+    write_embedding_refs_to_packages,
 )
 from app.retrieve.embedder import EmbedderError, embed_texts, model_path_str
 from app.retrieve.models import IndexManifest, IndexRecord
@@ -18,7 +22,7 @@ from app.retrieve.store import retrieve_dir, save_index
 from app.retrieve.text import ko_embed_text, text_hash, vector_id_for
 
 
-def _collect(
+def _collect_with_sources(
     *,
     paths: list[str] | None,
     from_index: bool,
@@ -27,13 +31,19 @@ def _collect(
     tag: str | None,
     taxonomy_prefix: str | None,
     limit: int | None,
-) -> list[KnowledgeObject]:
+) -> tuple[list[KnowledgeObject], dict[str, Path]]:
     if paths:
-        return collect_from_paths(paths)
+        return collect_from_paths_with_sources(paths)
     if from_packages:
-        return collect_from_packages()
+        return collect_from_packages_with_sources()
     if from_index:
-        return collect_from_index(subdir=subdir, tag=tag, limit=limit, taxonomy_prefix=taxonomy_prefix)
+        kos = collect_from_index(
+            subdir=subdir,
+            tag=tag,
+            limit=limit,
+            taxonomy_prefix=taxonomy_prefix,
+        )
+        return kos, {}
     raise ReconstructLoadError("specify paths, --from-index, or --from-packages")
 
 
@@ -47,9 +57,11 @@ def build_ko_index(
     taxonomy_prefix: str | None = None,
     limit: int | None = None,
     dest: Path | None = None,
-) -> tuple[IndexManifest, list[KnowledgeObject]]:
+    write_back_packages: bool = True,
+    write_back_dry_run: bool = False,
+) -> tuple[IndexManifest, list[KnowledgeObject], EmbeddingWritebackReport | None]:
     """Embed whole KnowledgeObjects into a local vector index (not doc chunks)."""
-    kos = _collect(
+    kos, source_paths = _collect_with_sources(
         paths=paths,
         from_index=from_index,
         from_packages=from_packages,
@@ -90,7 +102,7 @@ def build_ko_index(
                 taxonomy_path=list(obj.taxonomy.path),
             )
         )
-        # Mark embedding status on in-memory object (packages not rewritten here)
+        # Mark embedding status on in-memory object; optional package write-back below
         obj.embedding.model = model
         obj.embedding.vector_id = vid
         obj.embedding.status = "ready"
@@ -105,7 +117,15 @@ def build_ko_index(
             "unit": "knowledge_object",
             "chunking": "none",
             "ko_count": len(kos),
+            "write_back_packages": write_back_packages,
         },
         root=root,
     )
-    return manifest, kos
+    writeback: EmbeddingWritebackReport | None = None
+    if write_back_packages:
+        writeback = write_embedding_refs_to_packages(
+            kos,
+            source_paths=source_paths,
+            dry_run=write_back_dry_run,
+        )
+    return manifest, kos, writeback

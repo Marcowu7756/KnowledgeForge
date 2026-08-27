@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from app import config
 from app.knowledge.access import AccessBlock, is_retrievable
 from app.knowledge.object import KnowledgeObject
 from app.knowledge.taxonomy import TaxonomyBlock
@@ -30,24 +31,41 @@ def load_ko_from_path(path: str | Path) -> KnowledgeObject:
 
 
 def collect_from_paths(paths: list[str | Path]) -> list[KnowledgeObject]:
+    objs, _ = collect_from_paths_with_sources(paths)
+    return objs
+
+
+def collect_from_paths_with_sources(
+    paths: list[str | Path],
+) -> tuple[list[KnowledgeObject], dict[str, Path]]:
     objs: list[KnowledgeObject] = []
+    sources: dict[str, Path] = {}
     seen: set[str] = set()
     for raw in paths:
-        obj = load_ko_from_path(raw)
+        p = _resolve_card(Path(raw))
+        obj = load_knowledge_object(p)
         if obj.id in seen:
             continue
         seen.add(obj.id)
         objs.append(obj)
-    return objs
+        sources[obj.id] = p
+    return objs, sources
 
 
 def collect_from_packages(packages_root: str | Path | None = None) -> list[KnowledgeObject]:
+    objs, _ = collect_from_packages_with_sources(packages_root)
+    return objs
+
+
+def collect_from_packages_with_sources(
+    packages_root: str | Path | None = None,
+) -> tuple[list[KnowledgeObject], dict[str, Path]]:
     root = Path(packages_root) if packages_root else config.PACKAGES_DIR
     root = root.expanduser().resolve()
     if not root.is_dir():
         raise ReconstructLoadError(f"packages dir missing: {root}")
     paths = sorted(root.glob("*/knowledge_object.json"))
-    return collect_from_paths(paths)
+    return collect_from_paths_with_sources(paths)
 
 
 def collect_from_index(

@@ -137,10 +137,41 @@ class KnowledgeObject(BaseModel):
             self.lifecycle.status = status  # type: ignore[assignment]
 
 
+def _parse_contrast_line(raw: str) -> RelationEdge | None:
+    for sep in (
+        " vs ",
+        " VS ",
+        " versus ",
+        " Versus ",
+        " 对比 ",
+        " 相对于 ",
+        " 区别于 ",
+        " 不同于 ",
+        " 对照 ",
+        " 相较 ",
+    ):
+        if sep in raw:
+            left, right = raw.split(sep, 1)
+            left, right = left.strip(), right.strip()
+            if left and right:
+                return RelationEdge.model_validate(
+                    {
+                        "from": left,
+                        "to": right,
+                        "type": "contrasts",
+                        "label": sep.strip(),
+                    }
+                )
+    return None
+
+
 def _parse_relation_line(line: str) -> RelationEdge | None:
     raw = line.strip().lstrip("- ").strip()
     if not raw:
         return None
+    contrast = _parse_contrast_line(raw)
+    if contrast is not None:
+        return contrast
     for sep in ("→", "->", "⇒"):
         if sep in raw:
             left, right = raw.split(sep, 1)

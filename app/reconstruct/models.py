@@ -13,6 +13,7 @@ EdgeKind = Literal[
     "shared_tag",
     "prerequisite",
     "ko_mentions",
+    "contrast_cross_ko",
 ]
 
 NodeKind = Literal["concept", "knowledge_object", "theme"]
@@ -88,7 +89,7 @@ class ReconstructedView(BaseModel):
     schema_version: str = "0.2"
     id: str = ""
     created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    view_type: Literal["theme", "concept", "learning_path", "taxonomy"] = "theme"
+    view_type: Literal["theme", "concept", "learning_path", "taxonomy", "contrast"] = "theme"
     title: str = ""
     seed: str = ""
     graph_id: str = ""

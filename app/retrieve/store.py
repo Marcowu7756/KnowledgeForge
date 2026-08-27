@@ -70,7 +70,7 @@ def save_index(
             handle.write(rec.model_dump_json() + "\n")
     np.save(vectors_path(root), vectors.astype(np.float32))
 
-    # Sidecar EmbeddingRef map (packages not rewritten; F-P2-02)
+    # Sidecar EmbeddingRef map; package KO JSON updated via embed_writeback (F-P2-02)
     sidecar = {
         "kind": "embedding_refs",
         "model": model,

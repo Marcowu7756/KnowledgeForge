@@ -7,6 +7,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from app.knowledge.object import KnowledgeObject
+from app.reconstruct.contrast import apply_contrast_links, collect_contrast_links
 from app.reconstruct.models import (
     RECONSTRUCT_VERSION,
     ConceptGraph,
@@ -330,6 +331,13 @@ def build_graph(
                     detail=f"prereq_match={pre[:80]}",
                 )
 
+    contrast_links = collect_contrast_links(
+        kos,
+        title_index=title_index,
+        concept_index=concept_label_index,
+    )
+    apply_contrast_links(contrast_links, add_edge)
+
     # Filter + stable sort
     kept = [e for e in edges.values() if e.confidence >= min_confidence]
     kept.sort(key=lambda e: (e.kind, -e.confidence, e.id))
@@ -385,7 +393,7 @@ def build_graph(
         evidence={
             "reconstruct_version": RECONSTRUCT_VERSION,
             "pipeline": "reconstruct_v0.2",
-            "method": "rules+union_intra_ko+shared_concept+shared_tag",
+            "method": "rules+union_intra_ko+shared_concept+shared_tag+contrast_cross_ko",
             "rules_version": RULES_VERSION,
             "ko_count": len(kos),
             "stable_id": True,
