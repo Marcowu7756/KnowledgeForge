@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(os.getenv("KF_ROOT", str(Path(__file__).resolve().parent.parent))).expanduser().resolve()
 load_dotenv(ROOT / ".env")
 
 MODELS_DIR = ROOT / "models"

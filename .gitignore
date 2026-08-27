@@ -8,6 +8,11 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# Packaging
+dist/
+build/
+*.spec.bak
+
 # Secrets
 .env
 .env.local

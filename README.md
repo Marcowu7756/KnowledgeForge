@@ -359,6 +359,15 @@ Amplifies learning speed, depth, cross-domain links, and creation — it does no
 
 设计说明：`docs/ui/WINDOWS_UI_v0.md`（获取→沉淀→重组→检索→表达）。
 
+异步任务会显示进度条；表达页可预览 MD / GIF / WAV。
+
+打包 Windows 便携壳（不含 torch 等重依赖）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_ui.ps1
+# 输出：dist\KnowledgeForgeUI\KnowledgeForgeUI.exe
+```
+
 慢速集成（可选）：
 
 ```powershell

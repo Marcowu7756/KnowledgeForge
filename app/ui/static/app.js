@@ -52,6 +52,45 @@
       typeof data === "string" ? data : JSON.stringify(data, null, 2);
   }
 
+  function ensureProgress(form) {
+    let bar = form.querySelector(".progress");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "progress";
+      bar.innerHTML =
+        '<div class="progress-track"><div class="progress-fill"></div></div><div class="progress-label"></div>';
+      form.appendChild(bar);
+    }
+    return bar;
+  }
+
+  function setProgress(form, pct, message, visible = true) {
+    const bar = ensureProgress(form);
+    bar.hidden = !visible;
+    const fill = bar.querySelector(".progress-fill");
+    const label = bar.querySelector(".progress-label");
+    fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    label.textContent = message || `${pct}%`;
+  }
+
+  async function pollJob(jobId, form, out) {
+    for (;;) {
+      const snap = await api(`/api/jobs/${jobId}`);
+      setProgress(form, snap.progress || 0, `${snap.message} (${snap.progress || 0}%)`);
+      if (snap.status === "done") {
+        writeOut(out, snap.result, false);
+        setProgress(form, 100, "完成", true);
+        return snap.result;
+      }
+      if (snap.status === "error") {
+        writeOut(out, snap.error || "job failed", true);
+        setProgress(form, snap.progress || 0, "失败", true);
+        throw new Error(snap.error || "job failed");
+      }
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+
   function bindForm(formId, outId, buildRequest) {
     const form = $(formId);
     const out = $(outId);
@@ -59,13 +98,19 @@
       e.preventDefault();
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true;
+      setProgress(form, 2, "提交中…", true);
       try {
         const { path, body } = buildRequest(new FormData(form));
         const data = await api(path, {
           method: "POST",
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...body, async_job: true }),
         });
-        writeOut(out, data, false);
+        if (data.job_id) {
+          await pollJob(data.job_id, form, out);
+        } else {
+          writeOut(out, data, false);
+          setProgress(form, 100, "完成", true);
+        }
         if (formId === "form-compile" || formId === "form-compose") {
           refreshPackages();
           refreshArtifacts();
@@ -93,14 +138,15 @@
     if (!ul) return;
     try {
       const data = await api("/api/packages");
-      ul.innerHTML = (data.items || [])
-        .map(
-          (it) =>
-            `<li><strong>${escapeHtml(it.name)}</strong><br /><span>${escapeHtml(
-              it.path
-            )}</span></li>`
-        )
-        .join("") || "<li>暂无 package</li>";
+      ul.innerHTML =
+        (data.items || [])
+          .map(
+            (it) =>
+              `<li><strong>${escapeHtml(it.name)}</strong><br /><span>${escapeHtml(
+                it.path
+              )}</span></li>`
+          )
+          .join("") || "<li>暂无 package</li>";
     } catch {
       ul.innerHTML = "<li>无法读取 packages</li>";
     }
@@ -114,18 +160,25 @@
       const rows = [
         ...(data.compose || []).map(
           (c) =>
-            `<li><strong>${escapeHtml(c.kind)}</strong> — ${escapeHtml(
+            `<li><button type="button" class="preview-link" data-path="${escapeAttr(
               c.path
-            )}</li>`
+            )}"><strong>${escapeHtml(c.kind)}</strong> — ${escapeHtml(
+              c.path
+            )}</button></li>`
         ),
         ...(data.media || []).map(
           (m) =>
-            `<li><strong>${escapeHtml(m.suffix)}</strong> — ${escapeHtml(
+            `<li><button type="button" class="preview-link" data-path="${escapeAttr(
               m.path
-            )}</li>`
+            )}"><strong>${escapeHtml(m.suffix)}</strong> — ${escapeHtml(
+              m.path
+            )}</button></li>`
         ),
       ];
       ul.innerHTML = rows.join("") || "<li>暂无产物</li>";
+      ul.querySelectorAll(".preview-link").forEach((btn) => {
+        btn.addEventListener("click", () => openPreview(btn.getAttribute("data-path")));
+      });
     } catch {
       ul.innerHTML = "<li>无法读取产物</li>";
     }
@@ -139,12 +192,51 @@
       .replaceAll('"', "&quot;");
   }
 
-  // Navigation
+  function escapeAttr(s) {
+    return escapeHtml(s).replaceAll("'", "&#39;");
+  }
+
+  async function openPreview(path) {
+    const modal = $("#preview-modal");
+    const body = $("#preview-body");
+    const title = $("#preview-title");
+    modal.hidden = false;
+    title.textContent = path;
+    body.innerHTML = "<p class='muted'>加载中…</p>";
+    try {
+      const data = await api(`/api/preview?path=${encodeURIComponent(path)}`);
+      title.textContent = data.name || path;
+      if (data.kind === "text") {
+        body.innerHTML = `<pre class="preview-text">${escapeHtml(data.text || "")}</pre>`;
+      } else if (data.suffix === ".gif" || data.suffix === ".png" || data.suffix === ".jpg" || data.suffix === ".jpeg" || data.suffix === ".webp") {
+        body.innerHTML = `<img class="preview-media" src="${data.file_url}" alt="${escapeAttr(
+          data.name
+        )}" />`;
+      } else if (data.suffix === ".wav") {
+        body.innerHTML = `<audio class="preview-media" controls src="${data.file_url}"></audio>`;
+      } else {
+        body.innerHTML = `<p><a href="${data.file_url}" target="_blank" rel="noopener">打开文件</a></p>`;
+      }
+    } catch (err) {
+      body.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
+    }
+  }
+
+  function closePreview() {
+    const modal = $("#preview-modal");
+    modal.hidden = true;
+    $("#preview-body").innerHTML = "";
+  }
+
   $$("[data-stage]").forEach((el) => {
     el.addEventListener("click", () => showStage(el.getAttribute("data-stage")));
   });
   $$(".rail-item").forEach((btn) => {
     btn.addEventListener("click", () => showPanel(btn.getAttribute("data-panel")));
+  });
+  $("#preview-close")?.addEventListener("click", closePreview);
+  $("#preview-modal")?.addEventListener("click", (e) => {
+    if (e.target.id === "preview-modal") closePreview();
   });
 
   bindForm("#form-capture", "#out-capture", (fd) => ({
@@ -186,7 +278,7 @@
 
   api("/api/health")
     .then((h) => {
-      $("#health-line").textContent = `${h.product} · ${h.engine} · UI ready`;
+      $("#health-line").textContent = `${h.product} · ${h.engine} · UI ${h.ui_version || ""}`;
     })
     .catch(() => {
       $("#health-line").textContent = "API offline";

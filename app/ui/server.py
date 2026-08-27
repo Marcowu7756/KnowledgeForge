@@ -5,14 +5,18 @@ from __future__ import annotations
 import mimetypes
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import config
 from app.local_models import status_rows
+from app.ui import actions
+from app.ui.jobs import STORE
+from app.ui.preview import preview_payload, resolve_data_path
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -20,6 +24,7 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 class CaptureBody(BaseModel):
     kind: Literal["youtube", "bilibili", "file", "audio", "image"] = "file"
     target: str = Field(..., description="URL or local path")
+    async_job: bool = True
 
 
 class CompileBody(BaseModel):
@@ -28,18 +33,21 @@ class CompileBody(BaseModel):
     animate: bool = False
     narrate: bool = False
     fast: bool = True
+    async_job: bool = True
 
 
 class ReconstructBody(BaseModel):
     from_index: bool = True
     view: Literal["theme", "concept", "learning_path"] = "theme"
     evolve_dir: str | None = None
+    async_job: bool = True
 
 
 class RetrieveBody(BaseModel):
     query: str
     top_k: int = 5
     graph_path: str | None = None
+    async_job: bool = True
 
 
 class ComposeBody(BaseModel):
@@ -47,10 +55,16 @@ class ComposeBody(BaseModel):
     kind: Literal["paper", "lecture"] = "lecture"
     top_k: int = 5
     graph_path: str | None = None
+    async_job: bool = True
+
+
+class JobCreateBody(BaseModel):
+    action: Literal["capture", "compile", "reconstruct", "retrieve", "compose"]
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="KnowledgeForge UI", version="0.1.0", docs_url="/api/docs")
+    app = FastAPI(title="KnowledgeForge UI", version="0.2.0", docs_url="/api/docs")
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -59,6 +73,7 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
+            "ui_version": "0.2.0",
             "stages": [
                 "capture",
                 "distill",
@@ -115,7 +130,6 @@ def create_app() -> FastAPI:
 
     @app.get("/api/artifacts")
     def list_artifacts(limit: int = 20) -> dict[str, Any]:
-        """Compose drafts + expression media (read-only links)."""
         compose: list[dict[str, str]] = []
         if config.COMPOSE_DIR.is_dir():
             for d in sorted(
@@ -133,6 +147,7 @@ def create_app() -> FastAPI:
                                 "kind": name.replace(".md", "").lower(),
                                 "path": str(f),
                                 "dir": str(d),
+                                "preview_url": f"/api/preview?path={quote(f.as_posix())}",
                             }
                         )
                         break
@@ -147,151 +162,203 @@ def create_app() -> FastAPI:
                 key=lambda p: p.stat().st_mtime,
                 reverse=True,
             )[:limit]:
-                media.append({"path": str(f), "name": f.name, "suffix": f.suffix})
+                media.append(
+                    {
+                        "path": str(f),
+                        "name": f.name,
+                        "suffix": f.suffix,
+                        "preview_url": f"/api/preview?path={quote(f.as_posix())}",
+                    }
+                )
 
         return {"compose": compose, "media": media}
 
+    @app.get("/api/preview")
+    def preview(path: str = Query(...)) -> dict[str, Any]:
+        try:
+            resolved = resolve_data_path(path)
+            return preview_payload(resolved)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+    @app.get("/api/preview/file")
+    def preview_file(path: str = Query(...)) -> FileResponse:
+        try:
+            resolved = resolve_data_path(path)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        media = mimetypes.guess_type(str(resolved))[0] or "application/octet-stream"
+        return FileResponse(resolved, media_type=media, filename=resolved.name)
+
+    @app.post("/api/jobs")
+    def create_job(body: JobCreateBody) -> dict[str, Any]:
+        action = body.action
+        payload = body.payload or {}
+
+        def runner(progress):  # noqa: ANN001
+            if action == "capture":
+                return actions.run_capture(
+                    str(payload.get("kind") or "file"),
+                    str(payload.get("target") or ""),
+                    progress,
+                )
+            if action == "compile":
+                return actions.run_compile(
+                    str(payload.get("path") or ""),
+                    from_card=bool(payload.get("from_card", True)),
+                    animate=bool(payload.get("animate", False)),
+                    narrate=bool(payload.get("narrate", False)),
+                    fast=bool(payload.get("fast", True)),
+                    progress=progress,
+                )
+            if action == "reconstruct":
+                return actions.run_reconstruct_action(
+                    from_index=bool(payload.get("from_index", True)),
+                    view=str(payload.get("view") or "theme"),
+                    evolve_dir=payload.get("evolve_dir"),
+                    progress=progress,
+                )
+            if action == "retrieve":
+                return actions.run_retrieve_action(
+                    str(payload.get("query") or ""),
+                    top_k=int(payload.get("top_k") or 5),
+                    graph_path=payload.get("graph_path"),
+                    progress=progress,
+                )
+            if action == "compose":
+                return actions.run_compose_action(
+                    str(payload.get("query") or ""),
+                    kind=str(payload.get("kind") or "lecture"),
+                    top_k=int(payload.get("top_k") or 5),
+                    graph_path=payload.get("graph_path"),
+                    progress=progress,
+                )
+            raise ValueError(f"unknown action: {action}")
+
+        job = STORE.submit(action, runner)
+        return {"ok": True, "job_id": job.id, "status": job.status}
+
+    @app.get("/api/jobs/{job_id}")
+    def get_job(job_id: str) -> dict[str, Any]:
+        snap = STORE.snapshot(job_id)
+        if snap is None:
+            raise HTTPException(404, f"job not found: {job_id}")
+        return snap
+
     @app.post("/api/capture")
     def capture(body: CaptureBody) -> dict[str, Any]:
-        target = body.target.strip()
-        if not target:
-            raise HTTPException(400, "target required")
+        if body.async_job:
+            job = STORE.submit(
+                "capture",
+                lambda progress: actions.run_capture(body.kind, body.target, progress),
+            )
+            return {"ok": True, "job_id": job.id, "async": True}
         try:
-            if body.kind == "youtube":
-                from app.pipeline import run_youtube
-
-                result = run_youtube(target)
-            elif body.kind == "bilibili":
-                from app.pipeline import run_bilibili
-
-                result = run_bilibili(target)
-            elif body.kind == "audio":
-                from app.pipeline import run_audio
-
-                result = run_audio(target)
-            elif body.kind == "image":
-                from app.pipeline import run_image
-
-                result = run_image(target)
-            else:
-                from app.pipeline import run_file
-
-                result = run_file(target)
+            return actions.run_capture(body.kind, body.target)
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
 
-        return {
-            "ok": True,
-            "title": result.unit.title,
-            "knowledge": str(result.markdown_path),
-            "raw": str(result.raw_path),
-            "concepts": len(result.unit.concepts),
-        }
-
     @app.post("/api/compile")
     def compile_card(body: CompileBody) -> dict[str, Any]:
-        from app.harness import HarnessError, compile_knowledge
-
-        path = Path(body.path).expanduser()
-        if not path.is_file():
-            alt = config.ROOT / body.path
-            path = alt if alt.is_file() else path
-        if not path.is_file():
-            raise HTTPException(400, f"card not found: {body.path}")
+        if body.async_job:
+            job = STORE.submit(
+                "compile",
+                lambda progress: actions.run_compile(
+                    body.path,
+                    from_card=body.from_card,
+                    animate=body.animate,
+                    narrate=body.narrate,
+                    fast=body.fast,
+                    progress=progress,
+                ),
+            )
+            return {"ok": True, "job_id": job.id, "async": True}
         try:
-            pkg = compile_knowledge(
-                str(path),
+            return actions.run_compile(
+                body.path,
                 from_card=body.from_card,
                 animate=body.animate,
                 narrate=body.narrate,
                 fast=body.fast,
             )
-        except HarnessError as exc:
-            raise HTTPException(400, str(exc)) from exc
         except Exception as exc:  # noqa: BLE001
-            raise HTTPException(500, str(exc)) from exc
-        return {
-            "ok": True,
-            "package": str(getattr(pkg, "package_dir", "")),
-            "detail": _safe_pkg_summary(pkg),
-        }
+            raise HTTPException(400, str(exc)) from exc
 
     @app.post("/api/reconstruct")
     def reconstruct(body: ReconstructBody) -> dict[str, Any]:
-        from app.reconstruct import ReconstructLoadError, run_reconstruct
-
+        if body.async_job:
+            job = STORE.submit(
+                "reconstruct",
+                lambda progress: actions.run_reconstruct_action(
+                    from_index=body.from_index,
+                    view=body.view,
+                    evolve_dir=body.evolve_dir,
+                    progress=progress,
+                ),
+            )
+            return {"ok": True, "job_id": job.id, "async": True}
         try:
-            result = run_reconstruct(
+            return actions.run_reconstruct_action(
                 from_index=body.from_index,
                 view=body.view,
                 evolve_dir=body.evolve_dir,
             )
-        except ReconstructLoadError as exc:
-            raise HTTPException(400, str(exc)) from exc
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
-        return {"ok": True, "result": _summarize_reconstruct(result)}
 
     @app.post("/api/retrieve")
     def retrieve(body: RetrieveBody) -> dict[str, Any]:
-        from app.retrieve import EmbedderError, run_query
-
+        if body.async_job:
+            job = STORE.submit(
+                "retrieve",
+                lambda progress: actions.run_retrieve_action(
+                    body.query,
+                    top_k=body.top_k,
+                    graph_path=body.graph_path,
+                    progress=progress,
+                ),
+            )
+            return {"ok": True, "job_id": job.id, "async": True}
         try:
-            run = run_query(
+            return actions.run_retrieve_action(
                 body.query,
                 top_k=body.top_k,
                 graph_path=body.graph_path,
-                save=True,
             )
-        except (EmbedderError, FileNotFoundError, ValueError) as exc:
-            raise HTTPException(400, str(exc)) from exc
         except Exception as exc:  # noqa: BLE001
-            raise HTTPException(500, str(exc)) from exc
-        hits = [
-            {
-                "ko_id": h.ko_id,
-                "title": h.title,
-                "score": h.score,
-                "semantic_score": h.semantic_score,
-                "graph_score": h.graph_score,
-                "path": h.path,
-                "why": h.why,
-            }
-            for h in run.result.hits
-        ]
-        return {
-            "ok": True,
-            "mode": run.result.mode,
-            "hits": hits,
-            "result_path": str(run.result_path) if run.result_path else None,
-        }
+            raise HTTPException(400, str(exc)) from exc
 
     @app.post("/api/compose")
     def compose(body: ComposeBody) -> dict[str, Any]:
-        from app.compose import compose_from_query
-        from app.compose.validate import ComposePayloadError
-
+        if body.async_job:
+            job = STORE.submit(
+                "compose",
+                lambda progress: actions.run_compose_action(
+                    body.query,
+                    kind=body.kind,
+                    top_k=body.top_k,
+                    graph_path=body.graph_path,
+                    progress=progress,
+                ),
+            )
+            return {"ok": True, "job_id": job.id, "async": True}
         try:
-            result = compose_from_query(
+            return actions.run_compose_action(
                 body.query,
                 kind=body.kind,
                 top_k=body.top_k,
                 graph_path=body.graph_path,
             )
-        except ComposePayloadError as exc:
-            raise HTTPException(422, str(exc)) from exc
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
-        return {
-            "ok": True,
-            "kind": result.kind,
-            "draft": str(result.draft_path),
-            "output_dir": str(result.output_dir),
-            "sources": [
-                {"ko_id": s.ko_id, "title": s.title, "score": s.score}
-                for s in result.meta.sources
-            ],
-        }
 
     @app.get("/")
     def index() -> FileResponse:
@@ -306,7 +373,6 @@ def create_app() -> FastAPI:
 def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = False) -> None:
     import uvicorn
 
-    # Ensure common media types
     mimetypes.add_type("text/css", ".css")
     mimetypes.add_type("application/javascript", ".js")
 
@@ -336,31 +402,3 @@ def _count_glob(root: Path, pattern: str) -> int:
     if not root.is_dir():
         return 0
     return sum(1 for _ in root.glob(pattern))
-
-
-def _safe_pkg_summary(pkg: Any) -> dict[str, Any]:
-    out: dict[str, Any] = {}
-    for key in ("package_dir", "manifest_path", "knowledge_object_path", "knowledge_md"):
-        val = getattr(pkg, key, None)
-        if val is not None:
-            out[key] = str(val)
-    if hasattr(pkg, "id"):
-        out["id"] = str(pkg.id)
-    return out
-
-
-def _summarize_reconstruct(result: Any) -> dict[str, Any]:
-    g = getattr(result, "graph", None)
-    out: dict[str, Any] = {
-        "output_dir": str(getattr(result, "output_dir", "") or ""),
-        "graph_path": str(getattr(result, "graph_path", "") or ""),
-        "view_path": str(getattr(result, "view_path", "") or ""),
-        "report_path": str(getattr(result, "report_path", "") or ""),
-        "kos": len(getattr(result, "kos", []) or []),
-    }
-    if g is not None:
-        out["graph_id"] = getattr(g, "id", "")
-        stats = getattr(getattr(g, "relations", None), "stats", {}) or {}
-        out["nodes"] = stats.get("nodes", len(getattr(g, "nodes", []) or []))
-        out["edges"] = stats.get("edges", len(getattr(getattr(g, "relations", None), "edges", []) or []))
-    return out

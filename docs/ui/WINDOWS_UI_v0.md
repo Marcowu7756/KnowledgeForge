@@ -71,6 +71,12 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 - Manim scene editor
 - Multi-card “一源多卡” canvas
 
+## v0.2 additions
+
+1. **Async jobs** — long actions return `job_id`; UI polls `/api/jobs/{id}` with progress bar.
+2. **Artifact preview** — MD/GIF/WAV under `data/` via `/api/preview` (path sandbox).
+3. **Windows .exe shell** — `scripts/build_windows_ui.ps1` → `dist/KnowledgeForgeUI/` (ML runtimes excluded; set `KF_ROOT` for full pipeline).
+
 ## Acceptance
 
 - [x] Design doc
@@ -78,3 +84,6 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 - [x] Five stages reachable; status endpoint works
 - [x] Capture / Distill / Reconstruct / Retrieve / Compose forms call real APIs
 - [x] README documents how to launch on Windows
+- [x] Async progress for long jobs
+- [x] Artifact preview modal
+- [x] PyInstaller onedir build script
