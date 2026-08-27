@@ -1,20 +1,74 @@
-# Core
-langchain>=0.3.27
-langchain-community>=0.3.27
-pydantic>=2.11.0
-python-dotenv>=1.1.0
+# KnowledgeForge / PAILE dependency set
+# Install (China mirror recommended if PyPI is slow):
+#   .\.venv\Scripts\python.exe -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn -r requirements.txt
+#
+# System extras (not pip):
+#   - ffmpeg on PATH (ASR / Manim / yt-dlp media)
+#   - Manim may need extra system fonts / LaTeX for advanced scenes
+# Local TTS (CosyVoice / Fish-Speech): install separately later — not in this file.
 
-# Documents
+# ---- A. Core ----
+python-dotenv>=1.1.0
+pydantic>=2.11.0
+pyyaml>=6.0.2
+requests>=2.32.0
+tqdm>=4.67.0
+
+# ---- B. Documents ----
 pypdf>=5.4.0
 pdfplumber>=0.11.6
+pymupdf>=1.25.0
 python-docx>=1.1.2
 markdown>=3.8.0
+mistune>=3.1.0
 
-# YouTube
+# ---- C. OCR / vision helpers ----
+# PaddleOCR (Windows: CPU paddlepaddle; AMD GPU not used by Paddle)
+paddlepaddle>=3.0.0
+paddleocr>=2.9.0
+opencv-python>=4.10.0
+Pillow>=11.0.0
+numpy>=2.0.0
+
+# ---- D. Formula OCR (optional but listed) ----
+pix2tex>=0.1.2
+
+# ---- E. Audio / ASR ----
+faster-whisper>=1.1.0
+ffmpeg-python>=0.2.0
+
+# ---- F. YouTube ----
 youtube-transcript-api>=1.2.0
 yt-dlp>=2025.8.11
 
-# LLM providers
+# ---- G. LLM providers ----
 openai>=1.99.0
 google-genai>=1.28.0
 ollama>=0.5.1
+
+# ---- H. RAG ----
+langchain>=0.3.27
+langchain-community>=0.3.27
+sentence-transformers>=3.0.0
+chromadb>=0.5.0
+faiss-cpu>=1.9.0
+huggingface_hub>=0.34.0
+modelscope>=1.28.0
+
+# ---- I. Knowledge graph (light) ----
+networkx>=3.3
+
+# ---- J. TTS (system fallback + local voice clone) ----
+pyttsx3>=2.90
+sounddevice>=0.5.0
+soundfile>=0.12.0
+f5-tts>=1.1.0
+elevenlabs>=1.50.0
+
+# ---- K. Animation / media ----
+manim>=0.19.0
+
+# ---- L. API / quick UI (later phases, installed now per request) ----
+fastapi>=0.115.0
+uvicorn>=0.34.0
+streamlit>=1.40.0

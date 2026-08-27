@@ -1,4 +1,4 @@
-# Python
+models/
 .venv/
 venv/
 __pycache__/
@@ -28,3 +28,21 @@ data/knowledge/**
 !data/knowledge/
 !data/knowledge/**/
 !data/knowledge/**/.gitkeep
+data/expression/*
+!data/expression/
+!data/expression/.gitkeep
+data/packages/*
+!data/packages/
+!data/packages/.gitkeep
+data/voices/*
+!data/voices/
+!data/voices/.gitkeep
+data/reconstruct/*
+!data/reconstruct/
+!data/reconstruct/.gitkeep
+data/retrieve/*
+!data/retrieve/
+!data/retrieve/.gitkeep
+data/compose/*
+!data/compose/
+!data/compose/.gitkeep

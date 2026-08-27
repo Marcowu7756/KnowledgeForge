@@ -42,13 +42,33 @@ tags: {json.dumps(unit.tags, ensure_ascii=False)}
 
 {bullets(unit.concepts)}
 
+## Definitions
+
+{bullets(unit.definitions)}
+
 ## Key Points
 
 {bullets(unit.key_points)}
 
+## Mechanisms
+
+{bullets(unit.mechanisms)}
+
 ## Relationship
 
 {bullets(unit.relationships)}
+
+## Timeline
+
+{bullets(unit.timeline)}
+
+## Claims
+
+{bullets(unit.claims)}
+
+## Evidence
+
+{bullets(unit.evidence)}
 
 ## Formulas
 
@@ -57,6 +77,10 @@ tags: {json.dumps(unit.tags, ensure_ascii=False)}
 ## Examples
 
 {bullets(unit.examples)}
+
+## Prerequisites
+
+{bullets(unit.prerequisites)}
 
 ## Unknowns
 
@@ -69,9 +93,15 @@ tags: {json.dumps(unit.tags, ensure_ascii=False)}
 """
 
 
-def write_knowledge_unit(unit: KnowledgeUnit, dest_dir: Path | None = None) -> Path:
+def write_knowledge_unit(
+    unit: KnowledgeUnit,
+    dest_dir: Path | None = None,
+    *,
+    filename_stem: str | None = None,
+) -> Path:
     dest_dir = dest_dir or config.KNOWLEDGE_DIR
     dest_dir.mkdir(parents=True, exist_ok=True)
-    path = dest_dir / f"{slugify(unit.title)}.md"
+    stem = slugify(filename_stem or unit.title)
+    path = dest_dir / f"{stem}.md"
     path.write_text(render_markdown(unit), encoding="utf-8")
     return path
