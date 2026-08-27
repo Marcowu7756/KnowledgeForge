@@ -49,7 +49,7 @@ def record_from_unit(
         "tags": list(unit.tags),
         "concepts": list(unit.concepts),
         "summary": unit.summary,
-        "path": markdown_path.replace("\\", "/"),
+        "path": str(markdown_path).replace("\\", "/"),
         "indexed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "access": access_dict(unit.access),
         "taxonomy": taxonomy_dict(unit.taxonomy),

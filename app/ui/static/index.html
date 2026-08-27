@@ -42,6 +42,16 @@
       </section>
 
       <section id="stage-workshop" class="stage" data-stage-panel="workshop" hidden>
+        <div class="lane-bar" role="group" aria-label="Access lane">
+          <span class="lane-label">访问层</span>
+          <button type="button" class="lane-btn active" data-lane="general">
+            通用知识
+          </button>
+          <button type="button" class="lane-btn" data-lane="proprietary">
+            专有资产
+          </button>
+          <span class="lane-hint" id="lane-hint">public / internal · 不含 SETV / Factor / AShare</span>
+        </div>
         <nav class="rail" aria-label="Pipeline stages">
           <button type="button" class="rail-item active" data-panel="capture">获取</button>
           <button type="button" class="rail-item" data-panel="distill">沉淀</button>
@@ -116,8 +126,11 @@
 
         <div class="panel" data-panel-view="retrieve" hidden>
           <h2>检索 KnowledgeObject</h2>
-          <p class="panel-lede">整卡嵌入检索（非 chunk）。可叠加 ConceptGraph 重排。</p>
+          <p class="panel-lede">
+            整卡嵌入检索（非 chunk）。当前访问层决定可检索范围；专有资产含 SETV / FactorLib / AShareLib。
+          </p>
           <form id="form-retrieve" class="stack">
+            <input type="hidden" name="access_lane" id="retrieve-lane" value="general" />
             <label>
               查询
               <input name="query" type="text" required placeholder="美债与美元信用" />
@@ -133,8 +146,11 @@
 
         <div class="panel" data-panel-view="express" hidden>
           <h2>表达 · Compose / Artifact</h2>
-          <p class="panel-lede">用检索到的 KO 生成讲解稿或论文草稿；浏览已有表达产物。</p>
+          <p class="panel-lede">
+            用当前访问层内的 KO 生成讲解稿；专有层产物默认 local_only，禁止外发导出。
+          </p>
           <form id="form-compose" class="stack">
+            <input type="hidden" name="access_lane" id="compose-lane" value="general" />
             <label>
               主题
               <input name="query" type="text" required placeholder="讲解美债收益率与美元" />
@@ -148,12 +164,21 @@
             </label>
             <button class="btn primary" type="submit">Compose</button>
           </form>
+          <div class="split">
+            <div>
+              <h3 id="knowledge-lane-title">知识库 · 通用</h3>
+              <ul id="knowledge-list" class="quiet-list"></ul>
+            </div>
+          </div>
           <div class="compose-layout">
             <pre class="out" id="out-compose" hidden></pre>
             <div id="compose-preview" class="compose-inline" hidden>
               <div class="compose-inline-head">
                 <h3>草稿预览</h3>
-                <button type="button" class="btn ghost btn-sm" id="compose-preview-modal">全屏</button>
+                <div class="compose-inline-actions">
+                  <button type="button" class="btn ghost btn-sm" id="compose-preview-modal">全屏</button>
+                  <button type="button" class="btn ghost btn-sm" id="compose-export-btn">导出</button>
+                </div>
               </div>
               <div id="compose-preview-body" class="compose-inline-body"></div>
             </div>

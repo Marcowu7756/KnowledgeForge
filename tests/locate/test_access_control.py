@@ -11,10 +11,15 @@ import pytest
 from app.compose.engine import compose_from_query
 from app.knowledge.access import (
     AccessBlock,
+    AccessPolicy,
     access_from_meta,
     default_access_for_ingest,
+    default_policy_for,
     infer_source_project,
     is_compose_eligible,
+    is_expression_allowed,
+    is_export_allowed,
+    is_retrievable,
 )
 from app.knowledge.parse import load_unit_from_markdown
 from app.knowledge.yaml_meta import parse_card_yaml
@@ -119,6 +124,54 @@ def test_access_compose_eligibility():
     assert not is_compose_eligible("restricted", llm_provider="openai")
     assert is_compose_eligible("restricted", llm_provider="ollama")
     assert not is_compose_eligible("secret", llm_provider="ollama")
+    # Dual-track: cloud provider stays selectable; restricted simply does not flow in
+    assert is_compose_eligible("internal", llm_provider="gemini")
+    assert is_compose_eligible("internal", llm_provider="deepseek")
+
+
+def test_default_policy_matrix():
+    assert default_policy_for("restricted") == AccessPolicy(
+        retrieve=True,
+        compose="local_only",
+        expression="controlled",
+        export="local_only",
+    )
+    assert default_policy_for("secret").retrieve is False
+    assert default_policy_for("secret").compose == "deny"
+    assert default_policy_for("secret").expression == "deny"
+    assert default_policy_for("secret").export == "deny"
+
+
+def test_policy_overrides_retrieve_and_expression():
+    locked = AccessPolicy(retrieve=False, compose="deny", expression="deny", export="deny")
+    assert not is_retrievable("public", policy=locked)
+    assert not is_expression_allowed("restricted", policy=default_policy_for("restricted"), external=True)
+    assert is_expression_allowed("restricted", policy=default_policy_for("restricted"), external=False)
+    assert is_export_allowed("restricted")
+    assert not is_export_allowed("secret")
+
+
+def test_access_policy_yaml_roundtrip(tmp_path: Path):
+    unit = KnowledgeUnit(
+        title="Restricted asset",
+        source="unit-test",
+        type="notes",
+        summary="x",
+        access=AccessBlock(
+            classification="restricted",
+            source_project="setv",
+            policy=default_policy_for("restricted"),
+        ),
+    )
+    path = tmp_path / "card.md"
+    path.write_text(render_markdown(unit), encoding="utf-8")
+    text = path.read_text(encoding="utf-8")
+    assert "policy:" in text
+    assert "compose: local_only" in text
+    loaded = load_unit_from_markdown(path)
+    assert loaded.access.classification == "restricted"
+    assert loaded.access.resolved_policy().compose == "local_only"
+    assert loaded.access.resolved_policy().expression == "controlled"
 
 
 def test_access_retrieve_filters_secret_by_default(tmp_path: Path):
@@ -185,5 +238,5 @@ def test_preview_blocks_secret_card(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(config, "DATA_DIR", data)
     monkeypatch.setattr(config, "ROOT", tmp_path)
 
-    with pytest.raises(PermissionError, match="secret"):
+    with pytest.raises(PermissionError, match="blocked"):
         resolve_data_path(str(secret))

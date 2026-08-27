@@ -3,6 +3,32 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
   let lastComposeDraftPath = "";
+  let accessLane = "general";
+
+  const LANE_HINTS = {
+    general: "public / internal · 不含 SETV / Factor / AShare",
+    proprietary: "含 restricted · SETV / FactorLib / AShareLib · 默认不可外发",
+  };
+
+  function setAccessLane(lane) {
+    accessLane = lane === "proprietary" ? "proprietary" : "general";
+    $$(".lane-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-lane") === accessLane);
+    });
+    const hint = $("#lane-hint");
+    if (hint) hint.textContent = LANE_HINTS[accessLane];
+    const retrieveLane = $("#retrieve-lane");
+    const composeLane = $("#compose-lane");
+    if (retrieveLane) retrieveLane.value = accessLane;
+    if (composeLane) composeLane.value = accessLane;
+    document.body.dataset.accessLane = accessLane;
+    const title = $("#knowledge-lane-title");
+    if (title) {
+      title.textContent =
+        accessLane === "proprietary" ? "知识库 · 专有资产" : "知识库 · 通用";
+    }
+    refreshKnowledge();
+  }
 
   function showStage(name) {
     $$("[data-stage-panel]").forEach((el) => {
@@ -14,6 +40,7 @@
     if (name === "workshop") {
       refreshPackages();
       refreshArtifacts();
+      refreshKnowledge();
     }
     if (name === "tasks") refreshJobs();
   }
@@ -189,6 +216,70 @@
     }
   }
 
+  async function refreshKnowledge() {
+    const ul = $("#knowledge-list");
+    if (!ul) return;
+    try {
+      const data = await api(
+        `/api/knowledge?lane=${encodeURIComponent(accessLane)}&limit=24`
+      );
+      const items = data.items || [];
+      ul.innerHTML =
+        items
+          .map(
+            (item) => `<li>
+          <button type="button" class="preview-link" data-path="${escapeAttr(item.path)}">
+            <span class="access-chip access-${escapeAttr(item.classification)}">${escapeHtml(
+              item.source_project || item.classification
+            )}</span>
+            <strong>${escapeHtml(item.name)}</strong>
+          </button>
+        </li>`
+          )
+          .join("") ||
+        `<li class='muted'>当前层暂无卡片 — ${
+          accessLane === "proprietary"
+            ? "可先跑 setv snapshot|evolution|family / ecosystem ingest"
+            : "可先获取资料"
+        }</li>`;
+      ul.querySelectorAll(".preview-link").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          openPreview(btn.getAttribute("data-path"))
+        );
+      });
+    } catch {
+      ul.innerHTML = "<li>无法读取知识库</li>";
+    }
+  }
+
+  async function tryExport(path) {
+    if (!path) return;
+    try {
+      const res = await fetch(`/api/export?path=${encodeURIComponent(path)}`);
+      if (!res.ok) {
+        const text = await res.text();
+        let msg = text;
+        try {
+          msg = JSON.parse(text).detail || text;
+        } catch {
+          /* keep */
+        }
+        alert(`导出被拒绝：${msg}`);
+        return;
+      }
+      const blob = await res.blob();
+      const warn = res.headers.get("X-KF-Export-Warning");
+      if (warn && !confirm(`${warn}\n\n仍要下载吗？`)) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = path.split(/[/\\]/).pop() || "export.bin";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert(`导出失败：${err.message || err}`);
+    }
+  }
+
   const ACTION_LABELS = {
     capture: "获取",
     compile: "沉淀",
@@ -294,9 +385,23 @@
     body.innerHTML = "<p class='muted'>加载中…</p>";
     try {
       const data = await api(`/api/preview?path=${encodeURIComponent(path)}`);
-      title.textContent = data.name || path;
+      const chip = data.access
+        ? `<span class="access-chip access-${escapeAttr(
+            data.access.classification
+          )}">${escapeHtml(
+            data.access.source_project || data.access.classification
+          )}</span>`
+        : "";
+      title.innerHTML = `${chip} ${escapeHtml(data.name || path)}`;
+      const exportBtn = data.access?.export_external_allowed
+        ? `<p><button type="button" class="btn ghost btn-sm" id="modal-export-btn">导出到本机下载</button></p>`
+        : `<p class="muted">外发导出已关闭（${escapeHtml(
+            data.access?.policy?.export || "local_only"
+          )}）— 仅可在 KF 内预览。</p>`;
       if (data.kind === "text") {
-        body.innerHTML = `<pre class="preview-text">${escapeHtml(data.text || "")}</pre>`;
+        body.innerHTML = `${exportBtn}<pre class="preview-text">${escapeHtml(
+          data.text || ""
+        )}</pre>`;
       } else if (
         data.suffix === ".gif" ||
         data.suffix === ".png" ||
@@ -304,14 +409,15 @@
         data.suffix === ".jpeg" ||
         data.suffix === ".webp"
       ) {
-        body.innerHTML = `<img class="preview-media" src="${data.file_url}" alt="${escapeAttr(
+        body.innerHTML = `${exportBtn}<img class="preview-media" src="${data.file_url}" alt="${escapeAttr(
           data.name
         )}" />`;
       } else if (data.suffix === ".wav") {
-        body.innerHTML = `<audio class="preview-media" controls src="${data.file_url}"></audio>`;
+        body.innerHTML = `${exportBtn}<audio class="preview-media" controls src="${data.file_url}"></audio>`;
       } else {
-        body.innerHTML = `<p><a href="${data.file_url}" target="_blank" rel="noopener">打开文件</a></p>`;
+        body.innerHTML = `${exportBtn}<p><a href="${data.file_url}" target="_blank" rel="noopener">打开文件</a></p>`;
       }
+      $("#modal-export-btn")?.addEventListener("click", () => tryExport(path));
     } catch (err) {
       body.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
     }
@@ -365,6 +471,7 @@
     body: {
       query: fd.get("query"),
       top_k: Number(fd.get("top_k") || 5),
+      access_lane: fd.get("access_lane") || accessLane,
     },
   }));
 
@@ -377,6 +484,7 @@
         query: fd.get("query"),
         kind: fd.get("kind"),
         top_k: 5,
+        access_lane: fd.get("access_lane") || accessLane,
       },
     }),
     async (result) => {
@@ -385,6 +493,17 @@
       }
     }
   );
+
+  $$(".lane-btn").forEach((btn) => {
+    btn.addEventListener("click", () =>
+      setAccessLane(btn.getAttribute("data-lane"))
+    );
+  });
+  $("#compose-export-btn")?.addEventListener("click", () => {
+    if (lastComposeDraftPath) tryExport(lastComposeDraftPath);
+  });
+
+  setAccessLane("general");
 
   api("/api/health")
     .then((h) => {

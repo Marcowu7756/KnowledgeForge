@@ -68,12 +68,16 @@ def run_query(
     graph_path: str | None = None,
     graph_weight: float = 0.35,
     save: bool = True,
+    access_lane: str | None = None,
+    max_level: str | None = None,
 ) -> QueryRunResult:
     result = retrieve_kos(
         query,
         top_k=top_k,
         graph_path=graph_path,
         graph_weight=graph_weight,
+        access_lane=access_lane,
+        max_level=max_level,
     )
     out: Path | None = None
     path: Path | None = None

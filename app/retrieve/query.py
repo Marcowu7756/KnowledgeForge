@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from app.knowledge.access import is_compose_eligible, is_retrievable
+from app.knowledge.access import is_compose_eligible, is_retrievable, resolve_policy
 from app.reconstruct.evolve import load_graph
 from app.reconstruct.models import ConceptGraph
 from app.retrieve.embedder import embed_query
@@ -93,6 +93,8 @@ def retrieve_kos(
     graph_weight: float = 0.35,
     semantic_pool: int | None = None,
     min_graph_confidence: float = 0.5,
+    max_level: str | None = None,
+    access_lane: str | None = None,
 ) -> RetrieveResult:
     """
     Graph-aware KO retrieval:
@@ -100,9 +102,15 @@ def retrieve_kos(
       + ConceptGraph neighbor boost (within pool only)
       → re-rank KnowledgeObjects (never document chunks)
     """
+    from app.knowledge.access import lane_retrieve_ceiling
+
     query = query.strip()
     if not query:
         raise ValueError("empty query")
+
+    ceiling = max_level
+    if ceiling is None and access_lane:
+        ceiling = lane_retrieve_ceiling(access_lane)
 
     manifest = load_manifest(index_dir)
     all_records = load_records(index_dir)
@@ -110,7 +118,11 @@ def retrieve_kos(
     pairs = [
         (i, rec)
         for i, rec in enumerate(all_records)
-        if is_retrievable(rec.classification)
+        if is_retrievable(
+            rec.classification,
+            max_level=ceiling,  # type: ignore[arg-type]
+            policy=resolve_policy(rec.classification, rec.access_policy),
+        )
     ]
     records = [rec for _, rec in pairs]
     if pairs and all_matrix.size:
@@ -196,6 +208,7 @@ def retrieve_kos(
                 why=why,
                 vector_id=rec.vector_id,
                 classification=rec.classification,
+                access_policy=dict(rec.access_policy or {}),
             )
         )
 

@@ -7,6 +7,7 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 from app.knowledge.access import AccessBlock
+from app.knowledge.memory import MemoryKind, SetvArtifactRef
 from app.knowledge.taxonomy import TaxonomyBlock
 from app.models import KnowledgeUnit, SourceType
 
@@ -119,6 +120,8 @@ class KnowledgeObject(BaseModel):
     source: SourceRef = Field(default_factory=SourceRef)
     access: AccessBlock = Field(default_factory=AccessBlock)
     taxonomy: TaxonomyBlock = Field(default_factory=TaxonomyBlock)
+    memory_kind: MemoryKind = "semantic"
+    setv_artifact: SetvArtifactRef | None = None
     content: ContentBlock
     relations: list[RelationEdge] = Field(default_factory=list)
     visual: VisualRef = Field(default_factory=VisualRef)
@@ -223,6 +226,8 @@ def from_knowledge_unit(
         source=src,
         access=access or unit.access,
         taxonomy=unit.taxonomy,
+        memory_kind=unit.memory_kind,
+        setv_artifact=unit.setv_artifact,
         content=ContentBlock(
             title=unit.title,
             summary=unit.summary,

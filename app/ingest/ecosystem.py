@@ -10,7 +10,7 @@ from app.compression.ecosystem_prompt import (
 )
 from app.compression.parse import CompressParseError
 from app.ingest.docs import ingest_file
-from app.knowledge.access import AccessBlock
+from app.knowledge.access import AccessBlock, default_policy_for
 from app.knowledge.taxonomy import (
     build_taxonomy_for_ingest,
     project_profile,
@@ -136,6 +136,7 @@ def _finalize_ecosystem(
         classification=profile.get("classification") or "restricted",
         source_project=project,  # type: ignore[arg-type]
         export_policy="local_only",
+        policy=default_policy_for(profile.get("classification") or "restricted"),
     )
     for tag in [project, "ecosystem-ingest", "read-only-source", *(extra_tags or [])]:
         if tag not in unit.tags:

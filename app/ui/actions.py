@@ -143,6 +143,7 @@ def run_retrieve_action(
     *,
     top_k: int = 5,
     graph_path: str | None = None,
+    access_lane: str = "general",
     progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
     def p(pct: int, msg: str) -> None:
@@ -153,8 +154,14 @@ def run_retrieve_action(
 
     p(20, "embedding query")
     wait_briefly()
-    p(55, "ranking KnowledgeObjects")
-    run = run_query(query, top_k=top_k, graph_path=graph_path, save=True)
+    p(55, f"ranking KnowledgeObjects [{access_lane}]")
+    run = run_query(
+        query,
+        top_k=top_k,
+        graph_path=graph_path,
+        save=True,
+        access_lane=access_lane,
+    )
     hits = [
         {
             "ko_id": h.ko_id,
@@ -163,6 +170,7 @@ def run_retrieve_action(
             "semantic_score": h.semantic_score,
             "graph_score": h.graph_score,
             "path": h.path,
+            "classification": h.classification,
             "why": h.why,
         }
         for h in run.result.hits
@@ -170,6 +178,7 @@ def run_retrieve_action(
     out = {
         "ok": True,
         "mode": run.result.mode,
+        "access_lane": access_lane,
         "hits": hits,
         "result_path": str(run.result_path) if run.result_path else None,
     }
@@ -183,6 +192,7 @@ def run_compose_action(
     kind: str = "lecture",
     top_k: int = 5,
     graph_path: str | None = None,
+    access_lane: str = "general",
     progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
     def p(pct: int, msg: str) -> None:
@@ -191,7 +201,7 @@ def run_compose_action(
 
     from app.compose import compose_from_query
 
-    p(15, "retrieving sources")
+    p(15, f"retrieving sources [{access_lane}]")
     wait_briefly()
     p(40, "composing with LLM")
     result = compose_from_query(
@@ -199,6 +209,7 @@ def run_compose_action(
         kind=kind,
         top_k=top_k,
         graph_path=graph_path,
+        access_lane=access_lane,
     )
     p(90, "writing draft")
     out = {
@@ -206,8 +217,17 @@ def run_compose_action(
         "kind": result.kind,
         "draft": str(result.draft_path),
         "output_dir": str(result.output_dir),
+        "access_lane": access_lane,
+        "max_source_classification": result.meta.evidence.get(
+            "max_source_classification"
+        ),
         "sources": [
-            {"ko_id": s.ko_id, "title": s.title, "score": s.score}
+            {
+                "ko_id": s.ko_id,
+                "title": s.title,
+                "score": s.score,
+                "classification": s.classification,
+            }
             for s in result.meta.sources
         ],
     }

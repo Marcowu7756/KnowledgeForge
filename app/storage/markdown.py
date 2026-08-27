@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app import config
 from app.knowledge.access import access_to_meta_lines
+from app.knowledge.memory import memory_kind_to_meta_lines, setv_artifact_to_meta_lines
 from app.knowledge.taxonomy import taxonomy_to_meta_lines
 from app.models import KnowledgeUnit
 
@@ -14,6 +15,11 @@ def slugify(title: str) -> str:
     slug = re.sub(r"[^\w\s-]", "", title, flags=re.UNICODE).strip().lower()
     slug = re.sub(r"[\s_]+", "_", slug)
     return slug[:80] or "untitled"
+
+
+def _yaml_scalar(value: str | None) -> str:
+    """JSON-quoted scalar — safe for colons / backslashes; no PyYAML '...' doc end."""
+    return json.dumps("" if value is None else str(value), ensure_ascii=False)
 
 
 def render_markdown(unit: KnowledgeUnit) -> str:
@@ -28,6 +34,10 @@ def render_markdown(unit: KnowledgeUnit) -> str:
     access_block = ("\n".join(access_lines) + "\n") if access_lines else ""
     taxonomy_lines = taxonomy_to_meta_lines(unit.taxonomy)
     taxonomy_block = ("\n".join(taxonomy_lines) + "\n") if taxonomy_lines else ""
+    memory_lines = memory_kind_to_meta_lines(unit.memory_kind)
+    memory_block = ("\n".join(memory_lines) + "\n") if memory_lines else ""
+    setv_lines = setv_artifact_to_meta_lines(unit.setv_artifact)
+    setv_block = ("\n".join(setv_lines) + "\n") if setv_lines else ""
     taxonomy_section = ""
     if unit.taxonomy.path:
         chain = " > ".join(unit.taxonomy.path)
@@ -36,22 +46,31 @@ def render_markdown(unit: KnowledgeUnit) -> str:
 
 {chain}
 """
+    cite_section = ""
+    if unit.setv_artifact is not None:
+        cite_section = f"""
+## SETV Citation
+
+```text
+{unit.setv_artifact.citation_block()}
+```
+"""
     return f"""# {unit.title}
 
 ```yaml
 id: {unit.id}
-title: {unit.title}
-source: {unit.source}
-type: {unit.type}
-url: {unit.url or ""}
+title: {_yaml_scalar(unit.title)}
+source: {_yaml_scalar(unit.source)}
+type: {_yaml_scalar(unit.type)}
+url: {_yaml_scalar(unit.url or "")}
 created: {created}
 tags: {json.dumps(unit.tags, ensure_ascii=False)}
-{access_block}{taxonomy_block}```
+{memory_block}{access_block}{taxonomy_block}{setv_block}```
 
 ## Core Idea
 
 {unit.summary}
-{taxonomy_section}
+{taxonomy_section}{cite_section}
 ## Concepts
 
 {bullets(unit.concepts)}

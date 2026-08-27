@@ -53,6 +53,36 @@ def test_taxonomy_build_for_ingest_merges_path_and_llm():
     assert "状态转换" in tax.path
     assert tax.path.count("SETV") == 1
     assert "fxtrading" not in [p.lower() for p in tax.path]
+    assert not any(_looks_like_drive(p) for p in tax.path)
+
+
+def test_taxonomy_skips_windows_drive_and_yaml_safe(tmp_path: Path):
+    tax = build_taxonomy_for_ingest(
+        project="factorlib",
+        source_path=r"D:\fxtrading\FactorLibDLL\README.md",
+        llm_path=["因子契约"],
+    )
+    assert not any(_looks_like_drive(p) for p in tax.path)
+    path = tmp_path / "card.md"
+    path.write_text(
+        render_markdown(
+            KnowledgeUnit(
+                title="FactorLib",
+                source=r"D:\fxtrading\FactorLibDLL\README.md",
+                type="md",
+                summary="x",
+                taxonomy=tax,
+            )
+        ),
+        encoding="utf-8",
+    )
+    loaded = load_unit_from_markdown(path)
+    assert loaded.taxonomy.path == tax.path
+
+
+def _looks_like_drive(seg: str) -> bool:
+    s = str(seg or "").strip().rstrip("\\/")
+    return len(s) == 2 and s[0].isalpha() and s[1] == ":"
 
 
 def test_taxonomy_dedupes_llm_duplicate_of_root():
@@ -76,6 +106,21 @@ def test_taxonomy_yaml_roundtrip(tmp_path: Path):
     path.write_text(render_markdown(unit), encoding="utf-8")
     loaded = load_unit_from_markdown(path)
     assert loaded.taxonomy.path == ["专有知识", "SETV", "方法论"]
+
+
+def test_markdown_yaml_quotes_colon_title_and_windows_source(tmp_path: Path):
+    unit = KnowledgeUnit(
+        title="SETV Methodology: State, Transition",
+        source=r"D:\fxtrading\methodology\SETV\reference\FORMULAS.md",
+        type="md",
+        summary="summary",
+        taxonomy=TaxonomyBlock(path=["专有知识", "SETV"]),
+    )
+    path = tmp_path / "card.md"
+    path.write_text(render_markdown(unit), encoding="utf-8")
+    loaded = load_unit_from_markdown(path)
+    assert loaded.title == unit.title
+    assert loaded.source == unit.source
 
 
 def test_taxonomy_embed_text_includes_chain(sample_ko):

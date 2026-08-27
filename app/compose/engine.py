@@ -16,7 +16,7 @@ from app.compose.prompt import (
 )
 from app.compose.render import render_lecture, render_paper
 from app.compose.validate import ComposePayloadError, validate_compose_payload
-from app.knowledge.access import is_compose_eligible
+from app.knowledge.access import is_compose_eligible, resolve_policy
 from app.retrieve import run_query
 
 
@@ -51,6 +51,7 @@ def compose_from_query(
     top_k: int = 5,
     graph_path: str | None = None,
     graph_weight: float = 0.35,
+    access_lane: str | None = None,
 ) -> ComposeResult:
     """P3 application: retrieve KOs → LLM → paper/lecture draft."""
     kind = kind.strip().lower()
@@ -63,6 +64,7 @@ def compose_from_query(
         graph_path=graph_path,
         graph_weight=graph_weight,
         save=True,
+        access_lane=access_lane,
     )
     hits = retrieved.result.hits
     if not hits:
@@ -70,7 +72,13 @@ def compose_from_query(
 
     provider = config.LLM_PROVIDER
     eligible_hits = [
-        h for h in hits if is_compose_eligible(h.classification, llm_provider=provider)
+        h
+        for h in hits
+        if is_compose_eligible(
+            h.classification,
+            llm_provider=provider,
+            policy=resolve_policy(h.classification, h.access_policy),
+        )
     ]
     blocked = [h for h in hits if h not in eligible_hits]
     if blocked:
@@ -85,6 +93,8 @@ def compose_from_query(
 
     packs: list[dict] = []
     sources: list[ComposeSourceHit] = []
+    max_class = "public"
+    order = {"public": 0, "internal": 1, "restricted": 2, "secret": 3}
     for hit in hits:
         card = _load_card_text(hit.path)
         packs.append(
@@ -103,8 +113,11 @@ def compose_from_query(
                 title=hit.title,
                 score=hit.score,
                 path=hit.path,
+                classification=hit.classification,
             )
         )
+        if order.get(hit.classification, 0) > order.get(max_class, 0):
+            max_class = hit.classification
 
     system = PAPER_SYSTEM if kind == "paper" else LECTURE_SYSTEM
     user = build_compose_user_prompt(kind=kind, query=query, packs=packs)
@@ -125,6 +138,8 @@ def compose_from_query(
             "top_k": top_k,
             "hit_count": len(hits),
             "unit": "knowledge_object",
+            "access_lane": access_lane or "general",
+            "max_source_classification": max_class,
         },
     )
 

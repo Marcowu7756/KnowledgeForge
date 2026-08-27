@@ -15,6 +15,7 @@ class ComposeSourceHit(BaseModel):
     title: str = ""
     score: float = 0.0
     path: str = ""
+    classification: str = "public"
 
 
 class ComposeResultMeta(BaseModel):

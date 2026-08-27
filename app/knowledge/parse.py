@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 from app.knowledge.access import AccessBlock, access_from_meta
+from app.knowledge.memory import memory_kind_from_meta, setv_artifact_from_meta
 from app.knowledge.object import (
     KnowledgeObject,
     SourceRef,
@@ -31,7 +32,7 @@ def _yaml_map(block: str) -> dict[str, str]:
     meta = parse_card_yaml(block)
     out: dict[str, str] = {}
     for key, value in meta.items():
-        if key == "access" and isinstance(value, dict):
+        if key in {"access", "setv_artifact", "taxonomy"} and isinstance(value, dict):
             continue
         if isinstance(value, (list, dict)):
             out[key] = json.dumps(value, ensure_ascii=False)
@@ -62,6 +63,9 @@ def load_unit_from_markdown(path: Path) -> KnowledgeUnit:
     meta = _yaml_map(yaml_match.group(1)) if yaml_match else {}
     access = _access_from_block(yaml_match.group(1)) if yaml_match else AccessBlock()
     taxonomy = _taxonomy_from_block(yaml_match.group(1)) if yaml_match else TaxonomyBlock()
+    raw_meta = parse_card_yaml(yaml_match.group(1)) if yaml_match else {}
+    memory_kind = memory_kind_from_meta(raw_meta if isinstance(raw_meta, dict) else {})
+    setv_artifact = setv_artifact_from_meta(raw_meta if isinstance(raw_meta, dict) else {})
 
     sections: dict[str, str] = {}
     for match in _SECTION.finditer(text):
@@ -105,6 +109,8 @@ def load_unit_from_markdown(path: Path) -> KnowledgeUnit:
         tags=json.loads(meta["tags"]) if meta.get("tags", "").startswith("[") else [],
         access=access,
         taxonomy=taxonomy,
+        memory_kind=memory_kind,
+        setv_artifact=setv_artifact,
     )
 
 

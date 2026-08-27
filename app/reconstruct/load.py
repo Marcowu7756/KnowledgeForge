@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app import config
-from app.knowledge.access import AccessBlock, is_retrievable
+from app.knowledge.access import AccessBlock, is_retrievable, resolve_policy
 from app.knowledge.object import KnowledgeObject
 from app.knowledge.taxonomy import TaxonomyBlock
 from app.knowledge.parse import load_knowledge_object
@@ -103,7 +103,10 @@ def collect_from_index(
         rec_class = str(access_raw.get("classification") or "public")
         if classification and rec_class != classification:
             continue
-        if not is_retrievable(rec_class):
+        if not is_retrievable(
+            rec_class,
+            policy=resolve_policy(rec_class, access_raw.get("policy")),
+        ):
             continue
         tax_raw = rec.get("taxonomy") if isinstance(rec.get("taxonomy"), dict) else {}
         tax_path = list(tax_raw.get("path") or [])

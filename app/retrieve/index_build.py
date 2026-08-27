@@ -99,6 +99,7 @@ def build_ko_index(
                 classification=obj.access.classification,
                 source_project=obj.access.source_project,
                 export_policy=obj.access.export_policy,
+                access_policy=obj.access.resolved_policy().model_dump(),
                 taxonomy_path=list(obj.taxonomy.path),
             )
         )

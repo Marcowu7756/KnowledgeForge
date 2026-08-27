@@ -25,6 +25,7 @@ from app.voice import (
     speak_with_voice,
 )
 from app.ingest.ecosystem import run_ecosystem_ingest
+from app.ingest.setv_artifact import run_artifact_ingest
 from app.pipeline import (
     AudioIngestError,
     BilibiliIngestError,
@@ -55,6 +56,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py pdf <FILE>
   python main.py search <ROOT> ... --keyword <WORD>
   python main.py ecosystem ingest setv|factorlib|asharelib <ROOT> ... [--dry-run] [--limit N]
+  python main.py setv snapshot|evolution|family <path|dir> ... [--setv-root DIR] [--dry-run] [--limit N]
   python main.py derive <KNOWLEDGE.md> [--mode auto|english|physics|generic]
   python main.py express <KNOWLEDGE.md> [--voice NAME] [--no-animation] [--no-narration]
   python main.py animate <KNOWLEDGE.md> [--fast]
@@ -232,6 +234,48 @@ def build_parser() -> argparse.ArgumentParser:
         help="List matches only; do not call the LLM",
     )
     _add_index_flag(eco_ingest)
+
+    setv = sub.add_parser(
+        "setv",
+        help="SETV Artifact cite-only ingest (AE-2 snapshot / evolution / family)",
+    )
+    setv_sub = setv.add_subparsers(dest="setv_command")
+
+    def _add_setv_paths(parser: argparse.ArgumentParser, *, path_help: str) -> None:
+        parser.add_argument("paths", nargs="+", help=path_help)
+        parser.add_argument(
+            "--setv-root",
+            default=None,
+            help="SETV / fxtrading root for relative evidence_pointer resolution",
+        )
+        parser.add_argument("--limit", type=int, default=None)
+        parser.add_argument("--dry-run", action="store_true")
+        _add_index_flag(parser)
+
+    setv_snap = setv_sub.add_parser(
+        "snapshot",
+        help="Instance CARD.md → State Snapshot KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_snap,
+        path_help="CARD.md file(s) and/or instances directory roots",
+    )
+    setv_evo = setv_sub.add_parser(
+        "evolution",
+        help="L-SA/KP/KR edges + kernel Evidence → State Evolution KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_evo,
+        path_help="Edge/Evidence .md file(s) and/or SETV research|evidence roots",
+    )
+    setv_fam = setv_sub.add_parser(
+        "family",
+        help="SETV-FAM / L-XS / L-SF → State Family KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_fam,
+        path_help="Family/edge .md file(s) and/or families|links roots",
+    )
 
     index = sub.add_parser("index", help="Manage knowledge indexes (optional feature)")
     index_sub = index.add_subparsers(dest="index_command")
@@ -523,12 +567,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def cmd_status() -> int:
+    from app.knowledge.access import (
+        CLOUD_LLM_PROVIDERS,
+        LOCAL_LLM_PROVIDERS,
+        is_local_llm_provider,
+        max_retrieve_classification,
+    )
+
     print("KnowledgeForge Phase 1+")
     print(f"  root:        {config.ROOT}")
     print(f"  python:      {sys.version.split()[0]}")
     print(f"  local_first: {'on' if config.LOCAL_FIRST else 'off'}")
+    track = "local" if is_local_llm_provider(config.LLM_PROVIDER) else "cloud"
+    print(f"  llm_track:   {track} (choose local or cloud via LLM_PROVIDER)")
     print(f"  provider:    {config.LLM_PROVIDER}")
+    print(f"  providers:   local={','.join(sorted(LOCAL_LLM_PROVIDERS))} | cloud={','.join(sorted(CLOUD_LLM_PROVIDERS))}")
     print(f"  ollama:      {config.OLLAMA_MODEL} @ {config.OLLAMA_HOST}")
+    print(f"  access_max:  {max_retrieve_classification()}")
     print(f"  whisper:     {config.WHISPER_MODEL}")
     print(f"  embed:       {config.EMBED_MODEL_PATH}")
     print(f"  vocos:       {config.VOCOS_MODEL_PATH}")
@@ -904,6 +959,65 @@ def cmd_ecosystem(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_setv(args: argparse.Namespace) -> int:
+    asset_class = args.setv_command
+    if asset_class not in {"snapshot", "evolution", "family"}:
+        print(
+            "Usage: python main.py setv snapshot|evolution|family <path|dir> ...",
+            file=sys.stderr,
+        )
+        return 2
+    print(
+        f"[setv] {asset_class} adapter (cite-only · no LLM · memory_kind=state)"
+    )
+    for p in args.paths:
+        print(f"[setv] path={p}")
+    if args.setv_root:
+        print(f"[setv] setv_root={args.setv_root}")
+    try:
+        batch = run_artifact_ingest(
+            args.paths,
+            asset_class=asset_class,
+            setv_root=args.setv_root,
+            limit=args.limit,
+            dry_run=args.dry_run,
+            index=False if args.no_index else None,
+        )
+    except (FileNotFoundError, NotADirectoryError, ValueError) as exc:
+        print(f"SETV {asset_class} ingest failed: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:  # noqa: BLE001
+        print(f"SETV {asset_class} ingest failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"[setv] matched={len(batch.hits)}")
+    for hit in batch.hits:
+        print(f"  - {hit}")
+
+    if args.dry_run:
+        print("[dry-run] no writes; SETV sources untouched")
+        return 0
+
+    for result in batch.results:
+        _print_result(result)
+        ref = result.unit.setv_artifact
+        if ref:
+            print(
+                f"  cite: {ref.asset_class}/{ref.artifact_id} → {ref.evidence_pointer}"
+            )
+        print(f"  memory_kind: {result.unit.memory_kind}")
+        print(f"  taxonomy: {result.unit.taxonomy.canonical}")
+    for path, reason in batch.skipped:
+        print(f"[skip] {path}: {reason}", file=sys.stderr)
+    done_label = {
+        "snapshot": "snapshots",
+        "evolution": "evolutions",
+        "family": "families",
+    }[asset_class]
+    print(f"[done] {done_label}={len(batch.results)} skipped={len(batch.skipped)}")
+    return 0 if not batch.skipped or batch.results else 1
+
+
 def cmd_express(
     card: str,
     *,
@@ -1257,6 +1371,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_search(args)
     if args.command == "ecosystem":
         return cmd_ecosystem(args)
+    if args.command == "setv":
+        return cmd_setv(args)
     if args.command == "index":
         if args.index_command == "rebuild":
             return cmd_index_rebuild(args.subdir)

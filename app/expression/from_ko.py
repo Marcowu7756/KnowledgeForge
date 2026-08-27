@@ -48,6 +48,11 @@ def animate_from_ko(
     expression: VisualExpression | None = None,
 ) -> VisualRenderResult:
     """P1-A: KnowledgeObject → VisualExpression → GIF."""
+    if not obj.access.is_expression_allowed(external=False):
+        raise PermissionError(
+            f"expression blocked for classification={obj.access.classification} "
+            f"policy.expression={obj.access.resolved_policy().expression}"
+        )
     dest_dir.mkdir(parents=True, exist_ok=True)
     expr = expression or derive_visual_from_ko(obj)
     schema = visual_to_animation_schema(expr)
@@ -65,6 +70,11 @@ def narrate_from_ko(
     expression: AudioExpression | None = None,
 ) -> AudioRenderResult:
     """P1-B: KnowledgeObject → AudioExpression → WAV."""
+    if not obj.access.is_expression_allowed(external=False):
+        raise PermissionError(
+            f"expression blocked for classification={obj.access.classification} "
+            f"policy.expression={obj.access.resolved_policy().expression}"
+        )
     dest_dir.mkdir(parents=True, exist_ok=True)
     expr = expression or derive_audio_from_ko(obj, voice=voice_name)
     if voice_name:

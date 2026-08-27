@@ -106,8 +106,15 @@ def taxonomy_from_meta(meta: dict) -> TaxonomyBlock:
 def taxonomy_to_meta_lines(taxonomy: TaxonomyBlock) -> list[str]:
     if not taxonomy.path:
         return []
-    quoted = ", ".join(f'"{p}"' for p in taxonomy.path)
-    return ["taxonomy:", f"  path: [{quoted}]"]
+    # safe_dump escapes backslashes / quotes so Windows path noise cannot break YAML.
+    path_yaml = yaml.safe_dump(
+        list(taxonomy.path),
+        allow_unicode=True,
+        default_flow_style=True,
+        sort_keys=False,
+        width=10_000,
+    ).strip()
+    return ["taxonomy:", f"  path: {path_yaml}"]
 
 
 def taxonomy_dict(taxonomy: TaxonomyBlock) -> dict[str, Any]:
@@ -138,6 +145,12 @@ def default_taxonomy_for_project(project: str) -> TaxonomyBlock:
     return TaxonomyBlock(path=list(root))
 
 
+def _is_windows_drive(part: str) -> bool:
+    """True for Path.parts drive anchors like 'D:\\' or 'D:'."""
+    s = str(part or "").strip().rstrip("\\/")
+    return len(s) == 2 and s[0].isalpha() and s[1] == ":"
+
+
 def infer_taxonomy_segments(source_path: str | Path) -> list[str]:
     """Best-effort segments from doc path (after stripping noise dirs)."""
     path = Path(source_path)
@@ -155,6 +168,8 @@ def infer_taxonomy_segments(source_path: str | Path) -> list[str]:
     }
     parts: list[str] = []
     for raw in path.parts:
+        if _is_windows_drive(raw) or raw in ("/", "\\"):
+            continue
         stem = Path(raw).stem.lower()
         if stem in skip or raw.startswith("."):
             continue
@@ -181,7 +196,7 @@ def _dedupe_taxonomy_path(path: list[str]) -> list[str]:
     seen: set[str] = set()
     for seg in path:
         key = str(seg or "").strip()
-        if not key:
+        if not key or _is_windows_drive(key):
             continue
         low = key.lower()
         if low in seen:

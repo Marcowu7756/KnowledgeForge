@@ -7,6 +7,7 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 from app.knowledge.access import AccessBlock
+from app.knowledge.memory import MemoryKind, SetvArtifactRef
 from app.knowledge.taxonomy import TaxonomyBlock
 
 
@@ -61,3 +62,5 @@ class KnowledgeUnit(BaseModel):
     tags: list[str] = Field(default_factory=list)
     access: AccessBlock = Field(default_factory=AccessBlock)
     taxonomy: TaxonomyBlock = Field(default_factory=TaxonomyBlock)
+    memory_kind: MemoryKind = "semantic"
+    setv_artifact: SetvArtifactRef | None = None

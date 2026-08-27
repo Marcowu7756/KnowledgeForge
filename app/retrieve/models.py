@@ -21,6 +21,7 @@ class RetrieveHit(BaseModel):
     why: list[str] = Field(default_factory=list)  # explainability
     vector_id: str = ""
     classification: str = "public"
+    access_policy: dict[str, Any] = Field(default_factory=dict)
 
 
 class RetrieveResult(BaseModel):
@@ -47,6 +48,8 @@ class IndexRecord(BaseModel):
     classification: str = "public"
     source_project: str = ""
     export_policy: str = "export_ok"
+    # Compact access policy snapshot (empty → derive from classification).
+    access_policy: dict[str, Any] = Field(default_factory=dict)
     taxonomy_path: list[str] = Field(default_factory=list)
 
 

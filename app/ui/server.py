@@ -47,6 +47,7 @@ class RetrieveBody(BaseModel):
     query: str
     top_k: int = 5
     graph_path: str | None = None
+    access_lane: Literal["general", "proprietary"] = "general"
     async_job: bool = True
 
 
@@ -55,6 +56,7 @@ class ComposeBody(BaseModel):
     kind: Literal["paper", "lecture"] = "lecture"
     top_k: int = 5
     graph_path: str | None = None
+    access_lane: Literal["general", "proprietary"] = "general"
     async_job: bool = True
 
 
@@ -64,16 +66,43 @@ class JobCreateBody(BaseModel):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="KnowledgeForge UI", version="0.3.0", docs_url="/api/docs")
+    app = FastAPI(title="KnowledgeForge UI", version="0.4.0", docs_url="/api/docs")
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
+        from app.knowledge.access import (
+            CLOUD_LLM_PROVIDERS,
+            LOCAL_LLM_PROVIDERS,
+            is_local_llm_provider,
+            lane_retrieve_ceiling,
+        )
+
         return {
             "ok": True,
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.3.0",
+            "ui_version": "0.4.0",
+            "llm": {
+                "provider": config.LLM_PROVIDER,
+                "track": "local" if is_local_llm_provider(config.LLM_PROVIDER) else "cloud",
+                "local_providers": sorted(LOCAL_LLM_PROVIDERS),
+                "cloud_providers": sorted(CLOUD_LLM_PROVIDERS),
+                "note": "Dual-track: choose local or cloud via LLM_PROVIDER; access filters KO flow",
+            },
+            "access_lanes": {
+                "general": {
+                    "label": "通用知识",
+                    "ceiling": lane_retrieve_ceiling("general"),
+                    "includes": ["public", "internal"],
+                },
+                "proprietary": {
+                    "label": "专有资产",
+                    "ceiling": lane_retrieve_ceiling("proprietary"),
+                    "includes": ["public", "internal", "restricted"],
+                    "projects": ["setv", "factorlib", "asharelib"],
+                },
+            },
             "stages": [
                 "capture",
                 "distill",
@@ -173,6 +202,101 @@ def create_app() -> FastAPI:
 
         return {"compose": compose, "media": media}
 
+    @app.get("/api/knowledge")
+    def list_knowledge(
+        lane: Literal["general", "proprietary", "all"] = "all",
+        limit: int = Query(40, ge=1, le=200),
+    ) -> dict[str, Any]:
+        """List knowledge cards split by access lane."""
+        from app.knowledge.path_access import resolve_access_for_path
+
+        general: list[dict[str, Any]] = []
+        proprietary: list[dict[str, Any]] = []
+        root = config.KNOWLEDGE_DIR
+        if root.is_dir():
+            files = sorted(
+                root.rglob("*.md"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            for f in files:
+                if f.name.upper() == "INDEX.MD" or f.name.lower() == "readme.md":
+                    continue
+                access = resolve_access_for_path(f)
+                item = {
+                    "path": str(f),
+                    "name": f.name,
+                    "classification": access.classification,
+                    "source_project": access.source_project or "",
+                    "lane": (
+                        "proprietary"
+                        if access.classification in {"restricted", "secret"}
+                        or bool(access.source_project)
+                        else "general"
+                    ),
+                    "preview_url": f"/api/preview?path={quote(f.as_posix())}",
+                }
+                if item["lane"] == "proprietary":
+                    proprietary.append(item)
+                else:
+                    general.append(item)
+                if len(general) + len(proprietary) >= limit * 2:
+                    break
+        if lane == "general":
+            return {"lane": lane, "items": general[:limit], "general": general[:limit], "proprietary": []}
+        if lane == "proprietary":
+            return {
+                "lane": lane,
+                "items": proprietary[:limit],
+                "general": [],
+                "proprietary": proprietary[:limit],
+            }
+        return {
+            "lane": "all",
+            "items": (proprietary[: limit // 2] + general[: limit // 2]),
+            "general": general[:limit],
+            "proprietary": proprietary[:limit],
+        }
+
+    @app.get("/api/export")
+    def export_file(path: str = Query(...)) -> FileResponse:
+        """External export — blocked for local_only / controlled / secret."""
+        from app.knowledge.path_access import gate_export
+
+        try:
+            resolved = resolve_data_path(path)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+        access, expr_gate, exp_gate = gate_export(resolved, external=True)
+        if not expr_gate.allowed:
+            raise HTTPException(
+                403,
+                f"export blocked (expression={expr_gate.mode}): {expr_gate.reason}",
+            )
+        if not exp_gate.allowed:
+            raise HTTPException(
+                403,
+                f"export blocked (export={exp_gate.mode}): {exp_gate.reason}",
+            )
+        media = mimetypes.guess_type(str(resolved))[0] or "application/octet-stream"
+        headers = {
+            "X-KF-Classification": access.classification,
+            "X-KF-Export-Mode": exp_gate.mode,
+        }
+        if exp_gate.warning:
+            headers["X-KF-Export-Warning"] = exp_gate.warning
+        return FileResponse(
+            resolved,
+            media_type=media,
+            filename=resolved.name,
+            headers=headers,
+        )
+
     @app.get("/api/preview")
     def preview(path: str = Query(...)) -> dict[str, Any]:
         try:
@@ -231,6 +355,7 @@ def create_app() -> FastAPI:
                     str(payload.get("query") or ""),
                     top_k=int(payload.get("top_k") or 5),
                     graph_path=payload.get("graph_path"),
+                    access_lane=str(payload.get("access_lane") or "general"),
                     progress=progress,
                 )
             if action == "compose":
@@ -239,6 +364,7 @@ def create_app() -> FastAPI:
                     kind=str(payload.get("kind") or "lecture"),
                     top_k=int(payload.get("top_k") or 5),
                     graph_path=payload.get("graph_path"),
+                    access_lane=str(payload.get("access_lane") or "general"),
                     progress=progress,
                 )
             raise ValueError(f"unknown action: {action}")
@@ -330,6 +456,7 @@ def create_app() -> FastAPI:
                     body.query,
                     top_k=body.top_k,
                     graph_path=body.graph_path,
+                    access_lane=body.access_lane,
                     progress=progress,
                 ),
             )
@@ -339,6 +466,7 @@ def create_app() -> FastAPI:
                 body.query,
                 top_k=body.top_k,
                 graph_path=body.graph_path,
+                access_lane=body.access_lane,
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
@@ -353,6 +481,7 @@ def create_app() -> FastAPI:
                     kind=body.kind,
                     top_k=body.top_k,
                     graph_path=body.graph_path,
+                    access_lane=body.access_lane,
                     progress=progress,
                 ),
             )
@@ -363,6 +492,7 @@ def create_app() -> FastAPI:
                 kind=body.kind,
                 top_k=body.top_k,
                 graph_path=body.graph_path,
+                access_lane=body.access_lane,
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc

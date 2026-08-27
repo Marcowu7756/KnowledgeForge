@@ -471,6 +471,74 @@ select {
   margin-bottom: 0.65rem;
 }
 
+.compose-inline-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.lane-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lane-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lane-btn {
+  font: inherit;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  padding: 0.28rem 0.7rem;
+  cursor: pointer;
+}
+
+.lane-btn.active {
+  background: var(--ink);
+  color: var(--paper-2);
+}
+
+body[data-access-lane="proprietary"] .lane-bar {
+  border-color: rgba(154, 123, 47, 0.55);
+  background: rgba(154, 123, 47, 0.08);
+}
+
+.lane-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.access-chip {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.access-chip.access-restricted,
+.access-chip.access-secret {
+  border-color: var(--brass);
+  color: var(--brass-deep);
+}
+
+.access-chip.access-internal {
+  border-color: rgba(28, 43, 42, 0.35);
+}
+
 .compose-inline-head h3 {
   margin: 0;
   font-family: var(--font-display);
