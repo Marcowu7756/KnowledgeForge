@@ -53,6 +53,23 @@ class JobStore:
         job = self.get(job_id)
         if job is None:
             return None
+        return self._snapshot_job(job)
+
+    def list_snapshots(
+        self,
+        *,
+        limit: int = 50,
+        action: str | None = None,
+    ) -> list[dict[str, Any]]:
+        with self._lock:
+            jobs = list(self._jobs.values())
+        if action:
+            jobs = [j for j in jobs if j.action == action]
+        jobs.sort(key=lambda j: j.updated, reverse=True)
+        cap = max(1, min(int(limit), 200))
+        return [self._snapshot_job(j) for j in jobs[:cap]]
+
+    def _snapshot_job(self, job: Job) -> dict[str, Any]:
         return {
             "id": job.id,
             "action": job.action,

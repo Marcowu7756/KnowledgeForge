@@ -25,8 +25,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="KnowledgeForge Windows UI launcher")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--desktop", action="store_true")
-    parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument(
+        "--browser",
+        action="store_true",
+        help="Open system browser instead of pywebview desktop window",
+    )
     args = parser.parse_args(argv)
 
     # Ensure project imports resolve when frozen / portable
@@ -35,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"[ui] KF_ROOT={root}", flush=True)
 
-    if args.desktop:
+    if not args.browser:
         from app.ui.server import serve
 
         serve(host=args.host, port=args.port, desktop=True)
@@ -49,8 +52,7 @@ def main(argv: list[str] | None = None) -> int:
 
     def _open() -> None:
         time.sleep(0.8)
-        if not args.no_browser:
-            webbrowser.open(url)
+        webbrowser.open(url)
 
     threading.Thread(target=_open, daemon=True).start()
     print(f"[ui] KnowledgeForge workshop → {url}", flush=True)

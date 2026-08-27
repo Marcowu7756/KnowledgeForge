@@ -22,6 +22,7 @@
       </a>
       <nav class="top-nav" aria-label="Primary">
         <button type="button" class="linkish" data-stage="workshop">车间</button>
+        <button type="button" class="linkish" data-stage="tasks">任务</button>
         <button type="button" class="linkish" data-stage="settings">设置</button>
       </nav>
     </header>
@@ -104,6 +105,7 @@
                 <option value="theme">theme</option>
                 <option value="concept">concept</option>
                 <option value="learning_path">learning_path</option>
+                <option value="taxonomy">taxonomy</option>
               </select>
             </label>
             <button class="btn primary" type="submit">从 index 重建</button>
@@ -145,10 +147,33 @@
             </label>
             <button class="btn primary" type="submit">Compose</button>
           </form>
-          <pre class="out" id="out-compose" hidden></pre>
+          <div class="compose-layout">
+            <pre class="out" id="out-compose" hidden></pre>
+            <div id="compose-preview" class="compose-inline" hidden>
+              <div class="compose-inline-head">
+                <h3>草稿预览</h3>
+                <button type="button" class="btn ghost btn-sm" id="compose-preview-modal">全屏</button>
+              </div>
+              <div id="compose-preview-body" class="compose-inline-body"></div>
+            </div>
+          </div>
           <h3>最近产物</h3>
           <ul id="artifact-list" class="quiet-list"></ul>
         </div>
+      </section>
+
+      <section id="stage-tasks" class="stage" data-stage-panel="tasks" hidden>
+        <h2>任务列表</h2>
+        <p class="panel-lede">本会话内的异步任务进度与结果。重启 UI 后清空。</p>
+        <ul id="job-list" class="job-list"></ul>
+        <div id="job-preview" class="compose-inline" hidden>
+          <div class="compose-inline-head">
+            <h3>Compose 草稿</h3>
+            <button type="button" class="btn ghost btn-sm" id="job-preview-modal">全屏</button>
+          </div>
+          <div id="job-preview-body" class="compose-inline-body"></div>
+        </div>
+        <pre class="out" id="out-job-detail" hidden></pre>
       </section>
 
       <section id="stage-settings" class="stage" data-stage-panel="settings" hidden>

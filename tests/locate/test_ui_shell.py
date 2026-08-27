@@ -13,11 +13,14 @@ def test_ui_health_and_home():
     assert h.status_code == 200
     body = h.json()
     assert body["product"] == "KnowledgeForge"
+    assert body["ui_version"] == "0.3.0"
     assert "capture" in body["stages"]
 
     page = client.get("/")
     assert page.status_code == 200
     assert b"KnowledgeForge" in page.content
+    assert b"stage-tasks" in page.content
+    assert b"compose-preview" in page.content
 
 
 def test_ui_status_endpoint():

@@ -504,9 +504,9 @@ def build_parser() -> argparse.ArgumentParser:
     ui.add_argument("--host", default="127.0.0.1")
     ui.add_argument("--port", type=int, default=8765)
     ui.add_argument(
-        "--desktop",
+        "--browser",
         action="store_true",
-        help="Open pywebview desktop window (optional dependency)",
+        help="Open system browser instead of pywebview desktop window (default: desktop)",
     )
 
     return parser
@@ -1278,7 +1278,7 @@ def main(argv: list[str] | None = None) -> int:
 def cmd_ui(args: argparse.Namespace) -> int:
     from app.ui.server import serve
 
-    serve(host=args.host, port=args.port, desktop=bool(args.desktop))
+    serve(host=args.host, port=args.port, desktop=not args.browser)
     return 0
 
 

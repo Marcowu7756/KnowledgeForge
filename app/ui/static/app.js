@@ -2,6 +2,8 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+  let lastComposeDraftPath = "";
+
   function showStage(name) {
     $$("[data-stage-panel]").forEach((el) => {
       const on = el.getAttribute("data-stage-panel") === name;
@@ -13,6 +15,7 @@
       refreshPackages();
       refreshArtifacts();
     }
+    if (name === "tasks") refreshJobs();
   }
 
   function showPanel(name) {
@@ -73,13 +76,14 @@
     label.textContent = message || `${pct}%`;
   }
 
-  async function pollJob(jobId, form, out) {
+  async function pollJob(jobId, form, out, onDone) {
     for (;;) {
       const snap = await api(`/api/jobs/${jobId}`);
       setProgress(form, snap.progress || 0, `${snap.message} (${snap.progress || 0}%)`);
       if (snap.status === "done") {
         writeOut(out, snap.result, false);
         setProgress(form, 100, "完成", true);
+        if (onDone) await onDone(snap.result, snap);
         return snap.result;
       }
       if (snap.status === "error") {
@@ -91,7 +95,7 @@
     }
   }
 
-  function bindForm(formId, outId, buildRequest) {
+  function bindForm(formId, outId, buildRequest, onSuccess) {
     const form = $(formId);
     const out = $(outId);
     form.addEventListener("submit", async (e) => {
@@ -106,10 +110,11 @@
           body: JSON.stringify({ ...body, async_job: true }),
         });
         if (data.job_id) {
-          await pollJob(data.job_id, form, out);
+          await pollJob(data.job_id, form, out, onSuccess);
         } else {
           writeOut(out, data, false);
           setProgress(form, 100, "完成", true);
+          if (onSuccess) await onSuccess(data, null);
         }
         if (formId === "form-compile" || formId === "form-compose") {
           refreshPackages();
@@ -184,6 +189,90 @@
     }
   }
 
+  const ACTION_LABELS = {
+    capture: "获取",
+    compile: "沉淀",
+    reconstruct: "重组",
+    retrieve: "检索",
+    compose: "表达",
+  };
+
+  async function refreshJobs() {
+    const ul = $("#job-list");
+    if (!ul) return;
+    try {
+      const data = await api("/api/jobs?limit=40");
+      const items = data.items || [];
+      ul.innerHTML =
+        items
+          .map(
+            (job) => `<li class="job-row">
+        <button type="button" class="job-row-btn" data-job-id="${escapeAttr(job.id)}">
+          <span class="job-status job-status-${escapeAttr(job.status)}">${escapeHtml(
+              job.status
+            )}</span>
+          <strong>${escapeHtml(ACTION_LABELS[job.action] || job.action)}</strong>
+          <span class="job-meta">${escapeHtml(job.message)} · ${job.progress || 0}%</span>
+          <span class="job-time">${escapeHtml(job.updated || job.created || "")}</span>
+        </button>
+      </li>`
+          )
+          .join("") || "<li class='muted'>暂无任务 — 在车间提交长任务后会出现在这里</li>";
+      ul.querySelectorAll(".job-row-btn").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          showJobDetail(btn.getAttribute("data-job-id"))
+        );
+      });
+    } catch {
+      ul.innerHTML = "<li>无法读取任务列表</li>";
+    }
+  }
+
+  async function showJobDetail(jobId) {
+    const detail = $("#out-job-detail");
+    const previewBox = $("#job-preview");
+    const previewBody = $("#job-preview-body");
+    if (!detail) return;
+    try {
+      const snap = await api(`/api/jobs/${jobId}`);
+      writeOut(detail, snap, snap.status === "error");
+      if (previewBox) previewBox.hidden = true;
+      if (previewBody) previewBody.innerHTML = "";
+      if (snap.status === "done" && snap.action === "compose" && snap.result?.draft) {
+        await renderInlinePreview(snap.result.draft, previewBody, previewBox);
+      }
+    } catch (err) {
+      writeOut(detail, String(err.message || err), true);
+    }
+  }
+
+  async function renderInlinePreview(path, bodyEl, boxEl) {
+    if (!path || !bodyEl || !boxEl) return;
+    boxEl.hidden = false;
+    bodyEl.innerHTML = "<p class='muted'>加载中…</p>";
+    try {
+      const data = await api(`/api/preview?path=${encodeURIComponent(path)}`);
+      if (data.kind === "text") {
+        bodyEl.innerHTML = `<pre class="preview-text compose-inline-text">${escapeHtml(
+          data.text || ""
+        )}</pre>`;
+      } else {
+        bodyEl.innerHTML = `<p class="muted">非文本产物 — 请用全屏或产物列表打开。</p>`;
+      }
+      lastComposeDraftPath = path;
+    } catch (err) {
+      bodyEl.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
+    }
+  }
+
+  async function showComposeInlinePreview(path) {
+    await renderInlinePreview(
+      path,
+      $("#compose-preview-body"),
+      $("#compose-preview")
+    );
+  }
+
   function escapeHtml(s) {
     return String(s)
       .replaceAll("&", "&amp;")
@@ -208,7 +297,13 @@
       title.textContent = data.name || path;
       if (data.kind === "text") {
         body.innerHTML = `<pre class="preview-text">${escapeHtml(data.text || "")}</pre>`;
-      } else if (data.suffix === ".gif" || data.suffix === ".png" || data.suffix === ".jpg" || data.suffix === ".jpeg" || data.suffix === ".webp") {
+      } else if (
+        data.suffix === ".gif" ||
+        data.suffix === ".png" ||
+        data.suffix === ".jpg" ||
+        data.suffix === ".jpeg" ||
+        data.suffix === ".webp"
+      ) {
         body.innerHTML = `<img class="preview-media" src="${data.file_url}" alt="${escapeAttr(
           data.name
         )}" />`;
@@ -237,6 +332,12 @@
   $("#preview-close")?.addEventListener("click", closePreview);
   $("#preview-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "preview-modal") closePreview();
+  });
+  $("#compose-preview-modal")?.addEventListener("click", () => {
+    if (lastComposeDraftPath) openPreview(lastComposeDraftPath);
+  });
+  $("#job-preview-modal")?.addEventListener("click", () => {
+    if (lastComposeDraftPath) openPreview(lastComposeDraftPath);
   });
 
   bindForm("#form-capture", "#out-capture", (fd) => ({
@@ -267,14 +368,23 @@
     },
   }));
 
-  bindForm("#form-compose", "#out-compose", (fd) => ({
-    path: "/api/compose",
-    body: {
-      query: fd.get("query"),
-      kind: fd.get("kind"),
-      top_k: 5,
-    },
-  }));
+  bindForm(
+    "#form-compose",
+    "#out-compose",
+    (fd) => ({
+      path: "/api/compose",
+      body: {
+        query: fd.get("query"),
+        kind: fd.get("kind"),
+        top_k: 5,
+      },
+    }),
+    async (result) => {
+      if (result?.draft) {
+        await showComposeInlinePreview(result.draft);
+      }
+    }
+  );
 
   api("/api/health")
     .then((h) => {

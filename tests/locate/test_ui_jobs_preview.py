@@ -34,6 +34,29 @@ def test_job_submit_and_poll_fake_action(monkeypatch):
     assert snap["progress"] == 100
 
 
+def test_job_list_returns_recent_jobs(monkeypatch):
+    client = TestClient(create_app())
+
+    def fake_capture(kind, target, progress=None):
+        if progress:
+            progress(100, "done")
+        return {"ok": True, "title": "t"}
+
+    monkeypatch.setattr("app.ui.actions.run_capture", fake_capture)
+    r = client.post("/api/capture", json={"kind": "file", "target": "x.md", "async_job": True})
+    job_id = r.json()["job_id"]
+
+    for _ in range(50):
+        snap = client.get(f"/api/jobs/{job_id}").json()
+        if snap["status"] == "done":
+            break
+
+    listed = client.get("/api/jobs?limit=10")
+    assert listed.status_code == 200
+    items = listed.json()["items"]
+    assert any(it["id"] == job_id for it in items)
+
+
 def test_preview_markdown_under_data(tmp_path: Path, monkeypatch):
     data = tmp_path / "data"
     compose = data / "compose" / "demo"

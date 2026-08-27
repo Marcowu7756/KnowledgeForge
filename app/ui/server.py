@@ -38,7 +38,7 @@ class CompileBody(BaseModel):
 
 class ReconstructBody(BaseModel):
     from_index: bool = True
-    view: Literal["theme", "concept", "learning_path"] = "theme"
+    view: Literal["theme", "concept", "learning_path", "taxonomy"] = "theme"
     evolve_dir: str | None = None
     async_job: bool = True
 
@@ -64,7 +64,7 @@ class JobCreateBody(BaseModel):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="KnowledgeForge UI", version="0.2.0", docs_url="/api/docs")
+    app = FastAPI(title="KnowledgeForge UI", version="0.3.0", docs_url="/api/docs")
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -73,7 +73,7 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.2.0",
+            "ui_version": "0.3.0",
             "stages": [
                 "capture",
                 "distill",
@@ -246,6 +246,13 @@ def create_app() -> FastAPI:
         job = STORE.submit(action, runner)
         return {"ok": True, "job_id": job.id, "status": job.status}
 
+    @app.get("/api/jobs")
+    def list_jobs(
+        limit: int = Query(50, ge=1, le=200),
+        action: str | None = None,
+    ) -> dict[str, Any]:
+        return {"items": STORE.list_snapshots(limit=limit, action=action)}
+
     @app.get("/api/jobs/{job_id}")
     def get_job(job_id: str) -> dict[str, Any]:
         snap = STORE.snapshot(job_id)
@@ -370,13 +377,25 @@ def create_app() -> FastAPI:
     return app
 
 
-def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = False) -> None:
+def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = True) -> None:
     import uvicorn
 
     mimetypes.add_type("text/css", ".css")
     mimetypes.add_type("application/javascript", ".js")
 
-    if desktop:
+    use_desktop = desktop
+    if use_desktop:
+        try:
+            import webview  # noqa: F401
+        except ImportError:
+            use_desktop = False
+            print(
+                "[ui] pywebview not installed — using browser. "
+                "Install: pip install pywebview",
+                flush=True,
+            )
+
+    if use_desktop:
         from app.ui.desktop import open_desktop
 
         open_desktop(host=host, port=port)

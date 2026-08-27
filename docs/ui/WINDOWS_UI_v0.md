@@ -77,6 +77,13 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 2. **Artifact preview** — MD/GIF/WAV under `data/` via `/api/preview` (path sandbox).
 3. **Windows .exe shell** — `scripts/build_windows_ui.ps1` → `dist/KnowledgeForgeUI/` (ML runtimes excluded; set `KF_ROOT` for full pipeline).
 
+## v0.3 additions
+
+1. **任务列表** — 顶栏「任务」→ `GET /api/jobs` 本会话 job 历史，点击查看详情 / Compose 草稿预览。
+2. **Compose 内联预览** — 表达段完成 compose 后在表单旁显示 `LECTURE.md` / `PAPER.md` 草稿；「全屏」打开弹层。
+3. **Desktop 默认** — `python main.py ui` 优先 pywebview 窗口；`--browser` 回退系统浏览器。
+4. **Reconstruct taxonomy view** — 重组表单可选 `taxonomy` view。
+
 ## Acceptance
 
 - [x] Design doc
@@ -87,3 +94,6 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 - [x] Async progress for long jobs
 - [x] Artifact preview modal
 - [x] PyInstaller onedir build script
+- [x] Task list page (`GET /api/jobs` + 任务顶栏)
+- [x] Compose inline draft preview + fullscreen modal
+- [x] pywebview desktop default (`--browser` to opt out)
