@@ -99,7 +99,7 @@ Evidence log: [`CONTENT_FILL_20260828.md`](CONTENT_FILL_20260828.md)
 | 1 | **Access governance closure** — restricted default, secret isolation, local/cloud/compose/export ceilings, **audit trail** | KF | ✅ audit + encrypted export |
 | 2 | AShareLib first batch | KF ops | ✅ **5/5** |
 | 3 | FactorLib `FactorLib_DLL_Spec.md` retry | KF ops | ✅ **4/4** |
-| 4 | AAPL per-TF INST sidecar | SETV producer | ⏸ not KF |
+| 4 | AAPL per-TF INST sidecar | SETV producer | ⏸ packet issued → `docs/interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md` |
 | 5 | Watermark / encrypt export | KF | ✅ `.kfexport` Fernet + watermark header |
 
 **Explicitly not now:** expand SETV output scope. First make existing SETV knowledge **retrievable, relatable, reconstructable**; let usage surface gaps.

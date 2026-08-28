@@ -25,7 +25,7 @@ setv_root: D:\fxtrading
 | GAP-AAPL-CARD | AAPL W/D/H4 `CARD.md` lack `SETV-INST-*` Primary Instance id | bulk snapshot skipped=3 | Producer gap · family covered via `export_family.json` / `SETV-FAM-*` · no KF-invented INST ids |
 | ALIGN-L-SA | Early KF markdown mapped `L-SA-*` → evolution; SETV sidecar stamps **family** | manifest `asset_class=family` for L-SA | Trust producer stamp under OPEN KF INGEST |
 | OBS-FACTOR-CMAKE | Factor discover matched `CMakeLists.txt` via `**/*.txt` | dry-run before fix | Fixed: md-only + hard exclude |
-| OBS-OLLAMA-500 | `FactorLib_DLL_Spec.md` LLM call dropped (tcp reset) | `_bulk_factorlib.txt` skip | retry with smaller doc / restart Ollama |
+| OBS-OLLAMA-500 | `FactorLib_DLL_Spec.md` LLM tcp reset | `_bulk_factorlib.txt` skip | ✅ retry `_retry_factorlib_dll_spec.txt` |
 
 ## Commands
 
@@ -42,9 +42,9 @@ setv_root: D:\fxtrading
 
 | Priority | Item | Class | Owner |
 |----------|------|-------|-------|
-| 1 | Access audit trail + encrypt export | KF governance | KF |
-| 2 | FactorLib `FactorLib_DLL_Spec.md` retry | infra | KF ops |
-| 3 | AAPL per-TF INST sidecar | **A · Producer Gap** | SETV |
+| 1 | Access audit trail + encrypt export | KF governance | ✅ done |
+| 2 | FactorLib `FactorLib_DLL_Spec.md` retry | infra | ✅ 4/4 |
+| 3 | AAPL per-TF INST sidecar | **A · Producer Gap** | SETV · packet [`PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md) |
 | 4 | Make SETV KOs retrievable / relatable at scale | **B/C · Knowledge/Relation** | KF usage |
 
 Phase doc: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)
