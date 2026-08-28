@@ -2,13 +2,15 @@
 
 ```yaml
 audit_id: KF-INTEG-RERUN-20260828
+status: SETTLED · CLOSE
 as_of: 2026-08-28T09:38:53Z
-head: f206a0a (origin/main at run start; local evidence polish after)
+head_evidence: 6485f8a
 command: KF_RUN_SLOW=1 pytest tests/integration -v --tb=short
 duration: 65.75s
 result: 19 passed · 0 failed · 0 skipped
 matrix_evidence: INTEGRATION_SOURCE_MATRIX_20260828.md (+ .json)
 log: data/_integ_rerun_20260828.log (local · not required in git)
+next: HOLD · Consume SETV Archive · no new Integration slice
 ```
 
 ## Verdict
@@ -19,9 +21,22 @@ log: data/_integ_rerun_20260828.log (local · not required in git)
 \boxed{\mathrm{matrix\ 13/13}}
 \qquad
 \boxed{\mathrm{slow\ 5/5}}
+\qquad
+\boxed{\mathrm{Fail}=0}
 \]
 
-**No new blocking defects.** Re-run after Web UI pivot + H4/SCOPE/renderer posture nails confirms settle→express wiring and local-model smokes still green.
+\[
+\boxed{\mathrm{OBS\neq BLOCKER}}
+\qquad
+\boxed{\mathrm{Integration\ PASS}\neq\mathrm{Product\ Completeness}}
+\qquad
+\boxed{\mathrm{Integration\ PASS}\neq\mathrm{HOLD\ Door\ Opening}}
+\]
+
+**Formal close:** `19/19 PASS · no new blocker · HOLD`.  
+No new Integration slice. Re-run after Web UI pivot + H4/SCOPE/renderer nails confirms settle→express主链未被边界调整破坏.
+
+**Evidence scope:** non-Cartesian only — one source → one representative express path. Supports **integration surface green**; does **not** claim all renderer combinations.
 
 ---
 
@@ -112,6 +127,27 @@ Initial matrix campaign: 2/13 → 11/13 → 12/13 → **13/13** (documented earl
 2. **No new product defects** to open on REQ_VS_LANDED.  
 3. Only follow-ups are **hygiene** (path scrub — done) and **upstream warning** OBS-1 (hold).  
 4. Next value remains **consume SETV archive** · not more matrix expansion.
+
+### Close board
+
+```text
+KF Integration Rerun
+        │
+        ├── 19/19 PASS
+        ├── Matrix 13/13 PASS
+        ├── Slow 5/5 PASS
+        ├── Hygiene fixes verified
+        └── No new blocker
+                 │
+                 ▼
+              SETTLED
+                 │
+                 ▼
+               HOLD
+               (Next Value = Consume SETV Archive)
+```
+
+**Not implied by this PASS:** live YT/Bili/Twitter net ingest · real LLM · real TTS · H4 thaw · SETV scope expand.
 
 ---
 

@@ -44,6 +44,11 @@ Next value
   → only D · Representation re-enters SETV
   → optional Owner thaw: H4
   → manim_beats / richer media only on consume evidence (or video-cost collapse)
+
+Integration (re-run post–Web UI / HOLD nails)
+  → SETTLED · 19/19 PASS · no new blocker · CLOSE
+  → evidence: INTEGRATION_RERUN_AUDIT_20260828.md
+  → NOT a new Integration slice · NOT HOLD door opening
 ```
 
 ---
