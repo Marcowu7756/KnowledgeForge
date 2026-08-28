@@ -92,9 +92,9 @@ Machine detail paths redacted → `<pytest_tmp>/` in evidence JSON/MD.
 
 | ID | Class | Symptom | Assessment | Action |
 |----|-------|---------|------------|--------|
-| OBS-1 | Warning | `torch.jit.script` DeprecationWarning ×16 (slow smoke) | Upstream torch / embedding stack; does not fail tests | **Record only** · no KF slice · revisit if torch upgrade breaks BGE |
-| OBS-2 | Hygiene | Matrix `write_evidence` previously wrote absolute `C:\Users\…\pytest-of-…` into git evidence | Local path leak in audit artifacts | **Fixed** · `_scrub_tmp_paths` in `source_matrix_lib.py` · re-scrubbed JSON |
-| OBS-3 | Hygiene | Auto evidence overwrite dropped prior “Problems found → fixed” narrative | History risk on every matrix run | **Fixed** · historical table restored in writer template + this audit |
+| OBS-1 | Warning | `torch.jit.script` DeprecationWarning ×16 (slow smoke) | Upstream torch / embedding stack; does not fail tests | **WONTFIX / HOLD** · no KF slice · revisit only if torch upgrade breaks BGE |
+| OBS-2 | Hygiene | Matrix `write_evidence` previously wrote absolute `C:\Users\…\pytest-of-…` into git evidence | Local path leak in audit artifacts | **FIXED** · `_scrub_tmp_paths` · verified on re-run |
+| OBS-3 | Hygiene | Auto evidence overwrite dropped prior “Problems found → fixed” narrative | History risk on every matrix run | **FIXED** · historical table in writer · verified |
 
 ### 2.3 Prior fix loop (still closed · do not reopen)
 
