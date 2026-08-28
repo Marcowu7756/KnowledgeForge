@@ -283,19 +283,33 @@ def rebuild_index(
 
     if subdir:
         scan_dir = config.KNOWLEDGE_DIR / subdir
-        files = sorted(p for p in scan_dir.glob("*.md") if p.name.upper() != "INDEX.MD")
+        if not scan_dir.is_dir():
+            raise FileNotFoundError(f"knowledge subdir not found: {scan_dir}")
+        files = sorted(
+            p
+            for p in scan_dir.rglob("*.md")
+            if p.name.upper() != "INDEX.MD"
+        )
         records = [r for p in files if (r := parse_knowledge_markdown(p))]
         written: dict[str, Path] = {}
         title = f"Knowledge Index — {subdir}"
-        written["local_json"] = save_local_json(local_json_path(scan_dir), records, title=title)
+        # Local index at the subdir root (aggregate of nested cards).
+        written["local_json"] = save_local_json(
+            local_json_path(scan_dir), records, title=title
+        )
         written["local_md"] = write_markdown_index(
             local_markdown_path(scan_dir),
             records,
             title=title,
             relative_to=scan_dir,
         )
-        # Merge into global.
-        global_records = [r for r in load_jsonl(global_jsonl_path()) if not str(r.get("path", "")).startswith(f"data/knowledge/{subdir}/")]
+        # Merge into global: drop any prior paths under this subdir tree.
+        prefix = f"data/knowledge/{subdir.strip('/').replace(chr(92), '/')}/"
+        global_records = [
+            r
+            for r in load_jsonl(global_jsonl_path())
+            if not str(r.get("path", "")).replace("\\", "/").startswith(prefix)
+        ]
         global_records.extend(records)
         written["global_jsonl"] = save_jsonl(global_jsonl_path(), global_records)
         written["global_md"] = write_markdown_index(

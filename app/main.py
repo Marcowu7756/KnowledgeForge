@@ -546,6 +546,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.35,
         help="Blend weight for graph boost (default 0.35)",
     )
+    r_query.add_argument(
+        "--lane",
+        dest="access_lane",
+        choices=["general", "proprietary"],
+        default="proprietary",
+        help="Access lane ceiling (default proprietary — includes restricted SETV)",
+    )
 
     compose = sub.add_parser(
         "compose",
@@ -1382,7 +1389,8 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
 
     if args.retrieve_command == "query":
         print(
-            f"[retrieve] query={args.query!r} top={args.top} graph={args.graph}"
+            f"[retrieve] query={args.query!r} top={args.top} "
+            f"lane={args.access_lane} graph={args.graph}"
         )
         try:
             run = run_query(
@@ -1390,6 +1398,7 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
                 top_k=args.top,
                 graph_path=args.graph,
                 graph_weight=args.graph_weight,
+                access_lane=args.access_lane,
             )
         except (EmbedderError, FileNotFoundError, ValueError) as exc:
             print(f"Retrieve failed: {exc}", file=sys.stderr)
@@ -1404,6 +1413,7 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
         for i, hit in enumerate(result.hits, start=1):
             print(
                 f"  {i}. {hit.score:.4f}  {hit.title}  "
+                f"[{hit.classification}] "
                 f"[sem={hit.semantic_score:.3f} graph={hit.graph_score:.3f}]"
             )
             for w in hit.why[:2]:

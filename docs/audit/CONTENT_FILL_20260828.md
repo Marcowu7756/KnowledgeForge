@@ -44,8 +44,9 @@ Full matrix: [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
 
 | Priority | Item | Class | Owner |
 |----------|------|-------|-------|
-| 1 | SETV KO usage pass (retrieve/reconstruct evidence) | **B/C** | KF |
+| 1 | Soft graph boost / reconstruct edge hygiene | **C** | KF |
 | 2 | Ops runbook (ingest→index→audit→encrypt) | Ops | KF |
-| 3 | AAPL per-TF INST sidecar | **A · Producer** | SETV · [`PRODUCER_GAP_…`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md) |
+| 3 | AAPL per-TF INST sidecar | **A · Producer** | SETV |
 
+Usage pass: [`USAGE_EVIDENCE_B_20260828.md`](USAGE_EVIDENCE_B_20260828.md) ✅  
 Phase: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)

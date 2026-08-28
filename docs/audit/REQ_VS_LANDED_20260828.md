@@ -44,7 +44,7 @@ Next value
 | Gap taxonomy A/B/C/D | Phase doc | ✅ | `PHASE_CONTENT_FILL_20260828.md` |
 | AAPL per-TF `SETV-INST-*` + sidecars | Producer | ⏸ **A** | packet issued · still absent on SETV |
 | Restricted bulk index rebuild runbook | Ops | 🟡 | index rebuild works · runbook thin |
-| Make SETV KOs “live” (retrieve/reconstruct usage) | Strategy | 🟡 **B/C** | assets exist · usage pass pending |
+| Make SETV KOs “live” (retrieve/reconstruct usage) | Strategy | ✅ B · [`USAGE_EVIDENCE_B_20260828.md`](USAGE_EVIDENCE_B_20260828.md) · C soft edges remain |
 | 一源多卡 / Manim 实渲染 / GNN / chunk-RAG | HOLD | ⏸ | frozen |
 
 ---
@@ -71,7 +71,7 @@ SETV OPEN KF INGEST: **45/45** sidecars. AE-2 remainder cites beyond manifest: +
 | ID | Class | Requirement | Landed | Owner | Next |
 |----|-------|-------------|--------|-------|------|
 | GAP-AAPL-CARD | **A · Producer** | Per-TF INST id + `export.json` | Family only | SETV | [`PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md) |
-| GAP-USAGE-RETRIEVE | **B/C · Knowledge/Relation** | Existing SETV KOs queryable & related | Partial (index exists; no usage evidence pass) | KF | proprietary-lane retrieve smoke + reconstruct on SETV subset |
+| GAP-USAGE-RETRIEVE | **B/C · Knowledge/Relation** | Existing SETV KOs queryable & related | ✅ B fixed (nested index) · C soft edges open | KF | [`USAGE_EVIDENCE_B_20260828.md`](USAGE_EVIDENCE_B_20260828.md) |
 | GAP-OPS-RUNBOOK | Ops | Documented bulk ingest + index rebuild | Commands in docs · no single runbook | KF | short ops page |
 | — | HOLD | 一源多卡 / Manim / GNN / chunk-RAG | Not started | — | do not start |
 
@@ -100,10 +100,11 @@ SETV OPEN KF INGEST: **45/45** sidecars. AE-2 remainder cites beyond manifest: +
 
 ## 6. Recommended next (ordered)
 
-1. **KF usage pass** — proprietary retrieve + reconstruct on settled SETV KOs; log any **B/C** gaps  
-2. **Ops runbook** — one page: ingest → index rebuild → audit inspect → encrypted export  
-3. **SETV** — only after/with AAPL packet acceptance (Producer)  
-4. HOLD remains HOLD  
+1. ~~**KF usage pass**~~ → ✅ B closed · see USAGE_EVIDENCE_B  
+2. **C · Relation** — tighten graph boost / low-confidence edge hygiene  
+3. **Ops runbook** — ingest → index rebuild → audit → encrypt  
+4. **SETV A** — AAPL INST packet  
+5. HOLD remains HOLD  
 
 ---
 

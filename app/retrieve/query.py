@@ -148,6 +148,12 @@ def retrieve_kos(
     else:
         matrix = all_matrix
     if not records or matrix.size == 0:
+        if all_records and not pairs:
+            raise FileNotFoundError(
+                "no KnowledgeObjects pass access filter for this lane/ceiling "
+                f"(index={len(all_records)} · lane={access_lane or '-'} · "
+                f"ceiling={ceiling or 'default'}) — try --lane proprietary"
+            )
         raise FileNotFoundError(
             "empty retrieve index — run: python main.py retrieve index --from-index"
         )
