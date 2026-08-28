@@ -2,7 +2,7 @@
 
 ```yaml
 as_of: 2026-08-28
-head_pushed: aaecf59
+head_pushed: 99fdecd
 workspace: clean · Integration SETTLED · WORK_SUMMARY_20260828
 branch: main
 rule: 未关闭项不宣称 FIXED；未落地仅列仍 intentional 的缺口；Producer Gap 不由 KF 发明 ID
