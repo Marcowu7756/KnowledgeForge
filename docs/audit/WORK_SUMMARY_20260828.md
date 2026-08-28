@@ -4,7 +4,7 @@
 session: KF close-out 2026-08-28
 head: aaecf59+ (see push tip)
 status: SETTLED · HOLD
-next: Consume SETV Archive
+next: Business-side consumption · Archive PASS / Ops ISSUE
 ```
 
 \[
@@ -104,4 +104,4 @@ Do **not** expand Matrix for PASS count · do **not** thaw H4/SCOPE without gate
 
 ## 7. Operator one-liner
 
-> **可做需求已落地 · Integration 19/19 收口 · 审计 OBS 已处置（1 不修 / 2–3 已修）· NEXT = HOLD · Consume。**
+> **可做需求已落地 · Integration 19/19 收口 · Consume UAT Archive PASS / Ops ISSUE · NEXT = HOLD · 业务侧消费。**

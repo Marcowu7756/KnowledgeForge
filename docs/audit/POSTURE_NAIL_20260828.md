@@ -1,18 +1,34 @@
 # Posture Nail · 2026-08-28
 
 ```yaml
-status: NAILED
+status: SOT · GOVERNANCE FREEZE
 authority: SETV Owner + KF consume evidence
-next: HOLD
+sot: docs/audit/OWNER_INTERPRET_UAT_SPLIT_20260828.md
+horizon: SEALED · HORIZON_COMPOSABLE_POWERS_V0.md · HORIZON_EVENT_PRIMITIVE_V0.md · do not expand ontology
+next: BUSINESS-SIDE CONSUMPTION · no architecture move
 ```
 
 \[
-\boxed{\mathrm{AAPL\ Per\text{-}TF\ Instance = CLOSED}}
+\boxed{\mathrm{Engineering = CLOSED}}
 \qquad
-\boxed{\mathrm{NEXT = HOLD}}
+\boxed{\mathrm{Archive = PASS}}
 \qquad
-\boxed{\mathrm{Producer\ ID > KF\ cite\text{-}only}}
+\boxed{\mathrm{Ops = ISSUE}}
+\qquad
+\boxed{\mathrm{NEXT = Consume}}
 \]
+
+**Formal split (keep):** `PASS_WITH_ISSUES` = Archive PASS + Ops ISSUE. **Not** Archive defect.
+
+| Layer | Status | Meaning |
+|-------|--------|---------|
+| Engineering Closure | **PASS** | foundation closed |
+| Archive / Knowledge Core | **PASS** | asset is consumable |
+| Operations | **ISSUE** | Twitter / TTS |
+| H4 Chunk-RAG | **HOLD** | no KO-insufficiency evidence |
+| SETV Scope | **HOLD** | no Representation Gap evidence |
+
+Phase: **Build → Verify → Close** is done. Now **Consume → Observe → Classify**. No further architecture move. KF does not file requirements to SETV.
 
 ## Verified closed chain (AAPL)
 
@@ -26,6 +42,8 @@ Query proof: `AAPL H4 State Snapshot` · proprietary · Top-3 = AAPL W/H4/D INST
 Evidence: [`USAGE_EVIDENCE_AAPL_20260828.md`](USAGE_EVIDENCE_AAPL_20260828.md)
 
 Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + IT + contract trail).
+
+**Archive (freeze definition):** Content + Identity + Relations + Evidence + Lifecycle. SETV supplies citable historical state snapshots; KF does not invent INST ids. Coupling: SETV produces · KF preserves/relates/retrieves/expresses · usage may inform SETV — KF does **not** command SETV.
 
 ## Program board (nail)
 
@@ -42,7 +60,9 @@ Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + 
 | SETV scope expansion | **HOLD** · Owner Interpret nailed |
 | Tech HOLD residual | **H4** chunk-RAG · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · nail [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md) |
 | Integration re-run | ✅ **SETTLED / CLOSE** · 19/19 · [`INTEGRATION_RERUN_AUDIT_20260828.md`](INTEGRATION_RERUN_AUDIT_20260828.md) · no new slice |
-| H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) |
+| Consume UAT | ✅ **COMPLETE** · composite `PASS_WITH_ISSUES` · **Archive PASS** / **Ops ISSUE** · [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](OWNER_INTERPRET_UAT_SPLIT_20260828.md) |
+| Archive value | **VERIFIED** · 15/15 usable · A/B/C/D = 0 · KO retrieve sufficient |
+| H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) · **no further expand from UAT** |
 
 **Producer authority (SCOPE):**  
 `D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md`  
@@ -58,10 +78,21 @@ Global archive size at nail: **114** indexed units · **132** knowledge `.md` on
 - Do not thaw **H4** chunk-RAG without doctrine amend + Owner `THAW HOLD-CHUNK-RAG` · see [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md)
 - Do not chase **Math To Manim** / LLM→`scene.py` — external renderer reference only · [`RENDERER_REF_MATH_TO_MANIM_20260828.md`](RENDERER_REF_MATH_TO_MANIM_20260828.md)
 - Do not bend Expression around Manim; do not wire derive `manim_beats` without consume evidence
+- Do not treat `PASS_WITH_ISSUES` as product-defect; do not reshape Archive for Twitter/TTS
+- Do not open a chat-RAG product to “complete RAG”
+- Do not treat Horizon docs as backlog — Gap pulls stars (`Interesting Idea ⇏ New Node`); do **not** open Event Platform (`Knowledge First · Event Below`)
 
 ## What TO do next
 
-**Consume** settled SETV knowledge inside KF. Let real questions surface gaps, then classify:
+Owner split: [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](OWNER_INTERPRET_UAT_SPLIT_20260828.md).
+
+**Archive / Knowledge Core = PASS.** SETV output was enough for the locked bank. KF is SETV’s observation glass, not SETV’s requirements desk.
+
+**Ops ISSUE only:** Twitter syndication · TTS wav. Do not fold into Archive FAIL.
+
+**NEXT = business-side consumption.** HOLD is an **evidence-based observation period**, not a stall. Keep using: Question → Retrieve → Compose → Use → Gap. Only **D** returns to SETV. H4 stays HOLD (15/15 is evidence KO retrieve is sufficient).
+
+Continue using Family + Instance + Evidence; classify new failures:
 
 ```text
 B Knowledge Gap  |  C Relation Gap  |  A Producer Gap  |  D Representation Gap
@@ -76,4 +107,4 @@ Value questions for this HOLD window:
 
 That is where **SETV → KF → SETV Evolution** starts earning its keep.
 
-Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)
+Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · consume SOP: [`CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)

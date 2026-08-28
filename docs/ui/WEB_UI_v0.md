@@ -37,6 +37,8 @@ $$
 .\.venv\Scripts\python.exe main.py ui --desktop   # 可选桌面窗
 ```
 
+How to consume (SOP): [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md).
+
 Health: `ui_version` ≥ `0.6.0` · `features.web_ui: true`.
 
 ## Information architecture

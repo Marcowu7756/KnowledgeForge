@@ -6,7 +6,7 @@ head_pushed: aaecf59
 workspace: clean · Integration SETTLED · WORK_SUMMARY_20260828
 branch: main
 rule: 未关闭项不宣称 FIXED；未落地仅列仍 intentional 的缺口；Producer Gap 不由 KF 发明 ID
-posture: NEXT = HOLD · consume · residual intentional only (H4 · SCOPE · manim_beats DEFER · Math-To-Manim OUT)
+posture: SOT = OWNER_INTERPRET_UAT_SPLIT_20260828 · HOLD = observe · do not re-litigate freeze
 ```
 
 ## Verdict

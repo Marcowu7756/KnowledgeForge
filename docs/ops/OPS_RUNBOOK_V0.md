@@ -18,6 +18,7 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
 | **Delete-only maintain** | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
 | Local Web UI | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · `main.py ui` browser-first |
+| **消费 SOP（给使用者）** | [`CONSUME_USER_HANDBOOK_V0.md`](CONSUME_USER_HANDBOOK_V0.md) |
 | Source matrix | [`INTEGRATION_SOURCE_MATRIX_20260828.md`](../audit/INTEGRATION_SOURCE_MATRIX_20260828.md) |
 | HOLD residual | [`HOLD_THAW_SCHEDULE_V0.md`](../audit/HOLD_THAW_SCHEDULE_V0.md) · H4 + SETV SCOPE Owner Interpret `D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md` |
 
