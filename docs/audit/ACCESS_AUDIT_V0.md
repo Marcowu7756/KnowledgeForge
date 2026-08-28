@@ -46,6 +46,7 @@ Get-Content data\audit\access\*.jsonl | Select-Object -Last 20
 
 ## Not in scope (v0)
 
-- Encrypted export payload (still `encrypted_export_unimplemented`)
 - Remote SIEM / push to GitHub
 - Per-token LLM prompt redaction beyond KO-level compose filter
+
+Encrypted export: see `ENCRYPTED_EXPORT_V0.md` (stub removed).

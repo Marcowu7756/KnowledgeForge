@@ -277,8 +277,21 @@ def check_expression_gate(
     *,
     policy: AccessPolicy | None = None,
     external: bool = False,
+    channel: str = "plaintext",
 ) -> GateResult:
     resolved = policy if policy is not None else default_policy_for(classification)
+    # Encrypted off-machine channel is the controlled leave path for restricted.
+    if (
+        resolved.expression == "controlled"
+        and external
+        and (channel or "plaintext").strip().lower() == "encrypted"
+    ):
+        return GateResult(
+            allowed=True,
+            mode="controlled",
+            reason="encrypted_channel",
+            classification=classification,
+        )
     if not is_expression_allowed(
         classification, policy=resolved, external=external
     ):
@@ -303,14 +316,20 @@ def check_export_gate(
     *,
     policy: AccessPolicy | None = None,
     external: bool = False,
+    channel: str = "plaintext",
 ) -> GateResult:
     """Export gate.
 
     external=False: in-app / under data/ (deny|secret blocked).
-    external=True: leaving the machine — local_only/encrypted/deny blocked;
+    external=True + channel=plaintext: local_only/encrypted/deny blocked;
                    warning allowed with warning text.
+    external=True + channel=encrypted: local_only|encrypted|warning|export_ok
+                   may leave as .kfexport envelope (secret/deny still blocked).
     """
     resolved = policy if policy is not None else default_policy_for(classification)
+    ch = (channel or "plaintext").strip().lower()
+    if ch not in {"plaintext", "encrypted"}:
+        ch = "plaintext"
     if resolved.export == "deny" or classification == "secret":
         return GateResult(
             allowed=False,
@@ -324,6 +343,16 @@ def check_export_gate(
             mode=resolved.export,
             classification=classification,
         )
+    if ch == "encrypted":
+        return GateResult(
+            allowed=True,
+            mode="encrypted",
+            reason="encrypted_channel",
+            warning=(
+                "encrypted envelope — recipient needs KF_EXPORT_KEY / passphrase"
+            ),
+            classification=classification,
+        )
     if resolved.export == "local_only":
         return GateResult(
             allowed=False,
@@ -335,7 +364,7 @@ def check_export_gate(
         return GateResult(
             allowed=False,
             mode="encrypted",
-            reason="encrypted_export_unimplemented",
+            reason="requires_encrypted_channel",
             classification=classification,
         )
     if resolved.export == "warning":

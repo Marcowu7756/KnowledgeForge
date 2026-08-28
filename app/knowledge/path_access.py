@@ -133,18 +133,25 @@ def gate_preview(path: Path) -> GateResult:
     return result
 
 
-def gate_export(path: Path, *, external: bool = True) -> tuple[AccessBlock, GateResult, GateResult]:
+def gate_export(
+    path: Path,
+    *,
+    external: bool = True,
+    channel: str = "plaintext",
+) -> tuple[AccessBlock, GateResult, GateResult]:
     """Return (access, expression_gate, export_gate) for an external or local export."""
     access = resolve_access_for_path(path)
     expr = check_expression_gate(
         access.classification,
         policy=access.resolved_policy(),
         external=external,
+        channel=channel,
     )
     exp = check_export_gate(
         access.classification,
         policy=access.resolved_policy(),
         external=external,
+        channel=channel,
     )
     try:
         from app.knowledge.access_audit import record_gate
@@ -166,6 +173,62 @@ def gate_export(path: Path, *, external: bool = True) -> tuple[AccessBlock, Gate
     except Exception:
         pass
     return access, expr, exp
+
+
+def build_encrypted_export(
+    path: Path,
+    *,
+    dest: Path | None = None,
+    passphrase: str | None = None,
+) -> tuple[AccessBlock, Path, bytes]:
+    """Gate + encrypt → (access, dest_path, envelope_bytes). Raises on deny."""
+    from app.knowledge.encrypted_export import (
+        EncryptedExportError,
+        ENVELOPE_SUFFIX,
+        encrypt_file,
+    )
+
+    access, expr, exp = gate_export(path, external=True, channel="encrypted")
+    if not expr.allowed:
+        raise PermissionError(
+            f"expression blocked ({expr.mode}): {expr.reason}"
+        )
+    if not exp.allowed:
+        raise PermissionError(f"export blocked ({exp.mode}): {exp.reason}")
+    try:
+        blob = encrypt_file(
+            path,
+            classification=access.classification,
+            source_project=access.source_project or "",
+            passphrase=passphrase,
+        )
+    except EncryptedExportError:
+        raise
+    if dest is None:
+        from app import config
+
+        stamp = path.stem
+        dest = config.DATA_DIR / "exports" / f"{stamp}{ENVELOPE_SUFFIX}"
+    else:
+        dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(blob)
+    try:
+        from app.knowledge.access_audit import record_access
+
+        record_access(
+            action="export",
+            outcome="allow",
+            classification=access.classification,
+            source_project=access.source_project or "",
+            path=str(path),
+            mode="encrypted",
+            reason="encrypted_channel",
+            detail={"dest": str(dest), "bytes": len(blob)},
+        )
+    except Exception:
+        pass
+    return access, dest, blob
 
 
 def proprietary_roots() -> dict[str, Path]:

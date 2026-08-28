@@ -80,6 +80,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py models status
   python main.py models pull [--only whisper,embed,ollama,tts,vocos,ocr,pix2tex]
   python main.py ui [--port 8765] [--desktop]
+  python main.py export encrypted <PATH> [-o OUT.kfexport]
   python main.py status
 """
 
@@ -619,7 +620,98 @@ def build_parser() -> argparse.ArgumentParser:
         help="Open system browser instead of pywebview desktop window (default: desktop)",
     )
 
+    export = sub.add_parser(
+        "export",
+        help="Controlled export (encrypted .kfexport for proprietary / local_only)",
+    )
+    export_sub = export.add_subparsers(dest="export_command")
+    exp_enc = export_sub.add_parser(
+        "encrypted",
+        help="Write Fernet envelope (.kfexport); needs KF_EXPORT_KEY or KF_EXPORT_PASSPHRASE",
+    )
+    exp_enc.add_argument("path", help="Knowledge card / file under data/")
+    exp_enc.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output .kfexport path (default: data/exports/<stem>.kfexport)",
+    )
+    exp_dec = export_sub.add_parser(
+        "decrypt",
+        help="Decrypt a .kfexport envelope (local verify)",
+    )
+    exp_dec.add_argument("path", help="Path to .kfexport")
+    exp_dec.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Write plaintext here (default: stdout text / sibling file)",
+    )
+
     return parser
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from app.knowledge.encrypted_export import (
+        EncryptedExportError,
+        decrypt_envelope,
+        generate_export_key,
+    )
+    from app.knowledge.path_access import build_encrypted_export
+
+    if args.export_command == "encrypted":
+        path = Path(args.path).expanduser().resolve()
+        if not path.is_file():
+            print(f"not a file: {path}", file=sys.stderr)
+            return 1
+        dest = Path(args.output).expanduser() if args.output else None
+        try:
+            access, out, _blob = build_encrypted_export(path, dest=dest)
+        except PermissionError as exc:
+            print(f"export blocked: {exc}", file=sys.stderr)
+            return 1
+        except EncryptedExportError as exc:
+            print(f"encrypted export failed: {exc}", file=sys.stderr)
+            print(
+                f"hint: set KF_EXPORT_KEY={generate_export_key()!r} once, or KF_EXPORT_PASSPHRASE",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"[ok] encrypted export: {out}")
+        print(f"  classification: {access.classification}")
+        print(f"  source_project: {access.source_project or '-'}")
+        return 0
+
+    if args.export_command == "decrypt":
+        path = Path(args.path).expanduser().resolve()
+        if not path.is_file():
+            print(f"not a file: {path}", file=sys.stderr)
+            return 1
+        try:
+            env, plain = decrypt_envelope(path)
+        except EncryptedExportError as exc:
+            print(f"decrypt failed: {exc}", file=sys.stderr)
+            return 1
+        print(f"[ok] schema={env.schema_id} original={env.original_name}")
+        print(f"  classification: {env.classification}")
+        print(f"  watermark: {env.watermark}")
+        if args.output:
+            out = Path(args.output).expanduser()
+            out.write_bytes(plain)
+            print(f"  wrote: {out}")
+        else:
+            try:
+                text = plain.decode("utf-8")
+                print("--- plaintext ---")
+                print(text[:4000])
+            except UnicodeDecodeError:
+                print(f"  binary {len(plain)} bytes (pass -o to write)")
+        return 0
+
+    print("Usage: python main.py export encrypted|decrypt ...", file=sys.stderr)
+    return 2
 
 
 def cmd_status() -> int:
@@ -1517,6 +1609,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_models_status()
     if args.command == "ui":
         return cmd_ui(args)
+    if args.command == "export":
+        return cmd_export(args)
     parser.print_help()
     return 2
 

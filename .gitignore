@@ -57,3 +57,6 @@ data/compose/*
 data/audit/*
 !data/audit/
 !data/audit/.gitkeep
+data/exports/*
+!data/exports/
+!data/exports/.gitkeep

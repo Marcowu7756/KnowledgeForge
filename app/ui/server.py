@@ -8,7 +8,7 @@ from typing import Any, Literal
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -260,7 +260,7 @@ def create_app() -> FastAPI:
 
     @app.get("/api/export")
     def export_file(path: str = Query(...)) -> FileResponse:
-        """External export — blocked for local_only / controlled / secret."""
+        """External plaintext export — blocked for local_only / controlled / secret."""
         from app.knowledge.path_access import gate_export
 
         try:
@@ -272,16 +272,24 @@ def create_app() -> FastAPI:
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
 
-        access, expr_gate, exp_gate = gate_export(resolved, external=True)
+        access, expr_gate, exp_gate = gate_export(
+            resolved, external=True, channel="plaintext"
+        )
         if not expr_gate.allowed:
             raise HTTPException(
                 403,
                 f"export blocked (expression={expr_gate.mode}): {expr_gate.reason}",
             )
         if not exp_gate.allowed:
+            hint = ""
+            if exp_gate.reason in {
+                "local_only_blocks_external",
+                "requires_encrypted_channel",
+            }:
+                hint = " — use GET /api/export/encrypted?path=..."
             raise HTTPException(
                 403,
-                f"export blocked (export={exp_gate.mode}): {exp_gate.reason}",
+                f"export blocked (export={exp_gate.mode}): {exp_gate.reason}{hint}",
             )
         media = mimetypes.guess_type(str(resolved))[0] or "application/octet-stream"
         headers = {
@@ -295,6 +303,39 @@ def create_app() -> FastAPI:
             media_type=media,
             filename=resolved.name,
             headers=headers,
+        )
+
+    @app.get("/api/export/encrypted")
+    def export_encrypted(path: str = Query(...)) -> Response:
+        """External encrypted envelope (.kfexport). Requires KF_EXPORT_KEY or passphrase env."""
+        from app.knowledge.encrypted_export import EncryptedExportError
+        from app.knowledge.path_access import build_encrypted_export
+
+        try:
+            resolved = resolve_data_path(path)
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+        try:
+            access, dest, blob = build_encrypted_export(resolved)
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except EncryptedExportError as exc:
+            raise HTTPException(503, str(exc)) from exc
+
+        return Response(
+            content=blob,
+            media_type="application/vnd.knowledgeforge.export+json",
+            headers={
+                "Content-Disposition": f'attachment; filename="{dest.name}"',
+                "X-KF-Classification": access.classification,
+                "X-KF-Export-Mode": "encrypted",
+                "X-KF-Export-Dest": str(dest),
+            },
         )
 
     @app.get("/api/preview")

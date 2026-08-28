@@ -77,6 +77,10 @@ def preview_payload(path: Path) -> dict:
             "export_external_allowed": policy.export
             not in {"deny", "local_only", "encrypted"}
             and access.classification != "secret",
+            "export_encrypted_allowed": (
+                access.classification != "secret"
+                and policy.export != "deny"
+            ),
         },
     }
     if kind == "text":
