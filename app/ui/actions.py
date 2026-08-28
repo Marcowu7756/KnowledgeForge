@@ -193,24 +193,36 @@ def run_compose_action(
     top_k: int = 5,
     graph_path: str | None = None,
     access_lane: str = "general",
+    source_paths: list[str] | None = None,
     progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
     def p(pct: int, msg: str) -> None:
         if progress:
             progress(pct, msg)
 
-    from app.compose import compose_from_query
+    from app.compose import compose_from_paths, compose_from_query
 
-    p(15, f"retrieving sources [{access_lane}]")
-    wait_briefly()
-    p(40, "composing with LLM")
-    result = compose_from_query(
-        query,
-        kind=kind,
-        top_k=top_k,
-        graph_path=graph_path,
-        access_lane=access_lane,
-    )
+    if source_paths:
+        p(15, f"using {len(source_paths)} selected KO(s) [{access_lane}]")
+        wait_briefly()
+        p(40, "composing with LLM (H1b)")
+        result = compose_from_paths(
+            query,
+            source_paths,
+            kind=kind,
+            access_lane=access_lane,
+        )
+    else:
+        p(15, f"retrieving sources [{access_lane}]")
+        wait_briefly()
+        p(40, "composing with LLM")
+        result = compose_from_query(
+            query,
+            kind=kind,
+            top_k=top_k,
+            graph_path=graph_path,
+            access_lane=access_lane,
+        )
     p(90, "writing draft")
     out = {
         "ok": True,
@@ -218,6 +230,7 @@ def run_compose_action(
         "draft": str(result.draft_path),
         "output_dir": str(result.output_dir),
         "access_lane": access_lane,
+        "source_mode": (result.meta.evidence or {}).get("source_mode", "retrieve"),
         "max_source_classification": result.meta.evidence.get(
             "max_source_classification"
         ),

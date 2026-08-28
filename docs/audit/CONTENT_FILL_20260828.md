@@ -22,7 +22,7 @@ setv_root: D:\fxtrading
 
 | ID | Finding | Evidence | Disposition |
 |----|---------|----------|-------------|
-| GAP-AAPL-CARD | AAPL W/D/H4 `CARD.md` lack `SETV-INST-*` Primary Instance id | bulk snapshot skipped=3 | Producer gap · family covered via `export_family.json` / `SETV-FAM-*` · no KF-invented INST ids |
+| GAP-AAPL-CARD | AAPL W/D/H4 `CARD.md` lack `SETV-INST-*` Primary Instance id | bulk snapshot skipped=3 | ✅ **CLOSED** · SETV stamped · KF cited 3 snaps · [`USAGE_EVIDENCE_AAPL_20260828.md`](USAGE_EVIDENCE_AAPL_20260828.md) |
 | ALIGN-L-SA | Early KF markdown mapped `L-SA-*` → evolution; SETV sidecar stamps **family** | manifest `asset_class=family` for L-SA | Trust producer stamp under OPEN KF INGEST |
 | OBS-FACTOR-CMAKE | Factor discover matched `CMakeLists.txt` via `**/*.txt` | dry-run before fix | Fixed: md-only + hard exclude |
 | OBS-OLLAMA-500 | `FactorLib_DLL_Spec.md` LLM tcp reset | `_bulk_factorlib.txt` skip | ✅ retry `_retry_factorlib_dll_spec.txt` |
@@ -44,9 +44,11 @@ Full matrix: [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
 
 | Priority | Item | Class | Owner |
 |----------|------|-------|-------|
-| 1 | Soft graph boost / reconstruct edge hygiene | **C** | KF |
-| 2 | Ops runbook (ingest→index→audit→encrypt) | Ops | KF |
-| 3 | AAPL per-TF INST sidecar | **A · Producer** | SETV |
+| — | *(content-fill / A–C queue clear)* | — | — |
+| HOLD residual | H4 chunk-RAG · SETV scope | HOLD | [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md) §3 · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) |
+| H1–H3 | 一源多卡 / Manim a+b+c / GNN | ✅ LANDED | same |
 
-Usage pass: [`USAGE_EVIDENCE_B_20260828.md`](USAGE_EVIDENCE_B_20260828.md) ✅  
-Phase: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)
+**NEXT = HOLD** · nail: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)  
+Ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) ✅  
+AAPL: [`USAGE_EVIDENCE_AAPL_20260828.md`](USAGE_EVIDENCE_AAPL_20260828.md) ✅  
+Usage: B ✅ · C ✅ · Phase: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)

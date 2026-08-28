@@ -21,7 +21,9 @@ $$
 2. **One job per stage**：导航按知识剧本五段，每段一个主任务。
 3. **Local-first**：只打本机 `127.0.0.1`；模型 / 数据仍走现有 `data/`、`models/`。
 4. **Thin shell**：UI 调用 `app.*` Python API，不重写 harness / retrieve / compose。
-5. **HOLD 仍有效的部分**：一源多卡布局、Manim 多 renderer、GNN — 本版不做。
+5. **HOLD 部分解冻**：一源多卡 H1 · Manim H2 · GNN H3 已落地；chunk-RAG 仍 HOLD。  
+   排期：[`HOLD_THAW_SCHEDULE_V0.md`](../audit/HOLD_THAW_SCHEDULE_V0.md)。
+6. **维护只删**：垃圾 / 不重要知识只提供 delete；新增与更新 = 重新获取。
 
 ## Information architecture
 
@@ -69,7 +71,7 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 - Chunk-RAG chat UI
 - Editing KO JSON by hand in forms
 - Manim scene editor
-- Multi-card “一源多卡” canvas
+- ~~Multi-card “一源多卡” canvas~~ → **H1a LANDED** (read-only family expand)
 
 ## v0.2 additions
 

@@ -70,6 +70,8 @@ def run_query(
     save: bool = True,
     access_lane: str | None = None,
     max_level: str | None = None,
+    gnn_shadow_path: str | None = None,
+    gnn_weight: float = 0.15,
 ) -> QueryRunResult:
     result = retrieve_kos(
         query,
@@ -78,6 +80,8 @@ def run_query(
         graph_weight=graph_weight,
         access_lane=access_lane,
         max_level=max_level,
+        gnn_shadow_path=gnn_shadow_path,
+        gnn_weight=gnn_weight,
     )
     out: Path | None = None
     path: Path | None = None

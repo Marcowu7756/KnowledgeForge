@@ -15,7 +15,9 @@ from pydantic import BaseModel, Field
 from app import config
 from app.local_models import status_rows
 from app.ui import actions
+from app.ui.family_view import resolve_explicit_cards, resolve_family_view
 from app.ui.jobs import STORE
+from app.ui.layout_persist import clear_layout, load_layout, save_layout
 from app.ui.preview import preview_payload, resolve_data_path
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -57,6 +59,7 @@ class ComposeBody(BaseModel):
     top_k: int = 5
     graph_path: str | None = None
     access_lane: Literal["general", "proprietary"] = "general"
+    source_paths: list[str] = Field(default_factory=list)
     async_job: bool = True
 
 
@@ -65,8 +68,27 @@ class JobCreateBody(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
 
 
+class FamilyCardsBody(BaseModel):
+    paths: list[str] = Field(default_factory=list)
+    lane: Literal["general", "proprietary"] = "proprietary"
+    excerpt_chars: int = 2400
+
+
+class MultiCardLayoutBody(BaseModel):
+    artifact_id: str = ""
+    selected_paths: list[str] = Field(default_factory=list)
+    compose_query: str = ""
+    compose_kind: Literal["lecture", "paper"] = "lecture"
+
+
+class KnowledgeDeleteBody(BaseModel):
+    paths: list[str] = Field(default_factory=list)
+    dry_run: bool = False
+    prune_retrieve: bool = True
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="KnowledgeForge UI", version="0.4.0", docs_url="/api/docs")
+    app = FastAPI(title="KnowledgeForge UI", version="0.5.2", docs_url="/api/docs")
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -82,7 +104,13 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.4.0",
+            "ui_version": "0.5.2",
+            "features": {
+                "multi_card_h1a": True,
+                "multi_card_h1b": True,
+                "multi_card_h1c": True,
+                "knowledge_delete": True,
+            },
             "llm": {
                 "provider": config.LLM_PROVIDER,
                 "track": "local" if is_local_llm_provider(config.LLM_PROVIDER) else "cloud",
@@ -202,6 +230,58 @@ def create_app() -> FastAPI:
 
         return {"compose": compose, "media": media}
 
+    @app.get("/api/family/{artifact_id:path}")
+    def family_multi_card(
+        artifact_id: str,
+        lane: Literal["general", "proprietary"] = "proprietary",
+        limit: int = Query(8, ge=1, le=24),
+        excerpt_chars: int = Query(2400, ge=400, le=12000),
+    ) -> dict[str, Any]:
+        """H1a · 一源多卡 — family artifact → read-only member card previews."""
+        try:
+            return resolve_family_view(
+                artifact_id,
+                lane=lane,
+                limit=limit,
+                excerpt_chars=excerpt_chars,
+            )
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+
+    @app.post("/api/family/cards")
+    def family_explicit_cards(body: FamilyCardsBody) -> dict[str, Any]:
+        """H1a · explicit ordered paths → read-only multi-card previews."""
+        if not body.paths:
+            raise HTTPException(400, "paths required")
+        return resolve_explicit_cards(
+            body.paths,
+            lane=body.lane,
+            excerpt_chars=body.excerpt_chars,
+        )
+
+    @app.get("/api/ui/layout/multi-card")
+    def get_multi_card_layout() -> dict[str, Any]:
+        """H1c · read persisted multi-card workshop layout."""
+        return {"ok": True, "layout": load_layout()}
+
+    @app.put("/api/ui/layout/multi-card")
+    def put_multi_card_layout(body: MultiCardLayoutBody) -> dict[str, Any]:
+        """H1c · save family id + selected paths + compose fields (no KO invent)."""
+        layout = save_layout(
+            artifact_id=body.artifact_id,
+            selected_paths=body.selected_paths,
+            compose_query=body.compose_query,
+            compose_kind=body.compose_kind,
+        )
+        return {"ok": True, "layout": layout}
+
+    @app.delete("/api/ui/layout/multi-card")
+    def delete_multi_card_layout() -> dict[str, Any]:
+        """H1c · clear persisted multi-card layout."""
+        return {"ok": True, "layout": clear_layout()}
+
     @app.get("/api/knowledge")
     def list_knowledge(
         lane: Literal["general", "proprietary", "all"] = "all",
@@ -257,6 +337,26 @@ def create_app() -> FastAPI:
             "general": general[:limit],
             "proprietary": proprietary[:limit],
         }
+
+    @app.delete("/api/knowledge")
+    def delete_knowledge_cards(body: KnowledgeDeleteBody) -> dict[str, Any]:
+        """Maintain · delete settled cards only (no invent / no update)."""
+        from app.knowledge.maintain import MaintainError, delete_knowledge, report_as_dict
+
+        if not body.paths:
+            raise HTTPException(400, "paths required")
+        try:
+            report = delete_knowledge(
+                body.paths,
+                dry_run=body.dry_run,
+                prune_retrieve=body.prune_retrieve,
+            )
+        except MaintainError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        payload = report_as_dict(report)
+        if not report.ok and not body.dry_run:
+            raise HTTPException(400, payload)
+        return payload
 
     @app.get("/api/export")
     def export_file(path: str = Query(...)) -> FileResponse:
@@ -400,12 +500,16 @@ def create_app() -> FastAPI:
                     progress=progress,
                 )
             if action == "compose":
+                paths = payload.get("source_paths") or []
+                if not isinstance(paths, list):
+                    paths = []
                 return actions.run_compose_action(
                     str(payload.get("query") or ""),
                     kind=str(payload.get("kind") or "lecture"),
                     top_k=int(payload.get("top_k") or 5),
                     graph_path=payload.get("graph_path"),
                     access_lane=str(payload.get("access_lane") or "general"),
+                    source_paths=[str(p) for p in paths] or None,
                     progress=progress,
                 )
             raise ValueError(f"unknown action: {action}")
@@ -514,6 +618,7 @@ def create_app() -> FastAPI:
 
     @app.post("/api/compose")
     def compose(body: ComposeBody) -> dict[str, Any]:
+        paths = body.source_paths or None
         if body.async_job:
             job = STORE.submit(
                 "compose",
@@ -523,6 +628,7 @@ def create_app() -> FastAPI:
                     top_k=body.top_k,
                     graph_path=body.graph_path,
                     access_lane=body.access_lane,
+                    source_paths=paths,
                     progress=progress,
                 ),
             )
@@ -534,6 +640,7 @@ def create_app() -> FastAPI:
                 top_k=body.top_k,
                 graph_path=body.graph_path,
                 access_lane=body.access_lane,
+                source_paths=paths,
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc

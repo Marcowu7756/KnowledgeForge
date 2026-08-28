@@ -13,11 +13,13 @@ def test_ui_health_and_home():
     assert h.status_code == 200
     body = h.json()
     assert body["product"] == "KnowledgeForge"
-    assert body["ui_version"] == "0.4.0"
+    assert body["ui_version"] == "0.5.1"
     assert "capture" in body["stages"]
     assert "access_lanes" in body
     assert body["access_lanes"]["general"]["ceiling"] == "internal"
     assert "setv" in body["access_lanes"]["proprietary"]["projects"]
+    assert body["features"]["multi_card_h1a"] is True
+    assert body["features"]["multi_card_h1b"] is True
 
     page = client.get("/")
     assert page.status_code == 200
@@ -26,7 +28,7 @@ def test_ui_health_and_home():
     assert b"compose-preview" in page.content
     assert b"lane-bar" in page.content
     assert b"data-lane=\"proprietary\"" in page.content
-
+    assert b"form-family-compose" in page.content
 
 def test_ui_status_endpoint():
     client = TestClient(create_app())

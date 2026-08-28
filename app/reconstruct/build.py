@@ -15,6 +15,10 @@ from app.reconstruct.models import (
     GraphNode,
     RelationLayer,
 )
+from app.reconstruct.edge_hygiene import (
+    allow_shared_fanout,
+    is_informative_shared_label,
+)
 from app.reconstruct.rules import (
     RULES_VERSION,
     confidence_for,
@@ -255,10 +259,12 @@ def build_graph(
                 )
 
     for cid, ko_set in sorted(concept_to_kos.items()):
-        if len(ko_set) < 2:
+        if not allow_shared_fanout(len(ko_set), kind="shared_concept"):
+            continue
+        concept_label = nodes[cid].label if cid in nodes else "shared"
+        if not is_informative_shared_label(concept_label):
             continue
         ordered = sorted(ko_set)
-        concept_label = nodes[cid].label if cid in nodes else "shared"
         for i, a in enumerate(ordered):
             for b in ordered[i + 1 :]:
                 add_edge(
@@ -269,12 +275,15 @@ def build_graph(
                     label=concept_label,
                     source_ko_ids=[a, b],
                     rule_id="shared_concept_cross_ko",
-                    weight=float(len(ko_set)),
+                    # Fan-out no longer boosts confidence (was amplifying cliques).
+                    weight=1.0,
                     detail=f"shared_concept={concept_label}",
                 )
 
     for tag, ko_set in sorted(tag_to_kos.items()):
-        if len(ko_set) < 2:
+        if not allow_shared_fanout(len(ko_set), kind="shared_tag"):
+            continue
+        if not is_informative_shared_label(tag):
             continue
         ordered = sorted(ko_set)
         for i, a in enumerate(ordered):

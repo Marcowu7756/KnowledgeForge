@@ -103,6 +103,14 @@
             </div>
             <pre class="out" id="out-compile" hidden></pre>
           </div>
+          <div class="maintain-block" id="maintain-block">
+            <h3>维护 · 删除</h3>
+            <p class="panel-lede">
+              只删垃圾或不重要的已沉淀卡片。新增 / 更新请重新获取。
+            </p>
+            <ul id="maintain-knowledge-list" class="quiet-list"></ul>
+            <p class="muted" id="maintain-status" hidden></p>
+          </div>
         </div>
 
         <div class="panel" data-panel-view="reconstruct" hidden>
@@ -142,6 +150,64 @@
             <button class="btn primary" type="submit">检索</button>
           </form>
           <pre class="out" id="out-retrieve" hidden></pre>
+
+          <div class="multi-card-block" id="multi-card-block">
+            <h3>一源多卡 · H1a–c</h3>
+            <p class="panel-lede">
+              只读并排展开 Family → 成员 Snapshot（不发明 ID · 非整卡编辑）。例：
+              <code>SETV-FAM-AAPL-TV-2024-WDH4</code>
+              · H1c 记住布局（本机 <code>data/ui/</code>）。
+            </p>
+            <form id="form-family" class="stack row-form">
+              <label class="grow">
+                Family artifact_id
+                <input
+                  name="artifact_id"
+                  id="family-artifact-id"
+                  type="text"
+                  required
+                  placeholder="SETV-FAM-AAPL-TV-2024-WDH4"
+                  value="SETV-FAM-AAPL-TV-2024-WDH4"
+                />
+              </label>
+              <button class="btn primary" type="submit">展开多卡</button>
+              <button class="btn ghost" type="button" id="family-layout-save">记住布局</button>
+              <button class="btn ghost" type="button" id="family-layout-clear">清除布局</button>
+            </form>
+            <p class="muted" id="multi-card-layout-status" hidden></p>
+            <p class="muted" id="multi-card-meta" hidden></p>
+            <div id="multi-card-row" class="multi-card-row" hidden></div>
+            <form id="form-family-compose" class="stack multi-card-compose" hidden>
+              <h4>H1b · 用所选卡 Compose</h4>
+              <label>
+                主题
+                <input
+                  name="query"
+                  id="family-compose-query"
+                  type="text"
+                  required
+                  placeholder="AAPL 2024 W/D/H4 状态家族观察"
+                />
+              </label>
+              <label>
+                形态
+                <select name="kind" id="family-compose-kind">
+                  <option value="lecture">讲解稿</option>
+                  <option value="paper">论文草稿</option>
+                </select>
+              </label>
+              <div class="row-form">
+                <button class="btn ghost" type="button" id="family-select-all">全选成员</button>
+                <button class="btn ghost" type="button" id="family-select-none">清空</button>
+                <button class="btn primary" type="submit">Compose 所选</button>
+              </div>
+              <div class="progress" hidden>
+                <div class="progress-fill"></div>
+                <span class="progress-label"></span>
+              </div>
+              <pre class="out" id="out-family-compose" hidden></pre>
+            </form>
+          </div>
         </div>
 
         <div class="panel" data-panel-view="express" hidden>
@@ -168,6 +234,7 @@
             <div>
               <h3 id="knowledge-lane-title">知识库 · 通用</h3>
               <ul id="knowledge-list" class="quiet-list"></ul>
+              <p class="muted">可在「沉淀」页维护删除；此处仅浏览。</p>
             </div>
           </div>
           <div class="compose-layout">

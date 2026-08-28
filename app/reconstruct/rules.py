@@ -72,7 +72,7 @@ RULES: dict[str, RelationRule] = {
     ),
 }
 
-RULES_VERSION = "rq_v0.3"
+RULES_VERSION = "rq_v0.4"
 
 # Confidence floors / caps
 MIN_CONFIDENCE = 0.05

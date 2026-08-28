@@ -49,7 +49,7 @@ SETV-side confirmation: core unchanged; Cards sufficient for AE-1.
 
 Also validated: `SETV-INST-GBPJPY-H4-2024-2026`.
 
-`export.json` / manifest remain **STOP** until Owner `OPEN SCHEMA` / `OPEN KF INGEST`.
+`export.json` / `manifest_v0.jsonl` / `setv ingest` are **AUTHORIZED** under SETV Owner `OPEN KF INGEST` (2026-08-28). See [`SETV_KF_INGEST_V0.md`](SETV_KF_INGEST_V0.md).
 
 ## Tests
 

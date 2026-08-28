@@ -6,7 +6,7 @@ class: A · Producer Gap
 from: KnowledgeForge (cite-only consumer)
 to: SETV Owner / Export tooling
 date: 2026-08-28
-status: OPEN · KF will not invent INST IDs
+status: CLOSED · SETV stamped 2026-08-28 · KF cited same day
 ```
 
 \[
@@ -25,7 +25,7 @@ status: OPEN · KF will not invent INST IDs
 |----------|--------------|
 | `SETV-FAM-AAPL-TV-2024-WDH4` via `export_family.json` | ✅ family cite |
 | `L-SF-AAPL` edge sidecar | ✅ family cite |
-| AAPL W / D / H4 as **State Snapshot** KOs | ❌ skipped — no `SETV-INST-*` |
+| AAPL W / D / H4 as **State Snapshot** KOs | ✅ cited 2026-08-28 · `snapshot_setv_inst_aapl_{w,d,h4}_2024.md` |
 
 Family container is settled. Per-TF **snapshot** cites are blocked.
 
@@ -140,8 +140,12 @@ Expect three new restricted State Snapshot KOs. No SETV mutation from KF. No rec
 
 ## 6. Acceptance checklist (SETV)
 
-- [ ] Owner confirms three `SETV-INST-AAPL-{W|D|H4}-2024` (or alternate AE-4 stamps)
-- [ ] Each CARD has `Primary Instance id:`
-- [ ] Each TF dir has `export.json` (`asset_class=snapshot`)
-- [ ] `manifest_v0.jsonl` lists the three snapshots
-- [ ] KF `setv ingest --class snapshot` cites all three without skip
+- [x] Owner confirms three `SETV-INST-AAPL-{W|D|H4}-2024` (or alternate AE-4 stamps)
+- [x] Each CARD has `Primary Instance id:` *(producer stamp; sidecars present)*
+- [x] Each TF dir has `export.json` (`asset_class=snapshot`)
+- [x] `manifest_v0.jsonl` lists the three snapshots (manifest **48**)
+- [x] KF `setv ingest --class snapshot` cites all three without skip
+
+KF evidence: [`USAGE_EVIDENCE_AAPL_20260828.md`](../audit/USAGE_EVIDENCE_AAPL_20260828.md)
+
+**NEXT = HOLD** (SETV).

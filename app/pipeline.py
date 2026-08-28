@@ -123,7 +123,7 @@ def _finalize(
         except ValueError:
             dest_rel = str(dest_dir)
     unit.access = default_access_for_ingest(
-        source_path=source.path or source.source,
+        source_path=source.path or source.url or source.title,
         dest_path=dest_rel,
         tags=unit.tags,
     )
@@ -137,9 +137,14 @@ def _finalize(
         dest_dir=dest_dir,
         filename_stem=filename_stem,
     )
+    try:
+        md_rel = md_path.resolve().relative_to(config.ROOT).as_posix()
+    except ValueError:
+        # dest_dir outside repo (tests / alternate stores) — store absolute posix
+        md_rel = md_path.resolve().as_posix()
     upsert_index(
         unit,
-        md_path.relative_to(config.ROOT).as_posix(),
+        md_rel,
         source_path=source.path,
         dest_dir=dest_dir,
         enabled=index,

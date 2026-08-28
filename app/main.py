@@ -60,7 +60,8 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py setv ingest --setv-root DIR [--manifest PATH] [--class CLASS] [--dry-run] [--limit N]
   python main.py derive <KNOWLEDGE.md> [--mode auto|english|physics|generic]
   python main.py express <KNOWLEDGE.md> [--voice NAME] [--no-animation] [--no-narration]
-  python main.py animate <KNOWLEDGE.md> [--fast]
+  python main.py animate <KNOWLEDGE.md> [--fast] [--renderer auto|manim|mpl|pillow]
+  python main.py animate --golden
   python main.py compile <SOURCE|CARD.md> [--animate] [--narrate] [--fast]
   python main.py compile --rerun-step animation|expression|manifest --package DIR
   python main.py reconstruct --from-index [--view theme|concept|learning_path|taxonomy|contrast] [--seed X]
@@ -68,6 +69,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py reconstruct --evolve data\\reconstruct\\<id> --add CARD.md
   python main.py reconstruct --from-packages [--view theme]
   python main.py reconstruct CARD1.md CARD2.md ... --view concept --seed 美债
+  python main.py gnn eval --graph data\\reconstruct\\<id> [--seeds KO_ID ...]
   python main.py retrieve index --from-index
   python main.py retrieve query "美债信用风险" [--graph DIR] [--top 5]
   python main.py compose paper|lecture "主题" [--top 5] [--graph DIR]
@@ -76,6 +78,7 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py voice list
   python main.py voice use <NAME>
   python main.py voice speak "文本" [--voice NAME] [-o out.wav]
+  python main.py knowledge delete <PATH|ID> [<PATH|ID> ...] [--dry-run] [--yes]
   python main.py index rebuild [--subdir NAME]
   python main.py models status
   python main.py models pull [--only whisper,embed,ollama,tts,vocos,ocr,pix2tex]
@@ -346,6 +349,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Only rebuild one folder under data/knowledge/, e.g. methodology",
     )
 
+    knowledge = sub.add_parser(
+        "knowledge",
+        help="Maintain settled knowledge (delete only — add/update = re-acquire)",
+    )
+    knowledge_sub = knowledge.add_subparsers(dest="knowledge_command")
+    k_del = knowledge_sub.add_parser(
+        "delete",
+        help="Delete junk/unimportant knowledge cards + prune indexes",
+    )
+    k_del.add_argument(
+        "targets",
+        nargs="+",
+        help="Knowledge card path(s) under data/knowledge/ or unit id(s)",
+    )
+    k_del.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Resolve targets only; do not delete",
+    )
+    k_del.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip confirmation prompt",
+    )
+    k_del.add_argument(
+        "--keep-retrieve",
+        action="store_true",
+        help="Do not prune retrieve vectors (default: prune matching rows)",
+    )
+
     derive = sub.add_parser(
         "derive",
         help="Expand a Knowledge Unit into examples (EN) or vivid process (physics)",
@@ -371,11 +405,22 @@ def build_parser() -> argparse.ArgumentParser:
         "animate",
         help="Present a Knowledge Unit as animation GIF only (Layer 3, no TTS)",
     )
-    animate.add_argument("card", help="Path to knowledge markdown card")
+    animate.add_argument("card", nargs="?", default=None, help="Path to knowledge markdown card")
     animate.add_argument(
         "--fast",
         action="store_true",
         help="Rule-based compile from Mechanisms/Timeline/Key Points (no LLM)",
+    )
+    animate.add_argument(
+        "--renderer",
+        choices=["auto", "manim", "mpl", "pillow"],
+        default=None,
+        help="H2 animation renderer (default: KF_ANIMATE_RENDERER or auto)",
+    )
+    animate.add_argument(
+        "--golden",
+        action="store_true",
+        help="H2b: render frozen golden schema (Manim smoke; card optional)",
     )
 
     compile_cmd = sub.add_parser(
@@ -477,8 +522,8 @@ def build_parser() -> argparse.ArgumentParser:
     reconstruct.add_argument(
         "--min-confidence",
         type=float,
-        default=0.0,
-        help="Drop graph edges below this confidence (relation quality filter)",
+        default=0.5,
+        help="Drop graph edges below this confidence (relation quality filter; default 0.5)",
     )
     reconstruct.add_argument(
         "--evolve",
@@ -497,6 +542,35 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="*",
         default=None,
         help="KO ids to drop when using --evolve",
+    )
+
+    gnn = sub.add_parser(
+        "gnn",
+        help="H3: offline GNN-style eval on frozen ConceptGraph (shadow scores)",
+    )
+    gnn_sub = gnn.add_subparsers(dest="gnn_command")
+    gnn_eval = gnn_sub.add_parser(
+        "eval",
+        help="Propagate scores on KO graph → write gnn_shadow_scores.json",
+    )
+    gnn_eval.add_argument(
+        "--graph",
+        required=True,
+        help="concept_graph.json or reconstruct dir",
+    )
+    gnn_eval.add_argument(
+        "--seeds",
+        nargs="*",
+        default=None,
+        help="Seed KO ids (default: first source_ko_ids)",
+    )
+    gnn_eval.add_argument("--steps", type=int, default=8)
+    gnn_eval.add_argument("--alpha", type=float, default=0.85)
+    gnn_eval.add_argument(
+        "-o",
+        "--out",
+        default=None,
+        help="Output shadow JSON (default: <graph-dir>/gnn_shadow_scores.json)",
     )
 
     retrieve = sub.add_parser(
@@ -552,6 +626,17 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["general", "proprietary"],
         default="proprietary",
         help="Access lane ceiling (default proprietary — includes restricted SETV)",
+    )
+    r_query.add_argument(
+        "--gnn-shadow",
+        default=None,
+        help="H3b shadow JSON (default: <graph-dir>/gnn_shadow_scores.json if present)",
+    )
+    r_query.add_argument(
+        "--gnn-weight",
+        type=float,
+        default=0.15,
+        help="H3c blend weight when KF_GNN_BOOST=1 (default 0.15)",
     )
 
     compose = sub.add_parser(
@@ -1399,6 +1484,8 @@ def cmd_retrieve(args: argparse.Namespace) -> int:
                 graph_path=args.graph,
                 graph_weight=args.graph_weight,
                 access_lane=args.access_lane,
+                gnn_shadow_path=getattr(args, "gnn_shadow", None),
+                gnn_weight=float(getattr(args, "gnn_weight", 0.15) or 0.15),
             )
         except (EmbedderError, FileNotFoundError, ValueError) as exc:
             print(f"Retrieve failed: {exc}", file=sys.stderr)
@@ -1494,13 +1581,49 @@ def cmd_compile(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_animate(card: str, *, fast: bool) -> int:
+def cmd_animate(
+    card: str | None,
+    *,
+    fast: bool,
+    renderer: str | None = None,
+    golden: bool = False,
+) -> int:
+    from app.expression.golden_h2b import GOLDEN_TITLE, golden_animation_schema
+
+    schema = None
+    if golden:
+        schema = golden_animation_schema()
+        fast = True
+        if renderer is None:
+            renderer = "manim"
+        if not card:
+            # Ephemeral stub card beside expression output
+            stub = config.EXPRESSION_DIR / "_h2b_golden" / "card.md"
+            stub.parent.mkdir(parents=True, exist_ok=True)
+            stub.write_text(
+                f"# {GOLDEN_TITLE}\n\n## Key Points\n\n- Observe\n- Evidence\n- Cite\n",
+                encoding="utf-8",
+            )
+            card = str(stub)
+        print(f"[animate] H2b golden schema ({GOLDEN_TITLE})")
+
+    if not card:
+        print("Animate failed: card required (or use --golden)", file=sys.stderr)
+        return 2
+
     print(f"[animate] card={card}")
     print(f"[animate] fast={'on' if fast else 'off'}")
+    print(f"[animate] renderer={renderer or 'auto'}")
     if not fast:
         print(f"[llm] provider={config.LLM_PROVIDER}")
     try:
-        result = animate_from_card(card, fast=fast)
+        result = animate_from_card(
+            card,
+            fast=fast,
+            renderer=renderer,
+            schema=schema,
+            dest_dir=(config.EXPRESSION_DIR / "_h2b_golden") if golden else None,
+        )
     except FileNotFoundError as exc:
         print(f"Animate failed: {exc}", file=sys.stderr)
         return 1
@@ -1511,9 +1634,17 @@ def cmd_animate(card: str, *, fast: bool) -> int:
     print(f"[ok] output:   {result.output_dir}")
     print(f"[ok] source:   {result.source}")
     print(f"[ok] type:     {result.schema.animation.type}")
+    print(f"[ok] renderer: {result.renderer}")
+    print(f"[ok] manim_wired: {result.manim_wired}")
+    print(f"[ok] mpl_wired: {result.mpl_wired}")
+    if result.fallback_reason:
+        print(f"[ok] fallback: {result.fallback_reason}")
     print(f"[ok] schema:   {result.schema_path}")
     print(f"[ok] gif:      {result.gif_path}")
     print(f"[ok] manifest: {result.output_dir / 'ANIMATE.md'}")
+    if golden and not result.manim_wired:
+        print("[warn] H2b golden expected manim_wired=true", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -1544,6 +1675,47 @@ def cmd_index_rebuild(subdir: str | None) -> int:
     for key, path in written.items():
         print(f"[index] {key}: {path}")
     return 0
+
+
+def cmd_knowledge_delete(
+    targets: list[str],
+    *,
+    dry_run: bool,
+    yes: bool,
+    keep_retrieve: bool,
+) -> int:
+    from app.knowledge.maintain import MaintainError, delete_knowledge, report_as_dict
+
+    if not dry_run and not yes:
+        print("About to DELETE knowledge card(s):")
+        for t in targets:
+            print(f"  - {t}")
+        print("Add/update is not supported here — re-acquire instead.")
+        ans = input("Type DELETE to confirm: ").strip()
+        if ans != "DELETE":
+            print("aborted", file=sys.stderr)
+            return 2
+    try:
+        report = delete_knowledge(
+            targets,
+            dry_run=dry_run,
+            prune_retrieve=not keep_retrieve,
+        )
+    except MaintainError as exc:
+        print(f"knowledge delete failed: {exc}", file=sys.stderr)
+        return 1
+    payload = report_as_dict(report)
+    print(f"[knowledge] dry_run={report.dry_run} deleted={report.deleted_count} ok={report.ok}")
+    for item in payload["items"]:
+        if item.get("error"):
+            print(f"[fail] {item['target']}: {item['error']}", file=sys.stderr)
+        else:
+            print(
+                f"[{'plan' if dry_run else 'ok'}] {item.get('title') or item['target']} · {item.get('path')}"
+            )
+    if report.audit_path:
+        print(f"[audit] {report.audit_path}")
+    return 0 if report.ok else 1
 
 
 def _print_result(result) -> None:
@@ -1590,6 +1762,19 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_index_rebuild(args.subdir)
         print("Usage: python main.py index rebuild [--subdir NAME]", file=sys.stderr)
         return 2
+    if args.command == "knowledge":
+        if args.knowledge_command == "delete":
+            return cmd_knowledge_delete(
+                args.targets,
+                dry_run=args.dry_run,
+                yes=args.yes,
+                keep_retrieve=args.keep_retrieve,
+            )
+        print(
+            "Usage: python main.py knowledge delete <PATH|ID> [...] [--dry-run] [--yes]",
+            file=sys.stderr,
+        )
+        return 2
     if args.command == "derive":
         return cmd_derive(args.card, args.mode)
     if args.command == "express":
@@ -1600,11 +1785,18 @@ def main(argv: list[str] | None = None) -> int:
             voice_name=args.voice,
         )
     if args.command == "animate":
-        return cmd_animate(args.card, fast=args.fast)
+        return cmd_animate(
+            args.card,
+            fast=args.fast,
+            renderer=args.renderer,
+            golden=bool(getattr(args, "golden", False)),
+        )
     if args.command == "compile":
         return cmd_compile(args)
     if args.command == "reconstruct":
         return cmd_reconstruct(args)
+    if args.command == "gnn":
+        return cmd_gnn(args)
     if args.command == "retrieve":
         return cmd_retrieve(args)
     if args.command == "compose":
@@ -1623,6 +1815,44 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_export(args)
     parser.print_help()
     return 2
+
+
+def cmd_gnn(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from app.reconstruct.gnn_offline import SHADOW_NAME, run_offline_gnn
+
+    if args.gnn_command != "eval":
+        print("Usage: python main.py gnn eval --graph DIR [-o out.json]", file=sys.stderr)
+        return 2
+    graph = Path(args.graph)
+    out = Path(args.out) if args.out else None
+    if out is None:
+        base = graph if graph.is_dir() else graph.parent
+        out = base / SHADOW_NAME
+    print(f"[gnn] H3a/H3b offline eval graph={graph}")
+    print(f"[gnn] seeds={args.seeds or '(auto)'}")
+    try:
+        result = run_offline_gnn(
+            graph,
+            seeds=args.seeds,
+            steps=args.steps,
+            alpha=args.alpha,
+            out_path=out,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"GNN eval failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"[ok] graph_id: {result.graph_id}")
+    print(f"[ok] method:   {result.method}")
+    print(f"[ok] seeds:    {result.seeds}")
+    print(f"[ok] stats:    {result.stats}")
+    print(f"[ok] shadow:   {result.output_path}")
+    top = sorted(result.scores.items(), key=lambda x: -x[1])[:8]
+    for i, (kid, score) in enumerate(top, start=1):
+        print(f"  {i}. {score:.4f}  {kid}")
+    print("[note] retrieve blend requires KF_GNN_BOOST=1 (H3c); default is shadow-only")
+    return 0
 
 
 def cmd_ui(args: argparse.Namespace) -> int:

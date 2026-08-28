@@ -101,10 +101,13 @@ Evidence log: [`CONTENT_FILL_20260828.md`](CONTENT_FILL_20260828.md)
 | 1 | **Access governance closure** — restricted default, secret isolation, local/cloud/compose/export ceilings, **audit trail** | KF | ✅ audit + encrypted export |
 | 2 | AShareLib first batch | KF ops | ✅ **5/5** |
 | 3 | FactorLib `FactorLib_DLL_Spec.md` retry | KF ops | ✅ **4/4** |
-| 4 | AAPL per-TF INST sidecar | SETV producer | ⏸ packet issued → `docs/interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md` |
+| 4 | AAPL per-TF INST sidecar | SETV producer | ✅ stamped · KF cited · [`USAGE_EVIDENCE_AAPL_20260828.md`](USAGE_EVIDENCE_AAPL_20260828.md) |
 | 5 | Watermark / encrypt export | KF | ✅ `.kfexport` Fernet + watermark header |
 
 **Explicitly not now:** expand SETV output scope. First make existing SETV knowledge **retrievable, relatable, reconstructable**; let usage surface gaps.
+
+Usage: B ✅ · C ✅ · AAPL ✅ · Ops ✅  
+**NEXT = HOLD** — [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)
 
 ---
 
@@ -120,8 +123,8 @@ Still to land for “closure”:
 
 - ~~structured **access audit**~~ → ✅
 - ~~encrypted export~~ → ✅
-- operational runbook for restricted bulk + index rebuild → 🟡 thin
-- **usage evidence** (retrieve/reconstruct on settled SETV KOs) → next
+- ~~operational runbook for restricted bulk + index rebuild~~ → ✅ [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md)
+- ~~usage evidence~~ → ✅ B/C + AAPL retrieve
 
 See [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md).
 

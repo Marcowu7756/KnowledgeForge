@@ -30,6 +30,7 @@ paddleocr>=2.9.0
 opencv-python>=4.10.0
 Pillow>=11.0.0
 numpy>=2.0.0
+matplotlib>=3.8.0
 
 # ---- D. Formula OCR (optional but listed) ----
 pix2tex>=0.1.2

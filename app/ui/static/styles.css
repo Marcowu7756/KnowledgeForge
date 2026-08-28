@@ -476,6 +476,121 @@ select {
   gap: 0.35rem;
 }
 
+.multi-card-block {
+  margin-top: 1.5rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.maintain-block {
+  margin-top: 1.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.maintain-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.maintain-row .preview-link {
+  flex: 1;
+  text-align: left;
+}
+
+.row-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.row-form .grow {
+  flex: 1 1 16rem;
+}
+
+.multi-card-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(16rem, 22rem);
+  gap: 0.85rem;
+  overflow-x: auto;
+  padding: 0.35rem 0 0.75rem;
+  scroll-snap-type: x proximity;
+}
+
+.multi-card {
+  scroll-snap-align: start;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.95rem 1rem;
+  min-height: 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.multi-card.family {
+  border-color: rgba(40, 80, 60, 0.35);
+  background: rgba(232, 242, 236, 0.65);
+}
+
+.multi-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.multi-card h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.multi-card .chip {
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+.multi-card-excerpt {
+  margin: 0;
+  flex: 1;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  max-height: 12rem;
+  overflow: auto;
+  opacity: 0.92;
+}
+
+.multi-card-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  margin: 0 0 0.2rem;
+}
+
+.multi-card-compose {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.multi-card-compose h4 {
+  margin: 0 0 0.55rem;
+}
+
 .lane-bar {
   display: flex;
   flex-wrap: wrap;

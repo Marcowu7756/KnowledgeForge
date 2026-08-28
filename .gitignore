@@ -60,3 +60,6 @@ data/audit/*
 data/exports/*
 !data/exports/
 !data/exports/.gitkeep
+data/ui/*
+!data/ui/
+!data/ui/.gitkeep

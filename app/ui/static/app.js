@@ -41,6 +41,7 @@
       refreshPackages();
       refreshArtifacts();
       refreshKnowledge();
+      refreshMaintainKnowledge();
     }
     if (name === "tasks") refreshJobs();
   }
@@ -54,6 +55,8 @@
       el.hidden = !on;
       el.classList.toggle("active", on);
     });
+    if (name === "distill") refreshMaintainKnowledge();
+    if (name === "express") refreshKnowledge();
   }
 
   async function api(path, opts) {
@@ -249,6 +252,77 @@
       });
     } catch {
       ul.innerHTML = "<li>无法读取知识库</li>";
+    }
+  }
+
+  async function refreshMaintainKnowledge() {
+    const ul = $("#maintain-knowledge-list");
+    if (!ul) return;
+    try {
+      const data = await api(`/api/knowledge?lane=all&limit=40`);
+      const items = [...(data.general || []), ...(data.proprietary || [])];
+      ul.innerHTML =
+        items
+          .map(
+            (item) => `<li class="maintain-row">
+          <button type="button" class="preview-link" data-path="${escapeAttr(item.path)}">
+            <span class="access-chip access-${escapeAttr(item.classification)}">${escapeHtml(
+              item.source_project || item.classification
+            )}</span>
+            <strong>${escapeHtml(item.name)}</strong>
+          </button>
+          <button type="button" class="btn ghost btn-sm knowledge-delete" data-path="${escapeAttr(
+            item.path
+          )}">删除</button>
+        </li>`
+          )
+          .join("") || "<li class='muted'>暂无卡片可维护</li>";
+      ul.querySelectorAll(".preview-link").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          openPreview(btn.getAttribute("data-path"))
+        );
+      });
+      ul.querySelectorAll(".knowledge-delete").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          deleteKnowledgeCard(btn.getAttribute("data-path"))
+        );
+      });
+    } catch {
+      ul.innerHTML = "<li>无法读取知识库</li>";
+    }
+  }
+
+  async function deleteKnowledgeCard(path) {
+    if (!path) return;
+    const name = path.split(/[/\\]/).pop() || path;
+    if (
+      !confirm(
+        `删除知识卡？\n${name}\n\n仅删除；新增/更新请重新获取。\n此操作不可撤销。`
+      )
+    ) {
+      return;
+    }
+    const status = $("#maintain-status");
+    try {
+      const data = await api("/api/knowledge", {
+        method: "DELETE",
+        body: JSON.stringify({ paths: [path], dry_run: false }),
+      });
+      if (status) {
+        status.hidden = false;
+        status.textContent = `已删除 ${data.deleted_count || 1} 张 · audit ${
+          data.audit_path || ""
+        }`;
+      }
+      refreshMaintainKnowledge();
+      refreshKnowledge();
+    } catch (err) {
+      if (status) {
+        status.hidden = false;
+        status.textContent = `删除失败：${err.message || err}`;
+      } else {
+        alert(`删除失败：${err.message || err}`);
+      }
     }
   }
 
@@ -475,6 +549,266 @@
     },
   }));
 
+  function renderMultiCardColumn(card, role) {
+    const tax = (card.taxonomy_path || []).join(" › ");
+    const checked = role === "member" ? "checked" : "";
+    return `<article class="multi-card ${role === "family" ? "family" : ""}">
+      <label class="multi-card-select">
+        <input type="checkbox" class="multi-card-check" data-path="${escapeAttr(
+          card.path
+        )}" ${checked} />
+        <span>纳入 Compose</span>
+      </label>
+      <div class="multi-card-head">
+        <span class="chip">${escapeHtml(card.asset_class || role)}</span>
+        <span class="chip access-${escapeAttr(card.classification || "")}">${escapeHtml(
+          card.source_project || card.classification || ""
+        )}</span>
+      </div>
+      <h4>${escapeHtml(card.title || card.artifact_id || "")}</h4>
+      <div class="muted">${escapeHtml(card.artifact_id || "")}</div>
+      <div class="muted">${escapeHtml(tax)}</div>
+      <pre class="multi-card-excerpt">${escapeHtml(card.excerpt || "")}</pre>
+      <button type="button" class="btn ghost btn-sm preview-link" data-path="${escapeAttr(
+        card.path
+      )}">全屏预览</button>
+    </article>`;
+  }
+
+  function selectedMultiCardPaths() {
+    return [...document.querySelectorAll(".multi-card-check:checked")]
+      .map((el) => el.getAttribute("data-path"))
+      .filter(Boolean);
+  }
+
+  const LAYOUT_LS_KEY = "kf.ui.multi_card_layout.v0";
+  let layoutSaveTimer = null;
+  let suppressLayoutAutosave = false;
+
+  function currentLayoutPayload() {
+    const idEl = $("#family-artifact-id");
+    const q = $("#family-compose-query");
+    const kind = $("#family-compose-kind");
+    return {
+      artifact_id: String(idEl?.value || "").trim(),
+      selected_paths: selectedMultiCardPaths(),
+      compose_query: String(q?.value || ""),
+      compose_kind: String(kind?.value || "lecture"),
+    };
+  }
+
+  function setLayoutStatus(text) {
+    const el = $("#multi-card-layout-status");
+    if (!el) return;
+    if (!text) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    el.textContent = text;
+  }
+
+  function mirrorLayoutLocal(layout) {
+    try {
+      localStorage.setItem(LAYOUT_LS_KEY, JSON.stringify(layout));
+    } catch {
+      /* ignore quota */
+    }
+  }
+
+  async function persistMultiCardLayout(opts = {}) {
+    const body = currentLayoutPayload();
+    if (!body.artifact_id && !(opts.force || false)) return null;
+    try {
+      const data = await api("/api/ui/layout/multi-card", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      mirrorLayoutLocal(data.layout || body);
+      if (!opts.silent) {
+        setLayoutStatus(
+          `H1c 已记住 · ${data.layout?.artifact_id || body.artifact_id} · ${
+            (data.layout?.selected_paths || body.selected_paths || []).length
+          } 卡`
+        );
+      }
+      return data.layout;
+    } catch (err) {
+      setLayoutStatus(`布局保存失败：${err.message || err}`);
+      return null;
+    }
+  }
+
+  function scheduleLayoutPersist() {
+    if (suppressLayoutAutosave) return;
+    clearTimeout(layoutSaveTimer);
+    layoutSaveTimer = setTimeout(() => persistMultiCardLayout({ silent: true }), 400);
+  }
+
+  function applySelectedPaths(paths) {
+    const want = new Set((paths || []).map(String));
+    document.querySelectorAll(".multi-card-check").forEach((el) => {
+      const p = el.getAttribute("data-path");
+      el.checked = want.has(p);
+    });
+  }
+
+  async function loadFamilyMultiCard(artifactId, opts = {}) {
+    const row = $("#multi-card-row");
+    const meta = $("#multi-card-meta");
+    const composeForm = $("#form-family-compose");
+    if (!row || !meta || !artifactId) return;
+    meta.hidden = false;
+    meta.textContent = "加载中…";
+    row.hidden = false;
+    row.innerHTML = "";
+    if (composeForm) composeForm.hidden = true;
+    const lane = accessLane === "general" ? "general" : "proprietary";
+    try {
+      const data = await api(
+        `/api/family/${encodeURIComponent(artifactId)}?lane=${encodeURIComponent(
+          lane
+        )}&limit=8`
+      );
+      const cols = [];
+      if (data.family) cols.push(renderMultiCardColumn(data.family, "family"));
+      for (const m of data.members || []) cols.push(renderMultiCardColumn(m, "member"));
+      row.innerHTML = cols.join("") || "<p class='muted'>无成员卡</p>";
+      row.querySelectorAll(".preview-link").forEach((btn) => {
+        btn.addEventListener("click", () => openPreview(btn.getAttribute("data-path")));
+      });
+      const n = (data.members || []).length;
+      meta.textContent = `${data.family?.artifact_id || artifactId} · ${n} 成员 · ${
+        data.resolve?.strategy || ""
+      } · lane=${data.lane}`;
+      if (composeForm && n > 0) {
+        composeForm.hidden = false;
+        const q = $("#family-compose-query");
+        if (q) {
+          if (opts.compose_query != null && String(opts.compose_query).trim()) {
+            q.value = opts.compose_query;
+          } else if (!q.value) {
+            q.value = `${data.family?.artifact_id || artifactId} 状态家族观察`;
+          }
+        }
+        const kind = $("#family-compose-kind");
+        if (kind && opts.compose_kind) kind.value = opts.compose_kind;
+      }
+      if (Array.isArray(opts.selected_paths)) {
+        applySelectedPaths(opts.selected_paths);
+      }
+      if (!opts.skipPersist) scheduleLayoutPersist();
+    } catch (err) {
+      meta.textContent = `展开失败：${err.message || err}`;
+      row.innerHTML = "";
+    }
+  }
+
+  async function restoreMultiCardLayout() {
+    let layout = null;
+    try {
+      const data = await api("/api/ui/layout/multi-card");
+      layout = data.layout;
+    } catch {
+      try {
+        layout = JSON.parse(localStorage.getItem(LAYOUT_LS_KEY) || "null");
+      } catch {
+        layout = null;
+      }
+    }
+    if (!layout?.artifact_id) return;
+    const idEl = $("#family-artifact-id");
+    if (idEl) idEl.value = layout.artifact_id;
+    if (accessLane !== "proprietary") setAccessLane("proprietary");
+    suppressLayoutAutosave = true;
+    try {
+      await loadFamilyMultiCard(layout.artifact_id, {
+        selected_paths: layout.selected_paths || [],
+        compose_query: layout.compose_query || "",
+        compose_kind: layout.compose_kind || "lecture",
+        skipPersist: true,
+      });
+      setLayoutStatus(
+        `H1c 已恢复 · ${layout.artifact_id}${
+          layout.updated ? ` · ${layout.updated}` : ""
+        }`
+      );
+    } finally {
+      suppressLayoutAutosave = false;
+    }
+  }
+
+  $("#form-family")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const id = String(fd.get("artifact_id") || "").trim();
+    if (!id) return;
+    if (accessLane !== "proprietary") setAccessLane("proprietary");
+    await loadFamilyMultiCard(id);
+  });
+
+  $("#family-layout-save")?.addEventListener("click", () => {
+    persistMultiCardLayout({ force: true });
+  });
+  $("#family-layout-clear")?.addEventListener("click", async () => {
+    try {
+      await api("/api/ui/layout/multi-card", { method: "DELETE" });
+      try {
+        localStorage.removeItem(LAYOUT_LS_KEY);
+      } catch {
+        /* ignore */
+      }
+      setLayoutStatus("H1c 布局已清除");
+    } catch (err) {
+      setLayoutStatus(`清除失败：${err.message || err}`);
+    }
+  });
+
+  $("#family-select-all")?.addEventListener("click", () => {
+    document.querySelectorAll(".multi-card-check").forEach((el) => {
+      el.checked = true;
+    });
+    scheduleLayoutPersist();
+  });
+  $("#family-select-none")?.addEventListener("click", () => {
+    document.querySelectorAll(".multi-card-check").forEach((el) => {
+      el.checked = false;
+    });
+    scheduleLayoutPersist();
+  });
+
+  $("#multi-card-row")?.addEventListener("change", (e) => {
+    if (e.target?.classList?.contains("multi-card-check")) scheduleLayoutPersist();
+  });
+  $("#family-compose-query")?.addEventListener("change", scheduleLayoutPersist);
+  $("#family-compose-kind")?.addEventListener("change", scheduleLayoutPersist);
+
+  bindForm(
+    "#form-family-compose",
+    "#out-family-compose",
+    (fd) => {
+      const paths = selectedMultiCardPaths();
+      if (!paths.length) throw new Error("请至少勾选一张卡");
+      return {
+        path: "/api/compose",
+        body: {
+          query: fd.get("query"),
+          kind: fd.get("kind") || "lecture",
+          access_lane: "proprietary",
+          source_paths: paths,
+        },
+      };
+    },
+    async (result) => {
+      await persistMultiCardLayout({ silent: true });
+      if (result?.draft) {
+        await showComposeInlinePreview(result.draft);
+        refreshArtifacts();
+      }
+    }
+  );
+
   bindForm(
     "#form-compose",
     "#out-compose",
@@ -512,4 +846,6 @@
     .catch(() => {
       $("#health-line").textContent = "API offline";
     });
+
+  restoreMultiCardLayout().catch(() => {});
 })();
