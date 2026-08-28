@@ -81,6 +81,18 @@ def compose_from_query(
         )
     ]
     blocked = [h for h in hits if h not in eligible_hits]
+    try:
+        from app.knowledge.access_audit import record_compose_filter
+
+        record_compose_filter(
+            query=query,
+            lane=access_lane,
+            llm_provider=provider,
+            allowed_ids=[h.ko_id for h in eligible_hits],
+            blocked=[(h.ko_id, h.classification) for h in blocked],
+        )
+    except Exception:
+        pass
     if blocked:
         labels = ", ".join(f"{h.ko_id}({h.classification})" for h in blocked[:5])
         print(f"[compose] access filter blocked {len(blocked)} KO(s): {labels}", flush=True)

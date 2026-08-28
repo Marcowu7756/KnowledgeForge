@@ -54,3 +54,6 @@ data/retrieve/*
 data/compose/*
 !data/compose/
 !data/compose/.gitkeep
+data/audit/*
+!data/audit/
+!data/audit/.gitkeep

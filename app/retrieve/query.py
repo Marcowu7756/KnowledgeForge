@@ -115,15 +115,32 @@ def retrieve_kos(
     manifest = load_manifest(index_dir)
     all_records = load_records(index_dir)
     all_matrix = load_vectors(index_dir)
-    pairs = [
-        (i, rec)
-        for i, rec in enumerate(all_records)
-        if is_retrievable(
+    denied_by_class: dict[str, int] = {}
+    pairs = []
+    for i, rec in enumerate(all_records):
+        ok = is_retrievable(
             rec.classification,
             max_level=ceiling,  # type: ignore[arg-type]
             policy=resolve_policy(rec.classification, rec.access_policy),
         )
-    ]
+        if ok:
+            pairs.append((i, rec))
+        else:
+            key = rec.classification or "public"
+            denied_by_class[key] = denied_by_class.get(key, 0) + 1
+    try:
+        from app.knowledge.access_audit import record_retrieve_summary
+
+        record_retrieve_summary(
+            query=query,
+            lane=access_lane,
+            ceiling=str(ceiling) if ceiling else None,
+            total=len(all_records),
+            allowed=len(pairs),
+            denied_by_class=denied_by_class,
+        )
+    except Exception:
+        pass
     records = [rec for _, rec in pairs]
     if pairs and all_matrix.size:
         row_idx = [i for i, _ in pairs]

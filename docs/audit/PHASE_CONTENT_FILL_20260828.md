@@ -49,7 +49,7 @@ SETV → KF → Accumulation → Gap taxonomy → SETV Research (when warranted)
 |--------|--------|------|
 | SETV manifest + sidecars | **45/45** | cite-only · no LLM |
 | SETV AE-2 remainder | measurement 2 · experiment 2 · uncertainty 3 | cite-only |
-| FactorLib | **3/4** (DLL Spec Ollama 500) | LLM compress |
+| FactorLib | **4/4** | LLM compress |
 | AShareLib | **5/5** | LLM compress |
 
 SETV is no longer “snapshot only” — it is **Observation + Method + Evidence + Uncertainty** as a knowledge source.
@@ -96,7 +96,7 @@ Evidence log: [`CONTENT_FILL_20260828.md`](CONTENT_FILL_20260828.md)
 
 | # | Item | Owner | Status |
 |---|------|-------|--------|
-| 1 | **Access governance closure** — restricted default, secret isolation, local/cloud/compose/export ceilings, **audit trail** | KF | 🟡 coded · audit TBD |
+| 1 | **Access governance closure** — restricted default, secret isolation, local/cloud/compose/export ceilings, **audit trail** | KF | ✅ audit JSONL · encrypt still TBD |
 | 2 | AShareLib first batch | KF ops | ✅ **5/5** |
 | 3 | FactorLib `FactorLib_DLL_Spec.md` retry | KF ops | ✅ **4/4** |
 | 4 | AAPL per-TF INST sidecar | SETV producer | ⏸ not KF |
@@ -116,7 +116,7 @@ Already in code (`app/knowledge/access.py`, UI lanes, `/api/export`):
 
 Still to land for “closure”:
 
-- structured **access audit** (retrieve / compose / export attempts)
+- ~~structured **access audit** (retrieve / compose / export attempts)~~ → ✅ `ACCESS_AUDIT_V0.md`
 - encrypted export path (stub exists: `encrypted_export_unimplemented`)
 - operational runbook for restricted bulk + index rebuild
 

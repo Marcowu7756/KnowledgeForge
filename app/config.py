@@ -23,6 +23,7 @@ RECONSTRUCT_DIR = DATA_DIR / "reconstruct"
 RETRIEVE_DIR = DATA_DIR / "retrieve"
 COMPOSE_DIR = DATA_DIR / "compose"
 VOICES_DIR = DATA_DIR / "voices"
+AUDIT_DIR = DATA_DIR / "audit"
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
 

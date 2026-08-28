@@ -113,11 +113,24 @@ def resolve_access_for_path(path: Path) -> AccessBlock:
 
 def gate_preview(path: Path) -> GateResult:
     access = resolve_access_for_path(path)
-    return check_expression_gate(
+    result = check_expression_gate(
         access.classification,
         policy=access.resolved_policy(),
         external=False,
     )
+    try:
+        from app.knowledge.access_audit import record_gate
+
+        record_gate(
+            action="expression",
+            gate=result,
+            path=str(path),
+            source_project=access.source_project or "",
+            external=False,
+        )
+    except Exception:
+        pass
+    return result
 
 
 def gate_export(path: Path, *, external: bool = True) -> tuple[AccessBlock, GateResult, GateResult]:
@@ -133,6 +146,25 @@ def gate_export(path: Path, *, external: bool = True) -> tuple[AccessBlock, Gate
         policy=access.resolved_policy(),
         external=external,
     )
+    try:
+        from app.knowledge.access_audit import record_gate
+
+        record_gate(
+            action="expression",
+            gate=expr,
+            path=str(path),
+            source_project=access.source_project or "",
+            external=external,
+        )
+        record_gate(
+            action="export",
+            gate=exp,
+            path=str(path),
+            source_project=access.source_project or "",
+            external=external,
+        )
+    except Exception:
+        pass
     return access, expr, exp
 
 
