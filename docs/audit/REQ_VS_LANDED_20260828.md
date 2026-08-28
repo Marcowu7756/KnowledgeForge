@@ -2,7 +2,7 @@
 
 ```yaml
 as_of: 2026-08-28
-head_pushed: 8ab35a4
+head_pushed: 4283392
 workspace: clean after Web UI v0.6 + H4/SCOPE/renderer nails
 branch: main
 rule: 未关闭项不宣称 FIXED；未落地仅列仍 intentional 的缺口；Producer Gap 不由 KF 发明 ID
