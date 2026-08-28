@@ -73,7 +73,7 @@ Next value
 | Soft graph / edge hygiene | **C · Relation** | ✅ | [`USAGE_EVIDENCE_C_20260828.md`](USAGE_EVIDENCE_C_20260828.md) |
 | Ops runbook ingest→index→audit→encrypt | Ops | ✅ | [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) |
 | SETV → KF → retrieve closed loop (AAPL) | Strategy | ✅ | Top-3 AAPL INST on `AAPL H4 State Snapshot` |
-| Source settle→express matrix (non-Cartesian) | Integration | ✅ | [`INTEGRATION_SOURCE_MATRIX_20260828.md`](INTEGRATION_SOURCE_MATRIX_20260828.md) · 13/13 |
+| Source settle→express matrix (non-Cartesian) | Integration | ✅ | [`INTEGRATION_SOURCE_MATRIX_20260828.md`](INTEGRATION_SOURCE_MATRIX_20260828.md) · 13/13 · re-run audit [`INTEGRATION_RERUN_AUDIT_20260828.md`](INTEGRATION_RERUN_AUDIT_20260828.md) · **19/19** w/ slow |
 | Knowledge maintain delete-only | Ops / UI | ✅ | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md) · `knowledge delete` · Web UI 沉淀 |
 | 一源多卡 | HOLD→H1 | ✅ **H1a+b+c** | Web UI · family + select compose + `data/ui` layout persist |
 | Local Web UI (browser-first) | Product surface | ✅ | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · `ui_version` **0.6.0** · `--desktop` optional · Twitter/X capture |

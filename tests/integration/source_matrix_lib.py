@@ -7,6 +7,7 @@ are mocked so the matrix exercises wiring offline.
 from __future__ import annotations
 
 import json
+import re
 import traceback
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -640,6 +641,23 @@ def run_full_matrix(root: Path) -> list[RowResult]:
     return results
 
 
+def _scrub_tmp_paths(text: str) -> str:
+    """Keep evidence repo-safe: redact machine-local pytest temp prefixes."""
+    if not text:
+        return text
+    text = re.sub(
+        r"[A-Za-z]:\\Users\\[^\\]+\\AppData\\Local\\Temp\\pytest-of-[^\\]+\\[^\\]+\\",
+        "<pytest_tmp>/",
+        text,
+    )
+    text = re.sub(
+        r"/tmp/pytest-of-[^/]+/[^/]+/",
+        "<pytest_tmp>/",
+        text,
+    )
+    return text.replace("\\", "/")
+
+
 def write_evidence(results: list[RowResult], dest: Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -653,6 +671,7 @@ def write_evidence(results: list[RowResult], dest: Path) -> Path:
         "```yaml",
         f"as_of: {stamp}",
         "rule: one express path per signal source (no Cartesian product)",
+        "runner: tests/integration/test_source_settle_express_matrix.py",
         f"pass: {passed}/{len(results)}",
         f"fail: {len(failed)}",
         f"skip: {len(skipped)}",
@@ -664,7 +683,7 @@ def write_evidence(results: list[RowResult], dest: Path) -> Path:
         "|--------|---------|--------|---------|--------|--------|",
     ]
     for r in results:
-        detail = (r.detail or r.error or "").replace("|", "/")[:120]
+        detail = _scrub_tmp_paths((r.detail or r.error or "").replace("|", "/"))[:120]
         lines.append(
             f"| `{r.source_id}` | {r.acquire} | {r.settle} | {r.express} | "
             f"**{r.status}** | {detail} |"
@@ -678,29 +697,58 @@ def write_evidence(results: list[RowResult], dest: Path) -> Path:
             lines += [
                 f"### `{r.source_id}`",
                 "",
-                f"- error: `{r.error}`",
+                f"- error: `{_scrub_tmp_paths(r.error or '')}`",
                 "",
                 "```",
-                (r.traceback or "")[:4000],
+                _scrub_tmp_paths((r.traceback or "")[:4000]),
                 "```",
                 "",
             ]
 
     lines += [
         "",
+        "## Historical problems → fixed (prior loop)",
+        "",
+        "| # | Symptom | Root cause | Fix |",
+        "|---|---------|------------|-----|",
+        "| 1 | URL youtube/bilibili/twitter finalize crash | `IngestedSource` had no `.source` | `path or url or title` in `_finalize` |",
+        "| 2 | Off-root dest_dir upsert crash | hard `relative_to(ROOT)` | catch `ValueError` → absolute posix |",
+        "| 3 | Audio narrate harness reject | mock wav < 500 bytes | mock wav ≥ 500 bytes |",
+        "| 4 | Search assert empty | keyword = filename; kwargs | `search_files(..., keyword=)` + ASCII name |",
+        "",
+        "Regression: `tests/acquire/test_pipeline_finalize_paths.py`",
+        "",
         "## Notes",
         "",
+        "- Not a Cartesian product: each source gets **one** express path.",
         "- Network ingest (youtube/bilibili/twitter) mocked at ingest boundary.",
         "- LLM compress mocked; OCR/ASR mocked.",
         "- Audio narrate uses mocked TTS wav (real TTS remains behind `KF_RUN_SLOW`).",
         "- SETV snapshot uses live cite card when present.",
+        "- Machine temp paths in details are redacted to `<pytest_tmp>/`.",
+        "",
+        "## Re-run",
+        "",
+        "```powershell",
+        ".\\.venv\\Scripts\\python.exe -m pytest tests/integration/test_source_settle_express_matrix.py::test_source_settle_express_matrix_non_cartesian -q",
+        "$env:KF_RUN_SLOW=\"1\"; .\\.venv\\Scripts\\python.exe -m pytest tests/integration -q",
+        "```",
+        "",
+        "Full suite audit: [`INTEGRATION_RERUN_AUDIT_20260828.md`](INTEGRATION_RERUN_AUDIT_20260828.md)",
         "",
     ]
     dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     json_path = dest.with_suffix(".json")
+    payload = []
+    for r in results:
+        row = asdict(r)
+        for key, val in list(row.items()):
+            if isinstance(val, str):
+                row[key] = _scrub_tmp_paths(val)
+        payload.append(row)
     json_path.write_text(
-        json.dumps([asdict(r) for r in results], ensure_ascii=False, indent=2) + "\n",
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     return dest
