@@ -1,8 +1,10 @@
 # KnowledgeForge · Phase: Content Fill → Access Governance
 
 **Date:** 2026-08-28  
-**Prior commit:** `9029ae0`  
-**Status:** Content Fill **LANDED** · Access Governance **ACTIVE**
+**Head:** `43d7e3f`  
+**Status:** Content Fill **LANDED** · Access Governance **LANDED** · next = **Knowledge Gap Discovery (usage)**
+
+权威需求矩阵：[`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
 
 ---
 
@@ -19,11 +21,11 @@ P2  Reconstruction                  LANDED
    ↓
 P3  Retrieval                       LANDED
    ↓
-Content Fill                        ← 当前（已验证）
+Content Fill                        ✅
    ↓
-Access Governance                   ← 下一主方向
+Access Governance                   ✅ (audit + .kfexport)
    ↓
-Knowledge Gap Discovery
+Knowledge Gap Discovery             ← 当前
    ↓
 Future SETV Evolution (producer-led)
 ```
@@ -116,9 +118,12 @@ Already in code (`app/knowledge/access.py`, UI lanes, `/api/export`):
 
 Still to land for “closure”:
 
-- ~~structured **access audit**~~ → ✅ `ACCESS_AUDIT_V0.md`
-- ~~encrypted export path~~ → ✅ `ENCRYPTED_EXPORT_V0.md` (`.kfexport`)
-- operational runbook for restricted bulk + index rebuild
+- ~~structured **access audit**~~ → ✅
+- ~~encrypted export~~ → ✅
+- operational runbook for restricted bulk + index rebuild → 🟡 thin
+- **usage evidence** (retrieve/reconstruct on settled SETV KOs) → next
+
+See [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md).
 
 ---
 
