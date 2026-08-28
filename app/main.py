@@ -25,7 +25,7 @@ from app.voice import (
     speak_with_voice,
 )
 from app.ingest.ecosystem import run_ecosystem_ingest
-from app.ingest.setv_artifact import run_artifact_ingest
+from app.ingest.setv_artifact import run_artifact_ingest, run_manifest_ingest
 from app.pipeline import (
     AudioIngestError,
     BilibiliIngestError,
@@ -56,7 +56,8 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py pdf <FILE>
   python main.py search <ROOT> ... --keyword <WORD>
   python main.py ecosystem ingest setv|factorlib|asharelib <ROOT> ... [--dry-run] [--limit N]
-  python main.py setv snapshot|evolution|family <path|dir> ... [--setv-root DIR] [--dry-run] [--limit N]
+  python main.py setv snapshot|evolution|family|measurement|experiment|uncertainty <path|dir> ...
+  python main.py setv ingest --setv-root DIR [--manifest PATH] [--class CLASS] [--dry-run] [--limit N]
   python main.py derive <KNOWLEDGE.md> [--mode auto|english|physics|generic]
   python main.py express <KNOWLEDGE.md> [--voice NAME] [--no-animation] [--no-narration]
   python main.py animate <KNOWLEDGE.md> [--fast]
@@ -276,6 +277,61 @@ def build_parser() -> argparse.ArgumentParser:
         setv_fam,
         path_help="Family/edge .md file(s) and/or families|links roots",
     )
+    setv_meas = setv_sub.add_parser(
+        "measurement",
+        help="State Contract / fascicle → Measurement Knowledge KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_meas,
+        path_help="Contract .md file(s) and/or methodology roots",
+    )
+    setv_exp = setv_sub.add_parser(
+        "experiment",
+        help="SETV-EXP packs → Experiment Evidence KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_exp,
+        path_help="SETV_EXP_*.md and/or evidence/families roots",
+    )
+    setv_unc = setv_sub.add_parser(
+        "uncertainty",
+        help="Uncertainty Language / fence docs → Uncertainty KO (no LLM)",
+    )
+    _add_setv_paths(
+        setv_unc,
+        path_help="DESIGN_*UNCERTAINTY* / OWNER_CONFIRM_*UNCERTAINTY* roots",
+    )
+    setv_ingest = setv_sub.add_parser(
+        "ingest",
+        help="OPEN KF INGEST · prefer manifest_v0.jsonl → export sidecars (no LLM)",
+    )
+    setv_ingest.add_argument(
+        "--setv-root",
+        required=True,
+        help="SETV / fxtrading root (required for manifest relative paths)",
+    )
+    setv_ingest.add_argument(
+        "--manifest",
+        default=None,
+        help="Path to manifest_v0.jsonl (default: <setv-root>/methodology/SETV/export/manifest_v0.jsonl)",
+    )
+    setv_ingest.add_argument(
+        "--class",
+        dest="ingest_class",
+        choices=[
+            "snapshot",
+            "evolution",
+            "family",
+            "measurement",
+            "experiment",
+            "uncertainty",
+        ],
+        default=None,
+        help="Optional filter by asset_class",
+    )
+    setv_ingest.add_argument("--limit", type=int, default=None)
+    setv_ingest.add_argument("--dry-run", action="store_true")
+    _add_index_flag(setv_ingest)
 
     index = sub.add_parser("index", help="Manage knowledge indexes (optional feature)")
     index_sub = index.add_subparsers(dest="index_command")
@@ -961,12 +1017,71 @@ def cmd_ecosystem(args: argparse.Namespace) -> int:
 
 def cmd_setv(args: argparse.Namespace) -> int:
     asset_class = args.setv_command
-    if asset_class not in {"snapshot", "evolution", "family"}:
+    if asset_class == "ingest":
+        print("[setv] ingest via OPEN KF INGEST (manifest → sidecars · no LLM)")
+        print(f"[setv] setv_root={args.setv_root}")
+        if args.manifest:
+            print(f"[setv] manifest={args.manifest}")
+        if args.ingest_class:
+            print(f"[setv] class_filter={args.ingest_class}")
+        try:
+            batch = run_manifest_ingest(
+                setv_root=args.setv_root,
+                manifest=args.manifest,
+                asset_class=args.ingest_class,
+                limit=args.limit,
+                dry_run=args.dry_run,
+                index=False if args.no_index else None,
+            )
+        except (FileNotFoundError, NotADirectoryError, ValueError) as exc:
+            print(f"SETV ingest failed: {exc}", file=sys.stderr)
+            return 1
+        except Exception as exc:  # noqa: BLE001
+            print(f"SETV ingest failed: {exc}", file=sys.stderr)
+            return 1
+        print(f"[setv] matched={len(batch.hits)}")
+        for hit in batch.hits:
+            print(f"  - {hit}")
+        if args.dry_run:
+            print("[dry-run] no writes; SETV sources untouched")
+            return 0
+        for result in batch.results:
+            _print_result(result)
+            ref = result.unit.setv_artifact
+            if ref:
+                print(
+                    f"  cite: {ref.asset_class}/{ref.artifact_id} → {ref.evidence_pointer}"
+                )
+            print(f"  memory_kind: {result.unit.memory_kind}")
+        for path, reason in batch.skipped:
+            print(f"[skip] {path}: {reason}", file=sys.stderr)
         print(
-            "Usage: python main.py setv snapshot|evolution|family <path|dir> ...",
+            f"[done] ingested={len(batch.results)} skipped={len(batch.skipped)}"
+        )
+        return 0 if not batch.skipped or batch.results else 1
+
+    if asset_class not in {
+        "snapshot",
+        "evolution",
+        "family",
+        "measurement",
+        "experiment",
+        "uncertainty",
+    }:
+        print(
+            "Usage: python main.py setv snapshot|evolution|family|measurement|"
+            "experiment|uncertainty|ingest ...",
             file=sys.stderr,
         )
         return 2
+    done_label = {
+        "snapshot": "snapshots",
+        "evolution": "evolutions",
+        "family": "families",
+        "measurement": "measurements",
+        "experiment": "experiments",
+        "uncertainty": "uncertainties",
+    }[asset_class]
     print(
         f"[setv] {asset_class} adapter (cite-only · no LLM · memory_kind=state)"
     )
@@ -1009,11 +1124,6 @@ def cmd_setv(args: argparse.Namespace) -> int:
         print(f"  taxonomy: {result.unit.taxonomy.canonical}")
     for path, reason in batch.skipped:
         print(f"[skip] {path}: {reason}", file=sys.stderr)
-    done_label = {
-        "snapshot": "snapshots",
-        "evolution": "evolutions",
-        "family": "families",
-    }[asset_class]
     print(f"[done] {done_label}={len(batch.results)} skipped={len(batch.skipped)}")
     return 0 if not batch.skipped or batch.results else 1
 

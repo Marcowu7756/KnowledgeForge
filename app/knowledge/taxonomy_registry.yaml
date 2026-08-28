@@ -23,7 +23,6 @@ projects:
     classification: restricted
     doc_globs:
       - "**/*.md"
-      - "**/*.txt"
     exclude_dir_names:
       - node_modules
       - .git
@@ -31,6 +30,9 @@ projects:
       - raw
       - data
       - params
+    exclude_file_names:
+      - CMakeLists.txt
+      - README.md
     compress_focus: |
       Factor contracts, known gaps, experiment conclusions only.
       Do NOT ingest raw parameters, undisclosed strategy code, or backtest dumps.

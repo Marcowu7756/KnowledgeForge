@@ -41,6 +41,9 @@ def discover_design_docs(
     profile = project_profile(project)
     globs = list(profile.get("doc_globs") or ["**/*.md", "**/*.txt"])
     exclude = {str(x).lower() for x in (profile.get("exclude_dir_names") or [])}
+    exclude_files = {
+        str(x).lower() for x in (profile.get("exclude_file_names") or [])
+    }
     hits: list[EcosystemHit] = []
     seen: set[str] = set()
 
@@ -53,6 +56,16 @@ def discover_design_docs(
                 if not path.is_file():
                     continue
                 if any(part.lower() in exclude for part in path.parts):
+                    continue
+                if path.name.lower() in exclude_files:
+                    continue
+                # Build/config text files are never design docs
+                if path.name.lower() in {
+                    "cmakelists.txt",
+                    "makefile",
+                    "requirements.txt",
+                    "pyproject.toml",
+                }:
                     continue
                 key = str(path)
                 if key in seen:
