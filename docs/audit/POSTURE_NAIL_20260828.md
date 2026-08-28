@@ -61,13 +61,11 @@ B Knowledge Gap  |  C Relation Gap  |  A Producer Gap  |  D Representation Gap
 
 Only **D** (settled but still unanswerable) re-enters SETV evolution discussion.
 
-Value question for this HOLD window:
+Value questions for this HOLD window:
 
-> What fails when we *use* the archive — and is that failure A, B, C, or D?
-
-Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)
-
-
+> What fails when we *use* the archive — and is that failure A, B, C, or D?  
 > When KF truly holds these SETV historical states, what can it discover from them?
 
 That is where **SETV → KF → SETV Evolution** starts earning its keep.
+
+Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)
