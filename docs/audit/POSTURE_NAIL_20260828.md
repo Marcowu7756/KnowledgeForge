@@ -41,6 +41,7 @@ Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + 
 | SETV → KF Retrieval | VERIFIED |
 | SETV scope expansion | **HOLD** · Owner Interpret nailed |
 | Tech HOLD residual | **H4** chunk-RAG · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · nail [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md) |
+| Integration re-run | ✅ **SETTLED / CLOSE** · 19/19 · [`INTEGRATION_RERUN_AUDIT_20260828.md`](INTEGRATION_RERUN_AUDIT_20260828.md) · no new slice |
 | H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) |
 
 **Producer authority (SCOPE):**  
