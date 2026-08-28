@@ -40,11 +40,12 @@ setv_root: D:\fxtrading
 
 ## Still open (non-HOLD)
 
+Full matrix: [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
+
 | Priority | Item | Class | Owner |
 |----------|------|-------|-------|
-| 1 | Access audit trail + encrypt export | KF governance | ✅ done |
-| 2 | FactorLib `FactorLib_DLL_Spec.md` retry | infra | ✅ 4/4 |
-| 3 | AAPL per-TF INST sidecar | **A · Producer Gap** | SETV · packet [`PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md) |
-| 4 | Make SETV KOs retrievable / relatable at scale | **B/C · Knowledge/Relation** | KF usage |
+| 1 | SETV KO usage pass (retrieve/reconstruct evidence) | **B/C** | KF |
+| 2 | Ops runbook (ingest→index→audit→encrypt) | Ops | KF |
+| 3 | AAPL per-TF INST sidecar | **A · Producer** | SETV · [`PRODUCER_GAP_…`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md) |
 
-Phase doc: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)
+Phase: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)
