@@ -703,13 +703,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     models_pull.add_argument("--force", action="store_true")
 
-    ui = sub.add_parser("ui", help="Launch local Windows workshop UI (FastAPI)")
+    ui = sub.add_parser("ui", help="Launch local Web UI workshop (browser-first FastAPI)")
     ui.add_argument("--host", default="127.0.0.1")
     ui.add_argument("--port", type=int, default=8765)
     ui.add_argument(
+        "--desktop",
+        action="store_true",
+        help="Optional pywebview desktop window (default: system browser)",
+    )
+    ui.add_argument(
         "--browser",
         action="store_true",
-        help="Open system browser instead of pywebview desktop window (default: desktop)",
+        help=argparse.SUPPRESS,  # legacy no-op; browser is now default
     )
 
     export = sub.add_parser(
@@ -1858,7 +1863,7 @@ def cmd_gnn(args: argparse.Namespace) -> int:
 def cmd_ui(args: argparse.Namespace) -> int:
     from app.ui.server import serve
 
-    serve(host=args.host, port=args.port, desktop=not args.browser)
+    serve(host=args.host, port=args.port, desktop=bool(args.desktop))
     return 0
 
 

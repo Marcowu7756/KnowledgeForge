@@ -1,13 +1,10 @@
-"""Freeze-friendly entrypoint for Windows UI (.exe / portable)."""
+"""Freeze-friendly entrypoint for optional desktop / portable Web UI."""
 
 from __future__ import annotations
 
 import argparse
 import os
 import sys
-import threading
-import time
-import webbrowser
 from pathlib import Path
 
 
@@ -22,13 +19,20 @@ def bootstrap_root() -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     root = bootstrap_root()
-    parser = argparse.ArgumentParser(description="KnowledgeForge Windows UI launcher")
+    parser = argparse.ArgumentParser(
+        description="KnowledgeForge Web UI launcher (browser-first; optional --desktop)"
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument(
+        "--desktop",
+        action="store_true",
+        help="Optional pywebview desktop window (default: system browser)",
+    )
+    parser.add_argument(
         "--browser",
         action="store_true",
-        help="Open system browser instead of pywebview desktop window",
+        help=argparse.SUPPRESS,  # legacy no-op; browser is now default
     )
     args = parser.parse_args(argv)
 
@@ -38,25 +42,9 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"[ui] KF_ROOT={root}", flush=True)
 
-    if not args.browser:
-        from app.ui.server import serve
+    from app.ui.server import serve
 
-        serve(host=args.host, port=args.port, desktop=True)
-        return 0
-
-    import uvicorn
-
-    from app.ui.server import create_app
-
-    url = f"http://{args.host}:{args.port}"
-
-    def _open() -> None:
-        time.sleep(0.8)
-        webbrowser.open(url)
-
-    threading.Thread(target=_open, daemon=True).start()
-    print(f"[ui] KnowledgeForge workshop → {url}", flush=True)
-    uvicorn.run(create_app(), host=args.host, port=args.port, log_level="info")
+    serve(host=args.host, port=args.port, desktop=bool(args.desktop))
     return 0
 
 

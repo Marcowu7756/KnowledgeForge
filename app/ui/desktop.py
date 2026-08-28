@@ -12,7 +12,7 @@ def open_desktop(*, host: str = "127.0.0.1", port: int = 8765) -> None:
         raise SystemExit(
             "pywebview not installed. Run:\n"
             "  .\\.venv\\Scripts\\python.exe -m pip install pywebview\n"
-            "Or use browser mode: python main.py ui"
+            "Or use default browser: python main.py ui"
         ) from exc
 
     import uvicorn
@@ -32,7 +32,7 @@ def open_desktop(*, host: str = "127.0.0.1", port: int = 8765) -> None:
     thread.start()
 
     webview.create_window(
-        "KnowledgeForge — PAILE",
+        "KnowledgeForge Web UI",
         url,
         width=1180,
         height=780,

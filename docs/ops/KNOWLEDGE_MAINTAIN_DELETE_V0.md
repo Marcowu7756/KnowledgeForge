@@ -88,5 +88,5 @@ Raw under `data/raw/` is **not** auto-deleted (audit/repro). Delete raw manually
 
 - Ops master: [`OPS_RUNBOOK_V0.md`](OPS_RUNBOOK_V0.md)
 - Matrix: [`REQ_VS_LANDED_20260828.md`](../audit/REQ_VS_LANDED_20260828.md)
-- UI: [`WINDOWS_UI_v0.md`](../ui/WINDOWS_UI_v0.md)
+- UI: [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md)
 - Code: `app/knowledge/maintain.py`

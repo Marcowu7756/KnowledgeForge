@@ -39,17 +39,24 @@ Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + 
 | AAPL Family | CLOSED |
 | AAPL W/D/H4 Instances | CLOSED |
 | SETV → KF Retrieval | VERIFIED |
-| SETV scope expansion | **HOLD** |
-| Tech HOLD residual | **H4** chunk-RAG · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) |
+| SETV scope expansion | **HOLD** · Owner Interpret nailed |
+| Tech HOLD residual | **H4** chunk-RAG · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · nail [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md) |
 | H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) |
 
-Global archive size at nail: **114** knowledge units (SETV state archive forming — not scattered files).
+**Producer authority (SCOPE):**  
+`D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md`  
+（INDEX · Next legal + evidence 表；§99 `SOP_DM_99_REVISIONS.md` 顶行）
+
+Global archive size at nail: **114** indexed units · **132** knowledge `.md` on disk (SETV state archive forming — not scattered files).
 
 ## What NOT to do next
 
 - Do not ask SETV for new axes / metrics / scopes / instance types because AAPL succeeded
 - Do not invent `SETV-INST-*` in KF
 - Do not reopen Measurement / Forecast for archive growth
+- Do not thaw **H4** chunk-RAG without doctrine amend + Owner `THAW HOLD-CHUNK-RAG` · see [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md)
+- Do not chase **Math To Manim** / LLM→`scene.py` — external renderer reference only · [`RENDERER_REF_MATH_TO_MANIM_20260828.md`](RENDERER_REF_MATH_TO_MANIM_20260828.md)
+- Do not bend Expression around Manim; do not wire derive `manim_beats` without consume evidence
 
 ## What TO do next
 

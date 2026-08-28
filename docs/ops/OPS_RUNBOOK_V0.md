@@ -17,8 +17,9 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 | Encrypted export | [`ENCRYPTED_EXPORT_V0.md`](../audit/ENCRYPTED_EXPORT_V0.md) |
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
 | **Delete-only maintain** | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
+| Local Web UI | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · `main.py ui` browser-first |
 | Source matrix | [`INTEGRATION_SOURCE_MATRIX_20260828.md`](../audit/INTEGRATION_SOURCE_MATRIX_20260828.md) |
-| HOLD residual | [`HOLD_THAW_SCHEDULE_V0.md`](../audit/HOLD_THAW_SCHEDULE_V0.md) |
+| HOLD residual | [`HOLD_THAW_SCHEDULE_V0.md`](../audit/HOLD_THAW_SCHEDULE_V0.md) · H4 + SETV SCOPE Owner Interpret `D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md` |
 
 ---
 
@@ -157,7 +158,7 @@ Full SOP: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md)
 .\.venv\Scripts\python.exe main.py knowledge delete <PATH|ID> --yes
 ```
 
-UI: **沉淀** →「维护 · 删除」.  
+UI: **沉淀** →「维护 · 删除」· Web UI: `python main.py ui` → http://127.0.0.1:8765.  
 Audit: `data/audit/maintain/YYYYMMDD.jsonl`.
 
 Add/update = **re-acquire**, never patch cards in place.
@@ -215,5 +216,5 @@ Get-Content data\audit\access\$(Get-Date -Format yyyyMMdd).jsonl | Select-Object
 
 - Pushing restricted cards to GitHub
 - Mutating SETV / inventing producer ids
-- HOLD residual: **H4 chunk-RAG** · SETV new axes/metrics/scopes ([schedule](../audit/HOLD_THAW_SCHEDULE_V0.md))
+- HOLD residual: **H4 chunk-RAG** · SETV SCOPE Owner Interpret `D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md` ([schedule](../audit/HOLD_THAW_SCHEDULE_V0.md))
 - ~~HOLD 一源多卡 / Manim / GNN~~ → **LANDED** H1–H3

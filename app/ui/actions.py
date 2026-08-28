@@ -28,6 +28,10 @@ def run_capture(kind: str, target: str, progress: ProgressFn | None = None) -> d
         from app.pipeline import run_bilibili
 
         result = run_bilibili(target)
+    elif kind == "twitter":
+        from app.pipeline import run_twitter
+
+        result = run_twitter(target)
     elif kind == "audio":
         from app.pipeline import run_audio
 

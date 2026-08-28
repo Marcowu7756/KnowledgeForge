@@ -75,7 +75,7 @@ Math view:
 | 1 Input | OCR / ASR / parsers / YouTube / Bilibili / Twitter | YouTube + Bilibili + Twitter + MD/TXT/PDF + image OCR + folder search |
 | 2 Distill | Atomic Knowledge Units | LLM compress → Markdown/JSON |
 | 3 Reconstruct | Reorganize by concept / stage / question | 🔜 next after asset density |
-| 4 Express | Notes, TTS, Manim, interactive | animate GIF + express GIF+TTS + **Windows UI v0** |
+| 4 Express | Notes, TTS, Manim, interactive | animate GIF + express GIF+TTS + **local Web UI v0** |
 | 5 Feedback | Mastery / gaps / next path | later |
 
 ---
@@ -351,21 +351,21 @@ Amplifies learning speed, depth, cross-domain links, and creation — it does no
 
 单元测试默认不打外网、不加载 Whisper/BGE/Ollama 权重。
 
-### Windows 车间 UI（v0）
+### Local Web UI（v0 · browser-first）
 
 ```powershell
 .\.venv\Scripts\python.exe main.py ui
-# 浏览器打开 http://127.0.0.1:8765
-# 可选桌面窗：
+# 默认打开系统浏览器 → http://127.0.0.1:8765
+# 可选桌面窗（legacy）：
 .\.venv\Scripts\python.exe -m pip install pywebview
 .\.venv\Scripts\python.exe main.py ui --desktop
 ```
 
-设计说明：`docs/ui/WINDOWS_UI_v0.md`（获取→沉淀→重组→检索→表达）。
+设计说明：`docs/ui/WEB_UI_v0.md`（获取→沉淀→重组→检索→表达）。旧 Windows 桌面叙事见 `docs/ui/WINDOWS_UI_v0.md`（已 superseded）。
 
-异步任务会显示进度条；表达页可预览 MD / GIF / WAV。
+异步任务会显示进度条；表达页可预览 MD / GIF / WAV。获取支持 Twitter/X 单条 URL。
 
-打包 Windows 便携壳（不含 torch 等重依赖）：
+可选便携壳（不含 torch 等重依赖 · **legacy**）：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_ui.ps1

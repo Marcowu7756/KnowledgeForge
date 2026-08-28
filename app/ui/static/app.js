@@ -160,9 +160,21 @@
 
   async function refreshStatus() {
     const out = $("#out-status");
+    const note = $("#settings-ui-note");
+    const bindEl = $("#settings-bind-url");
     try {
+      const health = await api("/api/health");
       const data = await api("/api/status");
-      writeOut(out, data, false);
+      const bind = (health.ui && health.ui.bind) || "127.0.0.1";
+      const url = `http://${bind}:${location.port || 8765}`;
+      if (bindEl) bindEl.textContent = url;
+      if (note) {
+        const surface = (health.ui && health.ui.surface) || "web";
+        note.textContent = `UI ${health.ui_version || ""} · ${surface} · browser-first${
+          health.ui && health.ui.note ? ` — ${health.ui.note}` : ""
+        }`;
+      }
+      writeOut(out, { health: { ui: health.ui, features: health.features }, ...data }, false);
     } catch (err) {
       writeOut(out, String(err.message || err), true);
     }
@@ -841,7 +853,8 @@
 
   api("/api/health")
     .then((h) => {
-      $("#health-line").textContent = `${h.product} · ${h.engine} · UI ${h.ui_version || ""}`;
+      const web = h.features && h.features.web_ui ? " · Web UI" : "";
+      $("#health-line").textContent = `${h.product} · ${h.engine} · UI ${h.ui_version || ""}${web}`;
     })
     .catch(() => {
       $("#health-line").textContent = "API offline";

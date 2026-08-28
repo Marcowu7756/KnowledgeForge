@@ -1,4 +1,4 @@
-"""FastAPI app: Windows local workshop UI for KnowledgeForge / PAILE."""
+"""FastAPI app: local browser-first Web UI for KnowledgeForge / PAILE."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 class CaptureBody(BaseModel):
-    kind: Literal["youtube", "bilibili", "file", "audio", "image"] = "file"
+    kind: Literal["youtube", "bilibili", "twitter", "file", "audio", "image"] = "file"
     target: str = Field(..., description="URL or local path")
     async_job: bool = True
 
@@ -88,7 +88,7 @@ class KnowledgeDeleteBody(BaseModel):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="KnowledgeForge UI", version="0.5.2", docs_url="/api/docs")
+    app = FastAPI(title="KnowledgeForge Web UI", version="0.6.0", docs_url="/api/docs")
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -104,12 +104,18 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.5.2",
+            "ui_version": "0.6.0",
             "features": {
+                "web_ui": True,
                 "multi_card_h1a": True,
                 "multi_card_h1b": True,
                 "multi_card_h1c": True,
                 "knowledge_delete": True,
+            },
+            "ui": {
+                "surface": "web",
+                "bind": "127.0.0.1",
+                "note": "Browser-first local Web UI; optional --desktop pywebview",
             },
             "llm": {
                 "provider": config.LLM_PROVIDER,
@@ -655,7 +661,12 @@ def create_app() -> FastAPI:
     return app
 
 
-def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = True) -> None:
+def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = False) -> None:
+    """Run local Web UI. Browser-first; pass desktop=True for optional pywebview."""
+    import threading
+    import time
+    import webbrowser
+
     import uvicorn
 
     mimetypes.add_type("text/css", ".css")
@@ -669,7 +680,7 @@ def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = True) ->
             use_desktop = False
             print(
                 "[ui] pywebview not installed — using browser. "
-                "Install: pip install pywebview",
+                "Install: pip install pywebview · or omit --desktop",
                 flush=True,
             )
 
@@ -679,7 +690,18 @@ def serve(*, host: str = "127.0.0.1", port: int = 8765, desktop: bool = True) ->
         open_desktop(host=host, port=port)
         return
 
-    print(f"[ui] KnowledgeForge workshop → http://{host}:{port}", flush=True)
+    url = f"http://{host}:{port}"
+
+    def _open_browser() -> None:
+        time.sleep(0.7)
+        try:
+            webbrowser.open(url)
+        except Exception:  # noqa: BLE001
+            pass
+
+    threading.Thread(target=_open_browser, daemon=True).start()
+    print(f"[ui] KnowledgeForge Web UI → {url}", flush=True)
+    print("[ui] optional desktop window: python main.py ui --desktop", flush=True)
     uvicorn.run(
         "app.ui.server:create_app",
         factory=True,

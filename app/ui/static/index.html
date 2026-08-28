@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>KnowledgeForge — PAILE</title>
+    <title>KnowledgeForge — Web UI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -29,16 +29,16 @@
 
     <main>
       <section id="stage-home" class="stage active" data-stage-panel="home">
-        <p class="eyebrow">PAILE · Personal AI Learning Engine</p>
+        <p class="eyebrow">PAILE · Local Web UI</p>
         <h1 class="hero-brand">KnowledgeForge</h1>
         <p class="lede">
-          把资料拆解、抽象、重组，再表达成你能理解与使用的知识形态。
+          本机浏览器车间：把资料拆解、抽象、重组，再表达成你能理解与使用的知识形态。
         </p>
         <div class="cta-row">
           <button type="button" class="btn primary" data-stage="workshop">进入车间</button>
           <button type="button" class="btn ghost" data-stage="settings">查看本机状态</button>
         </div>
-        <p class="pipe-hint">获取 → 沉淀 → 重组 → 检索 → 表达</p>
+        <p class="pipe-hint">获取 → 沉淀 → 重组 → 检索 → 表达 · 127.0.0.1</p>
       </section>
 
       <section id="stage-workshop" class="stage" data-stage-panel="workshop" hidden>
@@ -70,6 +70,7 @@
                 <option value="file">本地文件 / PDF</option>
                 <option value="youtube">YouTube</option>
                 <option value="bilibili">Bilibili</option>
+                <option value="twitter">Twitter / X（单条）</option>
                 <option value="audio">音频</option>
                 <option value="image">图片 OCR</option>
               </select>
@@ -271,13 +272,18 @@
 
       <section id="stage-settings" class="stage" data-stage-panel="settings" hidden>
         <h2>本机状态</h2>
-        <p class="panel-lede">本地模型与数据路径。UI 不上传云端。</p>
+        <p class="panel-lede">
+          浏览器优先的本机 Web UI · 默认只绑定
+          <code id="settings-bind-url">http://127.0.0.1:8765</code>。
+          可选桌面窗：<code>python main.py ui --desktop</code>（需 pywebview）。不上传云端。
+        </p>
+        <p class="muted" id="settings-ui-note"></p>
         <pre class="out show" id="out-status">加载中…</pre>
       </section>
     </main>
 
     <footer class="foot">
-      <span>Local · 127.0.0.1</span>
+      <span>Web UI · local · 127.0.0.1</span>
       <span id="health-line">…</span>
     </footer>
 

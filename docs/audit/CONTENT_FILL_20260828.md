@@ -45,7 +45,7 @@ Full matrix: [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
 | Priority | Item | Class | Owner |
 |----------|------|-------|-------|
 | — | *(content-fill / A–C queue clear)* | — | — |
-| HOLD residual | H4 chunk-RAG · SETV scope | HOLD | [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md) §3 · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) |
+| HOLD residual | H4 chunk-RAG · SETV scope | HOLD | [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md) §3 · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · SCOPE Owner: `D:\fxtrading\methodology\evidence\OWNER_INTERPRET_20260828_HOLD_SETV_SCOPE.md` |
 | H1–H3 | 一源多卡 / Manim a+b+c / GNN | ✅ LANDED | same |
 
 **NEXT = HOLD** · nail: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)  

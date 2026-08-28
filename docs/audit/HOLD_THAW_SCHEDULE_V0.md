@@ -83,7 +83,8 @@ H1 ✅ → H2 ✅ → H3 ✅ → H4 ⏸
 | H2b | frozen golden · `animate --golden` · soft GIF bounds (not byte-exact) |
 | H2c | Matplotlib `mpl_v0` · CLI/`KF_ANIMATE_RENDERER=mpl` · auto fallback after Manim |
 | Still DEFER | Derive `manim_beats` → expression (remain `not_wired_to_expression`) |
-| Out of scope | Full scene IDE · cloud render farm |
+| External ref | Math To Manim = **renderer reference only** · no product path · [`RENDERER_REF_MATH_TO_MANIM_20260828.md`](RENDERER_REF_MATH_TO_MANIM_20260828.md) |
+| Out of scope | Full scene IDE · cloud render farm · LLM→`scene.py` |
 
 ### H3 · GNN (`HOLD-GNN`) — H3a+b+c done
 
@@ -107,6 +108,7 @@ H1 ✅ → H2 ✅ → H3 ✅ → H4 ⏸
 | Depends on | Doctrine amendment doc · access audit for chunk path · no silent default flip |
 | Out of scope | Replacing KO compose with raw chunk paste as system of record |
 | Owner thaw line | `THAW HOLD-CHUNK-RAG H4a` + doctrine amendment pointer |
+| Doctrine nail | [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md) · KO = SoT · chunk opt-in only · SETV no action |
 
 ---
 
@@ -136,5 +138,5 @@ No wall-clock dates — slots advance on **evidence + Owner thaw**, not sprint p
 
 - Nail: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)
 - Matrix: [`REQ_VS_LANDED_20260828.md`](REQ_VS_LANDED_20260828.md)
-- UI non-goals: [`WINDOWS_UI_v0.md`](../ui/WINDOWS_UI_v0.md)
+- UI non-goals: [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md)
 - Audit origin: [`SETV_AUDIT_20260827.md`](SETV_AUDIT_20260827.md) F-P2-03 / F-P3-02

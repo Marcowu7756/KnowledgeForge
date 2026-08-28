@@ -27,7 +27,7 @@ def test_family_api_and_ui_markers():
     client = TestClient(create_app())
     h = client.get("/api/health")
     assert h.status_code == 200
-    assert h.json()["ui_version"] == "0.5.2"
+    assert h.json()["ui_version"] == "0.6.0"
     assert h.json()["features"]["multi_card_h1a"] is True
     assert h.json()["features"]["multi_card_h1b"] is True
     assert h.json()["features"]["multi_card_h1c"] is True

@@ -1,4 +1,5 @@
-# Build Windows UI onedir package (PyInstaller).
+# Build optional/legacy portable Web UI shell (PyInstaller).
+# Preferred launch: .\.venv\Scripts\python.exe main.py ui  (browser-first)
 # Usage (from repo root):
 #   powershell -ExecutionPolicy Bypass -File .\scripts\build_windows_ui.ps1
 
@@ -32,7 +33,9 @@ if ($LASTEXITCODE -ne 0) {
 $Out = Join-Path $Dist "KnowledgeForgeUI"
 $Readme = Join-Path $Out "README_UI.txt"
 @(
-  "KnowledgeForge Windows UI (portable shell)",
+  "KnowledgeForge Web UI (portable shell · legacy)",
+  "",
+  "Prefer: .\.venv\Scripts\python.exe main.py ui  (browser-first)",
   "",
   "1. Set KF_ROOT to your full KnowledgeForge repo so models/data resolve:",
   "   setx KF_ROOT `"D:\KnowledgeForge`"",
