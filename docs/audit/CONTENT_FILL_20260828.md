@@ -15,7 +15,7 @@ setv_root: D:\fxtrading
 | AE-2 experiment | SETV-EXP GBPJPY + USDJPY | **2** cites |
 | AE-2 uncertainty | DESIGN + OWNER_CONFIRM ×2 | **3** cites |
 | Markdown bulk (pre-manifest) | snapshot/family/evolution scrape | 13+17+10 (AAPL CARD skip noted) |
-| FactorLib first batch | `ecosystem ingest --limit 5` | **3/4** OK · 1 Ollama 500 skip (DLL Spec) |
+| FactorLib first batch | `ecosystem ingest` spec ×4 + retry | **4/4** OK (DLL Spec retry 2026-08-28) |
 | AShareLib first batch | `ecosystem ingest --limit 5` | **5/5** OK |
 
 ## Problems / evidence
@@ -40,7 +40,11 @@ setv_root: D:\fxtrading
 
 ## Still open (non-HOLD)
 
-- AShareLib first-batch completion (after Factor LLM)
-- Index rebuild for restricted SETV cites (optional)
-- AAPL per-TF INST sidecars (SETV producer)
-- Watermark / encrypt export
+| Priority | Item | Class | Owner |
+|----------|------|-------|-------|
+| 1 | Access audit trail + encrypt export | KF governance | KF |
+| 2 | FactorLib `FactorLib_DLL_Spec.md` retry | infra | KF ops |
+| 3 | AAPL per-TF INST sidecar | **A · Producer Gap** | SETV |
+| 4 | Make SETV KOs retrievable / relatable at scale | **B/C · Knowledge/Relation** | KF usage |
+
+Phase doc: [`PHASE_CONTENT_FILL_20260828.md`](PHASE_CONTENT_FILL_20260828.md)
