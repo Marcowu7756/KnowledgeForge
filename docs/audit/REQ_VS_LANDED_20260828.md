@@ -62,7 +62,7 @@ Next value
 | Ops runbook ingest→index→audit→encrypt | Ops | ✅ | [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) |
 | SETV → KF → retrieve closed loop (AAPL) | Strategy | ✅ | Top-3 AAPL INST on `AAPL H4 State Snapshot` |
 | Source settle→express matrix (non-Cartesian) | Integration | ✅ | [`INTEGRATION_SOURCE_MATRIX_20260828.md`](INTEGRATION_SOURCE_MATRIX_20260828.md) · 13/13 |
-| Knowledge maintain delete-only | Ops / UI | ✅ | `knowledge delete` · `DELETE /api/knowledge` · 沉淀页维护 |
+| Knowledge maintain delete-only | Ops / UI | ✅ | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md) · `knowledge delete` · UI 沉淀 |
 | 一源多卡 | HOLD→H1 | ✅ **H1a+b+c** | UI v0.5.2 · family + select compose + `data/ui` layout persist |
 | Manim 实渲染 | HOLD→H2 | ✅ **H2a+b+c** | `manim_v0` · golden · **`mpl_v0`** · Pillow fallback |
 | GNN | HOLD→H3 | ✅ **H3a+b+c** | offline diffusion · shadow JSON · `KF_GNN_BOOST` opt-in |
@@ -158,7 +158,7 @@ Thaw progress: **H1 ✅ → H2 ✅ → H3 ✅ → H4 ⏸**.
 4. Optional tech: Owner `THAW HOLD-CHUNK-RAG` + doctrine amend — see [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md)  
 5. Optional hygiene: commit local H1–H3 + H2c + C/Ops/AAPL docs when Owner wants git sync  
 
-Program board: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md) · thaw: [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md)
+Program board: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md) · thaw: [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · maintain: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)
 
 ---
 

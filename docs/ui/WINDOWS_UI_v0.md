@@ -69,9 +69,23 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 
 - Cloud sync / accounts
 - Chunk-RAG chat UI
-- Editing KO JSON by hand in forms
+- Editing KO JSON by hand in forms（**delete + re-acquire** instead）
 - Manim scene editor
-- ~~Multi-card “一源多卡” canvas~~ → **H1a LANDED** (read-only family expand)
+- ~~Multi-card “一源多卡” canvas~~ → **H1 LANDED**
+- Soft-delete / recycle bin
+
+## Maintain · delete only (SOP)
+
+UI path: **沉淀** →「维护 · 删除」→ confirm.
+
+| Rule | Detail |
+|------|--------|
+| Delete | Settled `.md` under `data/knowledge/` |
+| Not provided | Create / update / patch forms |
+| Re-acquire | New knowledge or corrections |
+| Full SOP | [`../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
+
+CLI: `python main.py knowledge delete <path|id> [--dry-run] [--yes]`
 
 ## v0.2 additions
 
@@ -99,3 +113,5 @@ Deps already present: FastAPI, uvicorn. Desktop wrapper optional: `pywebview`.
 - [x] Task list page (`GET /api/jobs` + 任务顶栏)
 - [x] Compose inline draft preview + fullscreen modal
 - [x] pywebview desktop default (`--browser` to opt out)
+- [x] H1 multi-card + H1c layout persist
+- [x] Knowledge maintain delete-only (沉淀页)

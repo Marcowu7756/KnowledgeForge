@@ -52,10 +52,10 @@ raw_log: docs/audit/UNIT_TEST_RUN_20260828.txt
 
 These are product backlog items, **not** failing tests:
 
-- Full `instances/` scan / bulk Factor·AShare ingest
-- Audit watermark / encrypt
-- HOLD: 一源多卡 · Manim · GNN · chunk-RAG
-- Optional SETV `export.json` still needs Owner OPEN SCHEMA / OPEN KF INGEST
+- HOLD residual: **H4 chunk-RAG** · SETV new axes/metrics/scopes
+- ~~HOLD 一源多卡 · Manim · GNN~~ → LANDED (see `HOLD_THAW_SCHEDULE_V0.md`)
+- ~~Audit watermark / encrypt~~ → LANDED `.kfexport`
+- Maintain: delete-only SOP — `docs/ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md`
 
 ## Reproduce
 

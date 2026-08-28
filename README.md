@@ -250,7 +250,8 @@ python main.py search D:\folder --keyword methodology --dest-subdir methodology
 python main.py derive path\to\card.md --mode auto   # english|physics|finance|generic
 python main.py voice record --name me --seconds 12
 python main.py voice speak "用我的声音读这段话"
-python main.py animate path\to\card.md --fast
+python main.py animate path\to\card.md --fast --renderer auto   # manim|mpl|pillow
+python main.py animate --golden
 python main.py compile path\to\card.md --from-card --animate --fast
 python main.py compile --rerun-step animation --package data\packages\<id> --fast
 python main.py reconstruct --from-index --view theme
@@ -265,6 +266,10 @@ python main.py compose lecture "美债信用风险" --top 5
 python main.py audio path\to\lecture.wav --dest-subdir notes
 python main.py express path\to\card.md --voice me
 python main.py index rebuild [--subdir NAME]
+python main.py knowledge delete path\to\card.md --dry-run
+python main.py knowledge delete path\to\card.md --yes
+# maintain SOP: docs/ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md
+# ops runbook: docs/ops/OPS_RUNBOOK_V0.md
 ```
 
 `derive` expands \(K_d \rightarrow K_p\):
@@ -305,17 +310,16 @@ Aligned toward PAILE distill targets (additive later):
 | Phase | Focus | Status |
 | --- | --- | --- |
 | **P0** | KU → KnowledgeObject + manifest / evidence / step re-run | ✅ CLOSED |
-| **P1** | KO → ExpressionObject → Artifact（Pillow GIF + TTS；evidence） | ✅ CLOSED |
-| **P2** | Multiple KO → Concept Graph → Reconstruction views | ✅ CLOSED (v0.2) |
-| **P3 (active)** | KO + Graph + Embedding → KO Retrieval + Compose (paper/lecture) | 🟡 ACTIVE |
-| deferred | derive → animate（manim_beats）；extra renderers（Manim/SVG/WebGL） | ⏸ DEFER |
-| later | Windows desktop UI → `.exe` | 🔜 v0 scaffold: `python main.py ui` |
+| **P1** | KO → ExpressionObject → Artifact（GIF + TTS；Manim/`mpl`） | ✅ CLOSED |
+| **P2** | Multiple KO → Concept Graph → Reconstruction (+ GNN shadow opt-in) | ✅ CLOSED |
+| **P3** | KO + Graph + Embedding → Retrieve + Compose | ✅ LANDED |
+| Ops | Ingest→index→use→**delete-only maintain**→audit→encrypt | ✅ [`docs/ops/OPS_RUNBOOK_V0.md`](docs/ops/OPS_RUNBOOK_V0.md) |
+| HOLD | chunk-RAG / chat product（H4）· SETV scope expand | ⏸ |
+| deferred | derive → animate（`manim_beats` still not_wired） | ⏸ DEFER |
 
-**Frozen boundary:** Expression Layer proves KO can drive multimodal consumers without polluting the knowledge ontology. Renderer expansion ≠ Expression Layer work. P2 reorganizes **structure across KOs**, not text rewrite. Original KO remains immutable; Reconstruct outputs live under `data/reconstruct/`.
+**Frozen boundary:** Expression Layer proves KO can drive multimodal consumers without polluting the knowledge ontology. **Cards are delete-only for maintain** — add/update = re-acquire ([maintain SOP](docs/ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)). Original KO remains immutable while kept; Reconstruct outputs live under `data/reconstruct/`.
 
-**P2 CLOSED (v0.2):** Relation Quality · Graph Evolution · View Stability.
-
-**P3 ACTIVE:** Retrieve **KnowledgeObjects** (not document chunks) via local BGE embeddings + optional ConceptGraph boost (`data/retrieve/`).
+**P3:** Retrieve **KnowledgeObjects** (not document chunks) via local BGE embeddings + optional ConceptGraph boost (`data/retrieve/`).
 
 Long-term:
 
