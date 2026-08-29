@@ -28,6 +28,7 @@
         accessLane === "proprietary" ? "知识库 · 专有资产" : "知识库 · 通用";
     }
     refreshKnowledge();
+    refreshTaxonomyTrees();
   }
 
   function showStage(name) {
@@ -57,6 +58,145 @@
     });
     if (name === "distill") refreshMaintainKnowledge();
     if (name === "express") refreshKnowledge();
+    if (name === "reconstruct" || name === "retrieve") refreshTaxonomyTree(name);
+  }
+
+  async function refreshTaxonomyTrees() {
+    const reconstructOpen = !$('[data-panel-view="reconstruct"]')?.hidden;
+    const retrieveOpen = !$('[data-panel-view="retrieve"]')?.hidden;
+    if (reconstructOpen) await refreshTaxonomyTree("reconstruct");
+    if (retrieveOpen) await refreshTaxonomyTree("retrieve");
+  }
+
+  function renderTaxNode(node, surface) {
+    const hasKids = (node.children || []).length > 0;
+    const twist = hasKids ? "▾" : "·";
+    const kids = (node.children || []).map((c) => renderTaxNode(c, surface)).join("");
+    return `<div class="tax-node" data-prefix="${escapeAttr(node.prefix_key || "")}">
+      <button type="button" class="tax-node-row" data-tax-select="${escapeAttr(
+        surface
+      )}" data-prefix="${escapeAttr(node.prefix_key || "")}" data-label="${escapeAttr(
+      node.label || ""
+    )}" data-count="${Number(node.count || 0)}">
+        <span class="tax-twist" data-tax-twist>${twist}</span>
+        <span class="tax-label">${escapeHtml(node.label || "")}</span>
+        <span class="tax-count">${Number(node.count || 0)}</span>
+      </button>
+      ${
+        hasKids
+          ? `<div class="tax-children">${kids}</div>`
+          : ""
+      }
+    </div>`;
+  }
+
+  async function refreshTaxonomyTree(surface) {
+    const tree = $(`#tax-tree-${surface}`);
+    if (!tree) return;
+    tree.innerHTML = `<p class="muted">加载大纲…</p>`;
+    try {
+      const data = await api(`/api/taxonomy/tree?lane=${encodeURIComponent(accessLane)}`);
+      const roots = data.roots || [];
+      if (!roots.length) {
+        tree.innerHTML = `<p class="muted">当前访问层暂无带 taxonomy 的卡片</p>`;
+        return;
+      }
+      tree.innerHTML = roots.map((n) => renderTaxNode(n, surface)).join("");
+      tree.querySelectorAll("[data-tax-select]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const prefix = btn.getAttribute("data-prefix") || "";
+          selectTaxonomyPrefix(surface, prefix, btn.getAttribute("data-label") || "");
+        });
+      });
+      tree.querySelectorAll("[data-tax-twist]").forEach((twist) => {
+        twist.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const row = twist.closest(".tax-node");
+          const kids = row?.querySelector(":scope > .tax-children");
+          if (!kids) return;
+          const hidden = kids.hasAttribute("hidden");
+          if (hidden) kids.removeAttribute("hidden");
+          else kids.setAttribute("hidden", "");
+          twist.textContent = hidden ? "▾" : "▸";
+        });
+      });
+    } catch (err) {
+      tree.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
+    }
+  }
+
+  async function selectTaxonomyPrefix(surface, prefix, label) {
+    const selected = $(`#tax-selected-${surface}`);
+    if (selected) {
+      selected.textContent = prefix
+        ? `已选：${prefix.replace(/\//g, " › ")}`
+        : "未选分组 · 全库";
+    }
+    $$(`#tax-tree-${surface} .tax-node-row`).forEach((btn) => {
+      btn.classList.toggle("active", (btn.getAttribute("data-prefix") || "") === prefix);
+    });
+    if (surface === "reconstruct") {
+      const input = $("#reconstruct-taxonomy-prefix");
+      const view = $("#reconstruct-view");
+      if (input) input.value = prefix;
+      if (view && prefix) view.value = "taxonomy";
+    }
+    if (surface === "retrieve") {
+      const input = $("#retrieve-taxonomy-prefix");
+      if (input) input.value = prefix;
+      await loadTaxonomyGroupCards(prefix);
+    }
+  }
+
+  async function loadTaxonomyGroupCards(prefix) {
+    const box = $("#tax-group-cards-retrieve");
+    const list = $("#tax-group-list-retrieve");
+    if (!box || !list) return;
+    if (!prefix) {
+      box.hidden = true;
+      list.innerHTML = "";
+      return;
+    }
+    box.hidden = false;
+    list.innerHTML = `<li class="muted">加载本组…</li>`;
+    try {
+      const data = await api(
+        `/api/taxonomy/cards?lane=${encodeURIComponent(accessLane)}&prefix=${encodeURIComponent(
+          prefix
+        )}`
+      );
+      const cards = data.cards || [];
+      if (!cards.length) {
+        list.innerHTML = `<li class="muted">本组无卡片</li>`;
+        return;
+      }
+      list.innerHTML = cards
+        .slice(0, 40)
+        .map(
+          (c) => `<li>
+          <button type="button" class="linkish tax-card-pick" data-title="${escapeAttr(
+            c.title || ""
+          )}" data-path="${escapeAttr(c.path || "")}">${escapeHtml(
+            c.title || c.path || ""
+          )}</button>
+          <span class="chip access-${escapeAttr(c.classification || "")}">${escapeHtml(
+            c.classification || ""
+          )}</span>
+        </li>`
+        )
+        .join("");
+      list.querySelectorAll(".tax-card-pick").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const q = $("#form-retrieve input[name='query']");
+          if (q) q.value = btn.getAttribute("data-title") || "";
+          const path = btn.getAttribute("data-path");
+          if (path) openPreview(path);
+        });
+      });
+    } catch (err) {
+      list.innerHTML = `<li class="error-text">${escapeHtml(String(err.message || err))}</li>`;
+    }
   }
 
   async function api(path, opts) {
@@ -549,7 +689,11 @@
 
   bindForm("#form-reconstruct", "#out-reconstruct", (fd) => ({
     path: "/api/reconstruct",
-    body: { from_index: true, view: fd.get("view") },
+    body: {
+      from_index: true,
+      view: fd.get("view"),
+      taxonomy_prefix: (fd.get("taxonomy_prefix") || "").toString().trim() || null,
+    },
   }));
 
   bindForm("#form-retrieve", "#out-retrieve", (fd) => ({
@@ -558,8 +702,19 @@
       query: fd.get("query"),
       top_k: Number(fd.get("top_k") || 5),
       access_lane: fd.get("access_lane") || accessLane,
+      taxonomy_prefix: (fd.get("taxonomy_prefix") || "").toString().trim() || null,
     },
   }));
+
+  $$("[data-tax-refresh]").forEach((btn) => {
+    btn.addEventListener("click", () => refreshTaxonomyTree(btn.getAttribute("data-tax-refresh")));
+  });
+  $("#reconstruct-tax-clear")?.addEventListener("click", () => {
+    selectTaxonomyPrefix("reconstruct", "", "");
+  });
+  $("#retrieve-tax-clear")?.addEventListener("click", () => {
+    selectTaxonomyPrefix("retrieve", "", "");
+  });
 
   function renderMultiCardColumn(card, role) {
     const tax = (card.taxonomy_path || []).join(" › ");

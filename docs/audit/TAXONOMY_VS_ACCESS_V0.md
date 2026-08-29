@@ -40,14 +40,16 @@ Biological analogy: `生物 > 动物 > 哺乳动物 > 灵长类 > 人`.
 Registry: [`app/knowledge/taxonomy_registry.yaml`](../../app/knowledge/taxonomy_registry.yaml) (`capture` + `projects`).  
 Helpers: `default_taxonomy_for_capture` · `default_access_for_ingest` (separate).
 
-## 4. Retrieve lane (access, not taxonomy)
+## 4. Retrieve / Reconstruct (access lane ≠ taxonomy outline)
 
 | When | Lane |
 |------|------|
 | Card is `restricted` / proprietary `source_project` | **proprietary** |
 | Card is `public` / `internal` | **general** works; proprietary also sees them under ceiling |
 
-Do **not** say「专有知识 path ⇒ must use proprietary」. Say「**classification=restricted** ⇒ proprietary」。
+UI (v0.6.1+): 重组 + 检索两侧有 **taxonomy 大纲**（Excel-like group）。点节点 = 设 `taxonomy_prefix`；与访问层正交。API：`GET /api/taxonomy/tree` · `GET /api/taxonomy/cards`.
+
+Do **not** say「专有知识 path ⇒ must use proprietary」。Say「**classification=restricted** ⇒ proprietary」。
 
 ## 5. Forbidden
 

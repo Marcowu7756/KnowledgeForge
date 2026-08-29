@@ -39,7 +39,7 @@ $$
 
 How to consume (SOP): [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md).
 
-Health: `ui_version` ≥ `0.6.0` · `features.web_ui: true`.
+Health: `ui_version` ≥ `0.6.1` · `features.web_ui: true` · `features.taxonomy_outline: true`.
 
 ## Information architecture
 
@@ -47,8 +47,8 @@ Health: `ui_version` ≥ `0.6.0` · `features.web_ui: true`.
 | --- | --- | --- | --- |
 | Capture | 获取 | 文件 / YouTube / Bilibili / **Twitter·X 单条** / 音频 / 图 | `pipeline.run_*` |
 | Distill | 沉淀 | `compile` → KO package · 维护删除 | `harness` / `knowledge.maintain` |
-| Reconstruct | 重组 | 建图 / 出 view | `reconstruct.run_reconstruct` |
-| Retrieve | 检索 | KO 级 query · 一源多卡 family | `retrieve` / `family_view` |
+| Reconstruct | 重组 | 建图 / 出 view · **taxonomy 大纲分组** | `reconstruct` + `/api/taxonomy/tree` |
+| Retrieve | 检索 | KO 级 query · taxonomy 前缀限定 · 一源多卡 family | `retrieve` / `family_view` / taxonomy outline |
 | Compose / Express | 表达 | paper·lecture · GIF/WAV | `compose` / `expression` |
 
 Secondary (settings): bind URL · browser-first note · `models status` · paths.
@@ -110,6 +110,7 @@ CLI: `python main.py knowledge delete <path|id> [--dry-run] [--yes]`
 - [x] Five stages + tasks + settings
 - [x] Capture includes Twitter/X
 - [x] Health reports `web_ui` + `ui_version` 0.6.x
+- [x] Taxonomy outline on Reconstruct + Retrieve (`taxonomy_outline`)
 - [x] Local bind only; no cloud upload
 
 ## Legacy pointer

@@ -63,6 +63,7 @@ Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + 
 | Consume UAT | ✅ **COMPLETE** · composite `PASS_WITH_ISSUES` · **Archive PASS** / **Ops ISSUE** · [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](OWNER_INTERPRET_UAT_SPLIT_20260828.md) |
 | User Consume UAT | **OPEN** · [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · log [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) |
 | Taxonomy ≠ Access | ✅ **LANDED** 2026-08-29 · SoT [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · audit [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md) · capture auto-path |
+| Taxonomy outline UI | ✅ **LANDED** 2026-08-29 · Reconstruct+Retrieve · [`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md) · ui 0.6.1 |
 | Archive value | **VERIFIED** · 15/15 usable · A/B/C/D = 0 · KO retrieve sufficient |
 | H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) · **no further expand from UAT** |
 
@@ -111,4 +112,4 @@ That is where **SETV → KF → SETV Evolution** starts earning its keep.
 
 Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · consume SOP: [`CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)  
 User consume (OPEN): [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)  
-Taxonomy ≠ Access: [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · audit [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md)
+Taxonomy ≠ Access: [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · audit [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md) · outline [`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md)

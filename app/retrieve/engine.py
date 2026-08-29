@@ -70,6 +70,7 @@ def run_query(
     save: bool = True,
     access_lane: str | None = None,
     max_level: str | None = None,
+    taxonomy_prefix: str | None = None,
     gnn_shadow_path: str | None = None,
     gnn_weight: float = 0.15,
 ) -> QueryRunResult:
@@ -80,6 +81,7 @@ def run_query(
         graph_weight=graph_weight,
         access_lane=access_lane,
         max_level=max_level,
+        taxonomy_prefix=taxonomy_prefix,
         gnn_shadow_path=gnn_shadow_path,
         gnn_weight=gnn_weight,
     )

@@ -72,7 +72,7 @@ cd D:\KnowledgeForge
 .\.venv\Scripts\python.exe main.py ui
 ```
 
-浏览器打开 `http://127.0.0.1:8765`。可选：`/api/health` 中 `ok: true`、`ui_version` ≥ `0.6.0`。
+浏览器打开 `http://127.0.0.1:8765`。可选：`/api/health` 中 `ok: true`、`ui_version` ≥ `0.6.1`。
 
 检索通道按 **access**，不按 taxonomy 根：`classification=restricted`（或专有 `source_project`）用通道 **proprietary**。`general` 检不出 restricted 卡，属设计而非故障。  
 内容树（纲举目张）是另一轴：`taxonomy.path`，目标 4–5 段 —— 见 [`TAXONOMY_VS_ACCESS_V0.md`](../audit/TAXONOMY_VS_ACCESS_V0.md)。

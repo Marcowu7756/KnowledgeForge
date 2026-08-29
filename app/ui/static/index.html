@@ -116,41 +116,86 @@
 
         <div class="panel" data-panel-view="reconstruct" hidden>
           <h2>重组关系图</h2>
-          <p class="panel-lede">多 KO → Relation → Graph → View。不改写原知识对象。</p>
-          <form id="form-reconstruct" class="stack">
-            <label>
-              View
-              <select name="view">
-                <option value="theme">theme</option>
-                <option value="concept">concept</option>
-                <option value="learning_path">learning_path</option>
-                <option value="taxonomy">taxonomy</option>
-                <option value="contrast">contrast</option>
-              </select>
-            </label>
-            <button class="btn primary" type="submit">从 index 重建</button>
-          </form>
-          <pre class="out" id="out-reconstruct" hidden></pre>
+          <p class="panel-lede">
+            多 KO → Relation → Graph → View。不改写原知识对象。左侧大纲按
+            <code>taxonomy.path</code> 分组（与访问层正交）。
+          </p>
+          <div class="tax-layout">
+            <aside class="tax-outline" aria-label="Taxonomy outline reconstruct">
+              <div class="tax-outline-head">
+                <h3>分类大纲</h3>
+                <button type="button" class="btn ghost btn-sm" data-tax-refresh="reconstruct">刷新</button>
+              </div>
+              <p class="muted tax-selected" id="tax-selected-reconstruct">未选分组 · 全库</p>
+              <div class="tax-tree" id="tax-tree-reconstruct"></div>
+            </aside>
+            <div class="tax-main">
+              <form id="form-reconstruct" class="stack">
+                <label>
+                  View
+                  <select name="view" id="reconstruct-view">
+                    <option value="theme">theme</option>
+                    <option value="concept">concept</option>
+                    <option value="learning_path">learning_path</option>
+                    <option value="taxonomy" selected>taxonomy</option>
+                    <option value="contrast">contrast</option>
+                  </select>
+                </label>
+                <label>
+                  Taxonomy 前缀（点大纲填入）
+                  <input
+                    name="taxonomy_prefix"
+                    id="reconstruct-taxonomy-prefix"
+                    type="text"
+                    placeholder="公开媒体/捕获 或 专有知识/SETV"
+                  />
+                </label>
+                <div class="row-form">
+                  <button class="btn primary" type="submit">从 index 重建</button>
+                  <button class="btn ghost" type="button" id="reconstruct-tax-clear">清除前缀</button>
+                </div>
+              </form>
+              <pre class="out" id="out-reconstruct" hidden></pre>
+            </div>
+          </div>
         </div>
 
         <div class="panel" data-panel-view="retrieve" hidden>
           <h2>检索 KnowledgeObject</h2>
           <p class="panel-lede">
-            整卡嵌入检索（非 chunk）。当前访问层决定可检索范围；专有资产含 SETV / FactorLib / AShareLib。
+            整卡嵌入检索（非 chunk）。访问层决定范围；大纲分组像 Excel Group，可限定在一支树上检索。
           </p>
-          <form id="form-retrieve" class="stack">
-            <input type="hidden" name="access_lane" id="retrieve-lane" value="general" />
-            <label>
-              查询
-              <input name="query" type="text" required placeholder="美债与美元信用" />
-            </label>
-            <label>
-              Top K
-              <input name="top_k" type="number" min="1" max="20" value="5" />
-            </label>
-            <button class="btn primary" type="submit">检索</button>
-          </form>
-          <pre class="out" id="out-retrieve" hidden></pre>
+          <div class="tax-layout">
+            <aside class="tax-outline" aria-label="Taxonomy outline retrieve">
+              <div class="tax-outline-head">
+                <h3>分类大纲</h3>
+                <button type="button" class="btn ghost btn-sm" data-tax-refresh="retrieve">刷新</button>
+              </div>
+              <p class="muted tax-selected" id="tax-selected-retrieve">未选分组 · 当前访问层全库</p>
+              <div class="tax-tree" id="tax-tree-retrieve"></div>
+            </aside>
+            <div class="tax-main">
+              <form id="form-retrieve" class="stack">
+                <input type="hidden" name="access_lane" id="retrieve-lane" value="general" />
+                <input type="hidden" name="taxonomy_prefix" id="retrieve-taxonomy-prefix" value="" />
+                <label>
+                  查询
+                  <input name="query" type="text" required placeholder="美债与美元信用" />
+                </label>
+                <label>
+                  Top K
+                  <input name="top_k" type="number" min="1" max="20" value="5" />
+                </label>
+                <div class="row-form">
+                  <button class="btn primary" type="submit">检索</button>
+                  <button class="btn ghost" type="button" id="retrieve-tax-clear">清除分组</button>
+                </div>
+              </form>
+              <div class="tax-group-cards" id="tax-group-cards-retrieve" hidden>
+                <h3>本组卡片</h3>
+                <ul id="tax-group-list-retrieve" class="quiet-list"></ul>
+              </div>
+              <pre class="out" id="out-retrieve" hidden></pre>
 
           <div class="multi-card-block" id="multi-card-block">
             <h3>一源多卡 · H1a–c</h3>
@@ -208,6 +253,8 @@
               </div>
               <pre class="out" id="out-family-compose" hidden></pre>
             </form>
+          </div>
+            </div>
           </div>
         </div>
 

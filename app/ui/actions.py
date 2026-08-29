@@ -103,6 +103,7 @@ def run_reconstruct_action(
     from_index: bool = True,
     view: str = "theme",
     evolve_dir: str | None = None,
+    taxonomy_prefix: str | None = None,
     progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
     def p(pct: int, msg: str) -> None:
@@ -118,6 +119,7 @@ def run_reconstruct_action(
         from_index=from_index,
         view=view,
         evolve_dir=evolve_dir,
+        taxonomy_prefix=taxonomy_prefix or None,
     )
     p(85, "writing view")
     g = getattr(result, "graph", None)
@@ -129,6 +131,7 @@ def run_reconstruct_action(
             "view_path": str(getattr(result, "view_path", "") or ""),
             "report_path": str(getattr(result, "report_path", "") or ""),
             "kos": len(getattr(result, "kos", []) or []),
+            "taxonomy_prefix": taxonomy_prefix or "",
         },
     }
     if g is not None:
@@ -148,6 +151,7 @@ def run_retrieve_action(
     top_k: int = 5,
     graph_path: str | None = None,
     access_lane: str = "general",
+    taxonomy_prefix: str | None = None,
     progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
     def p(pct: int, msg: str) -> None:
@@ -165,6 +169,7 @@ def run_retrieve_action(
         graph_path=graph_path,
         save=True,
         access_lane=access_lane,
+        taxonomy_prefix=taxonomy_prefix or None,
     )
     hits = [
         {
@@ -183,6 +188,7 @@ def run_retrieve_action(
         "ok": True,
         "mode": run.result.mode,
         "access_lane": access_lane,
+        "taxonomy_prefix": taxonomy_prefix or "",
         "hits": hits,
         "result_path": str(run.result_path) if run.result_path else None,
     }

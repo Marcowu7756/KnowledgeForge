@@ -85,9 +85,9 @@ cd D:\KnowledgeForge
 
 `classification=restricted`（或专有 `source_project`）时用通道 **proprietary**。勿把 taxonomy 根「专有知识」与通道绑死 —— [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md)。
 
-### 4b · Taxonomy 正交冒烟（本轮加）
+### 4b · Taxonomy 正交 + 大纲冒烟（本轮加）
 
-在获取/检索之外抽空做会话日志 **T1–T5**（见 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)）：确认新捕获卡有 `公开媒体 > 捕获 > …` 四段树，且 access 仍为 public；proprietary 仍能查 SETV。
+在获取/检索之外抽空做会话日志 **T1–T5**（正交）与 **T6–T10**（大纲）：[`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)。确认重组/检索左侧可折叠分组，且与访问层正交。健康检查：`ui_version` ≥ `0.6.1` · `taxonomy_outline: true`。
 
 ## 5. Gap 分类（轨 A · 不可用时恰好一类）
 

@@ -42,6 +42,7 @@ class ReconstructBody(BaseModel):
     from_index: bool = True
     view: Literal["theme", "concept", "learning_path", "taxonomy", "contrast"] = "theme"
     evolve_dir: str | None = None
+    taxonomy_prefix: str | None = None
     async_job: bool = True
 
 
@@ -50,6 +51,7 @@ class RetrieveBody(BaseModel):
     top_k: int = 5
     graph_path: str | None = None
     access_lane: Literal["general", "proprietary"] = "general"
+    taxonomy_prefix: str | None = None
     async_job: bool = True
 
 
@@ -104,13 +106,14 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.6.0",
+            "ui_version": "0.6.1",
             "features": {
                 "web_ui": True,
                 "multi_card_h1a": True,
                 "multi_card_h1b": True,
                 "multi_card_h1c": True,
                 "knowledge_delete": True,
+                "taxonomy_outline": True,
             },
             "ui": {
                 "surface": "web",
@@ -495,6 +498,7 @@ def create_app() -> FastAPI:
                     from_index=bool(payload.get("from_index", True)),
                     view=str(payload.get("view") or "theme"),
                     evolve_dir=payload.get("evolve_dir"),
+                    taxonomy_prefix=payload.get("taxonomy_prefix"),
                     progress=progress,
                 )
             if action == "retrieve":
@@ -503,6 +507,7 @@ def create_app() -> FastAPI:
                     top_k=int(payload.get("top_k") or 5),
                     graph_path=payload.get("graph_path"),
                     access_lane=str(payload.get("access_lane") or "general"),
+                    taxonomy_prefix=payload.get("taxonomy_prefix"),
                     progress=progress,
                 )
             if action == "compose":
@@ -576,6 +581,33 @@ def create_app() -> FastAPI:
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
 
+    @app.get("/api/taxonomy/tree")
+    def taxonomy_tree(
+        lane: Literal["general", "proprietary"] = "general",
+    ) -> dict[str, Any]:
+        """Excel-like taxonomy outline for the active access lane."""
+        from app.ui.taxonomy_outline import build_taxonomy_outline
+
+        return build_taxonomy_outline(access_lane=lane)
+
+    @app.get("/api/taxonomy/cards")
+    def taxonomy_cards(
+        prefix: str = Query("", description="taxonomy path joined by /"),
+        lane: Literal["general", "proprietary"] = "general",
+    ) -> dict[str, Any]:
+        """List KO cards under a taxonomy prefix (group members)."""
+        from app.ui.taxonomy_outline import build_taxonomy_outline, cards_under_prefix
+
+        outline = build_taxonomy_outline(access_lane=lane)
+        cards = cards_under_prefix(outline, prefix)
+        return {
+            "ok": True,
+            "access_lane": lane,
+            "prefix": prefix,
+            "count": len(cards),
+            "cards": cards,
+        }
+
     @app.post("/api/reconstruct")
     def reconstruct(body: ReconstructBody) -> dict[str, Any]:
         if body.async_job:
@@ -585,6 +617,7 @@ def create_app() -> FastAPI:
                     from_index=body.from_index,
                     view=body.view,
                     evolve_dir=body.evolve_dir,
+                    taxonomy_prefix=body.taxonomy_prefix,
                     progress=progress,
                 ),
             )
@@ -594,6 +627,7 @@ def create_app() -> FastAPI:
                 from_index=body.from_index,
                 view=body.view,
                 evolve_dir=body.evolve_dir,
+                taxonomy_prefix=body.taxonomy_prefix,
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
@@ -608,6 +642,7 @@ def create_app() -> FastAPI:
                     top_k=body.top_k,
                     graph_path=body.graph_path,
                     access_lane=body.access_lane,
+                    taxonomy_prefix=body.taxonomy_prefix,
                     progress=progress,
                 ),
             )
@@ -618,6 +653,7 @@ def create_app() -> FastAPI:
                 top_k=body.top_k,
                 graph_path=body.graph_path,
                 access_lane=body.access_lane,
+                taxonomy_prefix=body.taxonomy_prefix,
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc

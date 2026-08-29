@@ -47,7 +47,19 @@ verdict: —
 | T4 | 检索通道 **proprietary** 查 `AAPL H4 State Snapshot` | 仍命中 restricted SETV（回归） | ☐ |
 | T5 | 轨 B：获取 / 检索各填一级 | 摩擦仅记体验；勿因 taxonomy 根说「专有」 | ☐ |
 
-**工程预检（agent）：** unit 166 passed · integration 14 passed / 5 slow skip。
+### Taxonomy 大纲 · Owner 复测（重组 + 检索，ui 0.6.1）
+
+审计：[`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md)。需 **重启 UI** 后测（`ui_version` ≥ 0.6.1 · `taxonomy_outline: true`）。
+
+| # | 动作 | 期望 | Owner 结果 |
+|---|------|------|------------|
+| T6 | 车间 → **重组**：左侧出现分类大纲 | 可折叠节点 · 有 count | ☐ |
+| T7 | 点某一节点 → 前缀填入 → 视图 taxonomy → 重建 | job 成功 · result 含该 prefix | ☐ |
+| T8 | 车间 → **检索**：左侧同样大纲 | 与访问层联动（切 proprietary 树变） | ☐ |
+| T9 | 选 `公开媒体/捕获` 后检索短查询 | 命中限定在该支（或明确无命中） | ☐ |
+| T10 | 本组卡片列表点一条 | 填入查询 / 可预览 | ☐ |
+
+**工程预检（agent）：** unit 169 passed · integration 14/5skip · outline API + UI landed。
 
 ---
 

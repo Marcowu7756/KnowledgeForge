@@ -138,6 +138,7 @@ def retrieve_kos(
     min_graph_confidence: float = 0.55,
     max_level: str | None = None,
     access_lane: str | None = None,
+    taxonomy_prefix: str | None = None,
     gnn_shadow_path: str | Path | None = None,
     gnn_weight: float = 0.15,
 ) -> RetrieveResult:
@@ -173,6 +174,21 @@ def retrieve_kos(
         else:
             key = rec.classification or "public"
             denied_by_class[key] = denied_by_class.get(key, 0) + 1
+    if taxonomy_prefix:
+        from app.knowledge.taxonomy import TaxonomyBlock
+
+        prefix = TaxonomyBlock(path=taxonomy_prefix).path
+        if prefix:
+            pairs = [
+                (i, rec)
+                for i, rec in pairs
+                if TaxonomyBlock(path=list(rec.taxonomy_path or [])).matches_prefix(prefix)
+            ]
+            if not pairs:
+                raise FileNotFoundError(
+                    "no KnowledgeObjects under taxonomy_prefix "
+                    f"{taxonomy_prefix!r} for this lane — clear prefix or switch lane"
+                )
     try:
         from app.knowledge.access_audit import record_retrieve_summary
 

@@ -1,7 +1,7 @@
 # Integration Source Matrix — settle → express (non-Cartesian)
 
 ```yaml
-as_of: 2026-08-29T11:03:51Z
+as_of: 2026-08-29T11:19:26Z
 rule: one express path per signal source (no Cartesian product)
 runner: tests/integration/test_source_settle_express_matrix.py
 pass: 13/13
@@ -14,11 +14,11 @@ skip: 0
 | Source | Acquire | Settle | Express | Status | Detail |
 |--------|---------|--------|---------|--------|--------|
 | `txt` | ingest_file | pipeline.run_file→card | animate_fast(pillow) | **pass** | renderer=pillow_v1 |
-| `md` | ingest_file | run_file→card | ko_animate | **pass** | ko=<pytest_tmp>/test_source_settle_express_mat0/packages/matrix_note_md_110339577328/knowledge_object.json |
+| `md` | ingest_file | run_file→card | ko_animate | **pass** | ko=<pytest_tmp>/test_source_settle_express_mat0/packages/matrix_note_md_111914027793/knowledge_object.json |
 | `pdf` | ingest_file/pdf | run_file→card | ko_animate | **pass** |  |
 | `docx` | ingest_file/docx | run_file→card | animate_fast(pillow) | **pass** |  |
 | `image` | ingest_image(mock OCR) | run_image→card | animate_fast(pillow) | **pass** |  |
-| `audio` | ingest_audio(mock ASR) | run_audio→card | ko_narrate_mock | **pass** | wav=<pytest_tmp>/test_source_settle_express_mat0/packages/matrix_talk_audio_110344763357/narration.wav |
+| `audio` | ingest_audio(mock ASR) | run_audio→card | ko_narrate_mock | **pass** | wav=<pytest_tmp>/test_source_settle_express_mat0/packages/matrix_talk_audio_111918407676/narration.wav |
 | `youtube` | run_youtube(mock ingest) | card | animate_fast | **pass** |  |
 | `bilibili` | run_bilibili(mock ingest) | card | ko_animate | **pass** |  |
 | `twitter` | run_twitter(mock ingest) | card | animate_fast | **pass** |  |

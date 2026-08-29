@@ -40,7 +40,7 @@ def test_layout_api_and_ui_markers(tmp_path, monkeypatch):
 
     h = client.get("/api/health")
     assert h.status_code == 200
-    assert h.json()["ui_version"] == "0.6.0"
+    assert h.json()["ui_version"] == "0.6.1"
     assert h.json()["features"]["multi_card_h1c"] is True
 
     empty = client.get("/api/ui/layout/multi-card")
