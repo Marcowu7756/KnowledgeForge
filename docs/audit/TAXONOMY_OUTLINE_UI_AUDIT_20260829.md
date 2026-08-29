@@ -36,6 +36,7 @@ Archive:     unchanged
 Ops:         ISSUE residual (Twitter/TTS)
 Unit:        169 passed
 Integration: 14 passed · 5 slow skipped
+Pushed:      main @ 4959e19
 NEXT:        Owner UAT T6–T10 outline smoke
 Forbidden:   H4 thaw · SETV scope · access-from-taxonomy
 ```
