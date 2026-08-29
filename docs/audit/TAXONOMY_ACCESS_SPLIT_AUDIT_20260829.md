@@ -66,6 +66,9 @@ Slow optional (not required for this delta): `KF_RUN_SLOW=1 pytest tests/integra
 Engineering delta: PASS (orthogonal taxonomy fill)
 Archive:           unchanged PASS
 Ops:               ISSUE residual (Twitter/TTS)
-NEXT:              Owner UAT smoke — new capture shows 4-seg taxonomy + public
+Pushed:            main @ 86e8086
+Unit:              166 passed (ignore integration)
+Integration:       14 passed · 5 slow skipped
+NEXT:              Owner UAT smoke T1–T5 — UAT_SESSION_LOG_20260829.md
 Forbidden:         Matrix expand · THAW H4 · SETV scope from this change
 ```
