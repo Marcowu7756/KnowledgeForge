@@ -194,4 +194,5 @@ Then classify the layer. Compound to expect:
 settled knowledge → combine → new questions → new gaps → producer evolution
 ```
 
-Evidence: [`UAT_CONSUME_V0.md`](UAT_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260828.md`](UAT_SESSION_LOG_20260828.md) · board: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)
+Evidence: [`UAT_CONSUME_V0.md`](UAT_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260828.md`](UAT_SESSION_LOG_20260828.md) · board: [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md)  
+Business consume (OPEN): [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md)

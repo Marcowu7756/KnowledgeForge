@@ -21,7 +21,9 @@ freeze: H4 HOLD · SETV Scope HOLD · KF 不向 SETV 提需求
                 └── 不可用 → §10 分类 Gap → §11 记录
 ```
 
-章程 / 首轮签收：[`UAT_CONSUME_V0.md`](../audit/UAT_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260828.md`](../audit/UAT_SESSION_LOG_20260828.md)。  
+**本轮（用户业务消费）：** [`UAT_USER_CONSUME_V0.md`](../audit/UAT_USER_CONSUME_V0.md) · 日志 [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md)。  
+日志双轨：**轨 A** 消费判定（§11）· **轨 B** 分功能反馈（启动 / 获取 / 沉淀 / 重组 / 检索 / 组卡 / 表达 / 车间壳）。  
+首轮签收（已结案）：[`UAT_CONSUME_V0.md`](../audit/UAT_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260828.md`](../audit/UAT_SESSION_LOG_20260828.md)。  
 入库、索引、加密、删除：[`OPS_RUNBOOK_V0.md`](OPS_RUNBOOK_V0.md)。
 
 ---
@@ -72,7 +74,8 @@ cd D:\KnowledgeForge
 
 浏览器打开 `http://127.0.0.1:8765`。可选：`/api/health` 中 `ok: true`、`ui_version` ≥ `0.6.0`。
 
-专有知识（SETV 等）后续步骤一律使用通道 **proprietary**。`general` 检不出 restricted 卡，属设计而非故障。
+检索通道按 **access**，不按 taxonomy 根：`classification=restricted`（或专有 `source_project`）用通道 **proprietary**。`general` 检不出 restricted 卡，属设计而非故障。  
+内容树（纲举目张）是另一轴：`taxonomy.path`，目标 4–5 段 —— 见 [`TAXONOMY_VS_ACCESS_V0.md`](../audit/TAXONOMY_VS_ACCESS_V0.md)。
 
 进入主线 §5。
 
@@ -168,13 +171,18 @@ cd D:\KnowledgeForge
 
 ## 11. 记录
 
-每一题一行，然后本轮结束（或回到 §5 问下一题）。
+写入 [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md)：
+
+1. **轨 A（每题一行）** — 然后可回到 §5 问下一题，或结束本轮。
 
 ```text
 日期 | 问题 | 通道 | Top-1 标题 | 可用? | 类 | 一句话原因
 ```
 
 类：`usable` / `A` / `B` / `C` / `D`。
+
+2. **轨 B（分功能反馈）** — 本轮用过的段必填级（未用 / OK / 摩擦 / 阻塞 / Ops 已知）+ 一句话；结束前填 B8 总评。  
+   功能反馈**不**自动变成扩架构或解冻 H4；阻塞项记入会话 Tickets 供 KF 观察。
 
 ---
 
@@ -220,3 +228,5 @@ cd D:\KnowledgeForge
 | 只删不改 | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
 | 界面五段 | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) |
 | 治理冻结 | [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](../audit/OWNER_INTERPRET_UAT_SPLIT_20260828.md) |
+| Taxonomy ≠ Access | [`TAXONOMY_VS_ACCESS_V0.md`](../audit/TAXONOMY_VS_ACCESS_V0.md) |
+| 用户业务 UAT | [`UAT_USER_CONSUME_V0.md`](../audit/UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md) |

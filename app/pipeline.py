@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app import config
 from app.knowledge.access import default_access_for_ingest
+from app.knowledge.taxonomy import default_taxonomy_for_capture
 from app.compression.llm import compress
 from app.compression.parse import CompressParseError
 from app.ingest.bilibili import BilibiliIngestError, ingest_bilibili
@@ -127,6 +128,12 @@ def _finalize(
         dest_path=dest_rel,
         tags=unit.tags,
     )
+    # Taxonomy (纲举目张) is orthogonal to access — fill only when empty.
+    if not unit.taxonomy.path:
+        unit.taxonomy = default_taxonomy_for_capture(
+            source.source_type,
+            leaf_title=unit.title,
+        )
     filename_stem = None
     if source.path:
         filename_stem = f"{Path(source.path).stem}_{source.source_type}"

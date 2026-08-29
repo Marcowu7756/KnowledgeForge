@@ -1,5 +1,24 @@
-# Controlled taxonomy roots for proprietary ecosystem ingest (§8).
-# Full chain = root + path segments + LLM topic leaf.
+# Taxonomy roots (纲举目张). Orthogonal to access.classification — see
+# docs/audit/TAXONOMY_VS_ACCESS_V0.md. Do not derive access from path roots.
+#
+# Proprietary ecosystem: root + path segments + LLM topic leaf.
+# Generic capture: capture.root + by_source_type + card title leaf (pipeline).
+
+capture:
+  root: ["公开媒体", "捕获"]
+  by_source_type:
+    youtube: YouTube
+    bilibili: Bilibili
+    twitter: Twitter
+    file: 本地文件
+    audio: 音频
+    image: 图像
+    search: 检索合成
+    md: 本地文件
+    pdf: 本地文件
+    txt: 本地文件
+    notes: 笔记
+
 projects:
   setv:
     root: ["专有知识", "SETV"]

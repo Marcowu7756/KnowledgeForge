@@ -174,3 +174,5 @@ Bank locked before run. Do not swap mid-session.
 | NEXT | business-side consumption · H4 HOLD · SETV scope HOLD |
 
 **ISSUES must not be read as Archive defect.**
+
+**Follow-on (OPEN):** 用户业务消费 [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md)。

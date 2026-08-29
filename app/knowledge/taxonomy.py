@@ -8,8 +8,25 @@ from pydantic import BaseModel, Field, field_validator
 
 TAXONOMY_REGISTRY_PATH = Path(__file__).with_name("taxonomy_registry.yaml")
 
-# Ordered levels for display / LLM hints (path may extend beyond these).
+# Display / LLM slot labels only — NOT access.classification levels.
+# Target depth for capture/ecosystem chains: 4–5 segments (max clamp below).
 LEVEL_NAMES = ("domain", "category", "subcategory", "topic", "leaf")
+MAX_TAXONOMY_DEPTH = 5
+_CAPTURE_LEAF_MAX_CHARS = 48
+_FALLBACK_CAPTURE_ROOT = ["公开媒体", "捕获"]
+_FALLBACK_SOURCE_LABELS = {
+    "youtube": "YouTube",
+    "bilibili": "Bilibili",
+    "twitter": "Twitter",
+    "file": "本地文件",
+    "audio": "音频",
+    "image": "图像",
+    "search": "检索合成",
+    "md": "本地文件",
+    "pdf": "本地文件",
+    "txt": "本地文件",
+    "notes": "笔记",
+}
 
 
 class TaxonomyBlock(BaseModel):
@@ -143,6 +160,56 @@ def default_taxonomy_for_project(project: str) -> TaxonomyBlock:
     profile = project_profile(project)
     root = profile.get("root") or profile.get("taxonomy_root") or []
     return TaxonomyBlock(path=list(root))
+
+
+def capture_profile() -> dict[str, Any]:
+    registry = load_taxonomy_registry()
+    raw = registry.get("capture")
+    return raw if isinstance(raw, dict) else {}
+
+
+def clamp_taxonomy_path(path: list[str], *, max_depth: int = MAX_TAXONOMY_DEPTH) -> list[str]:
+    cleaned = _dedupe_taxonomy_path(path)
+    if max_depth <= 0:
+        return []
+    return cleaned[:max_depth]
+
+
+def _capture_leaf_title(leaf_title: str | None) -> str:
+    text = " ".join(str(leaf_title or "").split()).strip()
+    if not text:
+        return "未命名"
+    if len(text) <= _CAPTURE_LEAF_MAX_CHARS:
+        return text
+    return text[: _CAPTURE_LEAF_MAX_CHARS - 1].rstrip() + "…"
+
+
+def default_taxonomy_for_capture(
+    source_type: str,
+    *,
+    leaf_title: str | None = None,
+) -> TaxonomyBlock:
+    """Rule path for generic capture — independent of access.classification.
+
+    Shape: capture.root + source label + title leaf (depth ≤ 5).
+    """
+    profile = capture_profile()
+    root = profile.get("root") or _FALLBACK_CAPTURE_ROOT
+    root_list = [str(s).strip() for s in root if str(s).strip()]
+    if not root_list:
+        root_list = list(_FALLBACK_CAPTURE_ROOT)
+
+    key = (source_type or "file").strip().lower()
+    by_type = profile.get("by_source_type") or {}
+    label = ""
+    if isinstance(by_type, dict):
+        label = str(by_type.get(key) or "").strip()
+    if not label:
+        label = _FALLBACK_SOURCE_LABELS.get(key) or key or "本地文件"
+
+    leaf = _capture_leaf_title(leaf_title)
+    path = clamp_taxonomy_path([*root_list, label, leaf])
+    return TaxonomyBlock(path=path)
 
 
 def _is_windows_drive(part: str) -> bool:

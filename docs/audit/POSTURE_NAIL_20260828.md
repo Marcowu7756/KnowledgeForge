@@ -5,7 +5,7 @@ status: SOT · GOVERNANCE FREEZE
 authority: SETV Owner + KF consume evidence
 sot: docs/audit/OWNER_INTERPRET_UAT_SPLIT_20260828.md
 horizon: SEALED · HORIZON_COMPOSABLE_POWERS_V0.md · HORIZON_EVENT_PRIMITIVE_V0.md · do not expand ontology
-next: BUSINESS-SIDE CONSUMPTION · no architecture move
+next: BUSINESS-SIDE CONSUMPTION · OPEN KF-UAT-USER-CONSUME-V0 · no architecture move
 ```
 
 \[
@@ -61,6 +61,8 @@ Three asset layers in KF: **Family** · **Instance** · **Evidence** (sidecar + 
 | Tech HOLD residual | **H4** chunk-RAG · [`HOLD_THAW_SCHEDULE_V0.md`](HOLD_THAW_SCHEDULE_V0.md) · nail [`HOLD_CHUNK_RAG_H4_NAIL_20260828.md`](HOLD_CHUNK_RAG_H4_NAIL_20260828.md) |
 | Integration re-run | ✅ **SETTLED / CLOSE** · 19/19 · [`INTEGRATION_RERUN_AUDIT_20260828.md`](INTEGRATION_RERUN_AUDIT_20260828.md) · no new slice |
 | Consume UAT | ✅ **COMPLETE** · composite `PASS_WITH_ISSUES` · **Archive PASS** / **Ops ISSUE** · [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](OWNER_INTERPRET_UAT_SPLIT_20260828.md) |
+| User Consume UAT | **OPEN** · [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · log [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) |
+| Taxonomy ≠ Access | ✅ **LANDED** 2026-08-29 · SoT [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · audit [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md) · capture auto-path |
 | Archive value | **VERIFIED** · 15/15 usable · A/B/C/D = 0 · KO retrieve sufficient |
 | H1 一源多卡 / H2 Manim(+mpl) / H3 GNN | ✅ thawed & LANDED (2026-08-28) · **no further expand from UAT** |
 
@@ -107,4 +109,6 @@ Value questions for this HOLD window:
 
 That is where **SETV → KF → SETV Evolution** starts earning its keep.
 
-Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · consume SOP: [`CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)
+Day-2 ops: [`OPS_RUNBOOK_V0.md`](../ops/OPS_RUNBOOK_V0.md) · consume SOP: [`CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) · delete-only: [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](../ops/KNOWLEDGE_MAINTAIN_DELETE_V0.md)  
+User consume (OPEN): [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)  
+Taxonomy ≠ Access: [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · audit [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md)
