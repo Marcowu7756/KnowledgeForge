@@ -2,6 +2,7 @@
 
 ```yaml
 uat_id: KF-UAT-USER-CONSUME-V0
+entry: UAT_ENTRY_V0.md
 charter: UAT_USER_CONSUME_V0.md
 sop: docs/ops/CONSUME_USER_HANDBOOK_V0.md
 started: 2026-08-29
@@ -11,9 +12,11 @@ status: OPEN
 verdict: —
 ```
 
+> **入口：** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)（先读再填）。本文件只负责勾选与记录。
+
 本地运行痕迹（不入库）：`data/_uat_*` 等。
 
-**填写说明：** 轨 A = 下面「消费记录」；轨 B = 「分功能反馈」。用过的功能必填级（未用 / OK / 摩擦 / 阻塞 / Ops 已知）+ 一句话。
+**填写顺序（推荐）：** ① 重启 UI 确认 ≥0.6.1 → ② **T6–T10** 大纲 → ③ **T1–T5** 正交 → ④ 轨 A 业务题 → ⑤ 轨 B 功能反馈。
 
 ---
 
@@ -21,11 +24,11 @@ verdict: —
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| UI `main.py ui` → `http://127.0.0.1:8765` | **PASS** | `/api/health` ok · ui_version 0.6.0 |
+| UI `main.py ui` → `http://127.0.0.1:8765` | **PASS**（08-29）· 大纲测前请 **重启** | `/api/health` · **ui_version ≥ 0.6.1** · `taxonomy_outline: true` |
 | 可选：`AAPL H4 State Snapshot` proprietary Top-5 | ☐ | 期望 AAPL W/H4/D 近顶 |
 | units ≈ vectors | ☐ | 开场快照：units **115** · vectors **114**（差 1；检索仍绿可继续，勿记 Archive FAIL） |
 
-**门禁 verdict：** **PASS**（UI 已用；索引对照题未跑不影响获取反馈）
+**门禁 verdict：** **PASS**（UI 已用；测大纲前确认版本已升）
 
 ### 获取确认（2026-08-29 · Owner 试用）
 
@@ -35,7 +38,19 @@ verdict: —
 | YouTube `9MDhq9UO-Fk` | job `226e1498e82d` done · raw `20260829T040412Z_9MDhq9UO-Fk.txt` · KO `total_war_three_kingdoms_…十大隐藏细节.md` | **成功** |
 | Bilibili `BV1es411R7SK` p16 | job `8112bbe6f781` done · raw `20260829T042252Z_BV1es411R7SK_p16.txt` · KO `真三国无双7猛将传星彩攻略.md` | **成功** |
 
-### Taxonomy / Access 正交 · Owner 复测清单（2026-08-29 晚）
+### Taxonomy 大纲 · Owner 复测（重组 + 检索，ui 0.6.1）· **优先勾**
+
+审计：[`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md)。需 **重启 UI**（`ui_version` ≥ 0.6.1 · `taxonomy_outline: true`）。
+
+| # | 动作 | 期望 | Owner 结果 |
+|---|------|------|------------|
+| T6 | 车间 → **重组**：左侧出现分类大纲 | 可折叠节点 · 有 count | ☐ |
+| T7 | 点某一节点 → 前缀填入 → 视图 taxonomy → 重建 | job 成功 · result 含该 prefix | ☐ |
+| T8 | 车间 → **检索**：左侧同样大纲 | 与访问层联动（切 proprietary 树变） | ☐ |
+| T9 | 选 `公开媒体/捕获` 后检索短查询 | 命中限定在该支（或明确无命中） | ☐ |
+| T10 | 本组卡片列表点一条 | 填入查询 / 可预览 | ☐ |
+
+### Taxonomy / Access 正交 · Owner 复测清单 · **随后勾**
 
 工程已推：capture 自动 `taxonomy.path`（4 段）· access 仍独立。SoT [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) · 审计 [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md)。
 
@@ -46,18 +61,6 @@ verdict: —
 | T3 | 检索通道 **general** 查刚获取标题关键词 | 能命中公开卡 | ☐ |
 | T4 | 检索通道 **proprietary** 查 `AAPL H4 State Snapshot` | 仍命中 restricted SETV（回归） | ☐ |
 | T5 | 轨 B：获取 / 检索各填一级 | 摩擦仅记体验；勿因 taxonomy 根说「专有」 | ☐ |
-
-### Taxonomy 大纲 · Owner 复测（重组 + 检索，ui 0.6.1）
-
-审计：[`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md)。需 **重启 UI** 后测（`ui_version` ≥ 0.6.1 · `taxonomy_outline: true`）。
-
-| # | 动作 | 期望 | Owner 结果 |
-|---|------|------|------------|
-| T6 | 车间 → **重组**：左侧出现分类大纲 | 可折叠节点 · 有 count | ☐ |
-| T7 | 点某一节点 → 前缀填入 → 视图 taxonomy → 重建 | job 成功 · result 含该 prefix | ☐ |
-| T8 | 车间 → **检索**：左侧同样大纲 | 与访问层联动（切 proprietary 树变） | ☐ |
-| T9 | 选 `公开媒体/捕获` 后检索短查询 | 命中限定在该支（或明确无命中） | ☐ |
-| T10 | 本组卡片列表点一条 | 填入查询 / 可预览 | ☐ |
 
 **工程预检（agent）：** unit 169 passed · integration 14/5skip · outline API + UI landed。
 

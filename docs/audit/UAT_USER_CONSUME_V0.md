@@ -4,11 +4,15 @@
 uat_id: KF-UAT-USER-CONSUME-V0
 as_of: 2026-08-29
 status: OPEN
+entry: docs/audit/UAT_ENTRY_V0.md
 sop: docs/ops/CONSUME_USER_HANDBOOK_V0.md
 prior: KF-UAT-CONSUME-V0 COMPLETE · PASS_WITH_ISSUES
 freeze: H4 HOLD · SETV Scope HOLD · KF 不向 SETV 提需求
 session_log: UAT_SESSION_LOG_20260829.md
 ```
+
+> **Owner 从这里进测：** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)（三步开工 · 勾选顺序 · 三份必开）。  
+> 本文件是章程细则；日常填写写在 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)。
 
 \[
 \boxed{\mathrm{Engineering\ UAT}\neq\mathrm{User\ Consume}}
@@ -17,6 +21,16 @@ session_log: UAT_SESSION_LOG_20260829.md
 \qquad
 \boxed{\mathrm{only\ D}\rightarrow\mathrm{SETV}}
 \]
+
+## 0. 入口（先读）
+
+| 顺序 | 打开 | 作用 |
+|------|------|------|
+| 1 | [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) | **开工入口** |
+| 2 | [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) | 勾选 T6–T10 / T1–T5 · 轨 A/B |
+| 3 | [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) | 操作步骤 |
+
+---
 
 ## 1. 双轨：怎么用 + 怎么反馈
 
@@ -74,7 +88,7 @@ session_log: UAT_SESSION_LOG_20260829.md
 ```powershell
 cd D:\KnowledgeForge
 .\.venv\Scripts\python.exe main.py ui
-# 浏览器 http://127.0.0.1:8765 · 可选 GET /api/health → ok:true · ui_version≥0.6.0
+# 浏览器 http://127.0.0.1:8765 · 可选 GET /api/health → ok:true · ui_version≥0.6.1 · taxonomy_outline:true
 ```
 
 对照烟测（可选）：
@@ -87,7 +101,7 @@ cd D:\KnowledgeForge
 
 ### 4b · Taxonomy 正交 + 大纲冒烟（本轮加）
 
-在获取/检索之外抽空做会话日志 **T1–T5**（正交）与 **T6–T10**（大纲）：[`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)。确认重组/检索左侧可折叠分组，且与访问层正交。健康检查：`ui_version` ≥ `0.6.1` · `taxonomy_outline: true`。
+勾选清单与顺序见入口 [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) 与日志 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)（**先 T6–T10，再 T1–T5**）。健康检查：`ui_version` ≥ `0.6.1` · `taxonomy_outline: true`。
 
 ## 5. Gap 分类（轨 A · 不可用时恰好一类）
 

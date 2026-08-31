@@ -175,4 +175,4 @@ Bank locked before run. Do not swap mid-session.
 
 **ISSUES must not be read as Archive defect.**
 
-**Follow-on (OPEN):** 用户业务消费 [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md)。
+**Follow-on (OPEN):** **入口** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) · 用户业务消费 [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · SOP [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md)。

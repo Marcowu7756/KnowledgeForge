@@ -132,4 +132,4 @@ Owner 反馈：除长视频时长外，其他正常。
 
 继续 **业务问题消费 → Gap A/B/C/D**。仅 **D** 可回 SETV；摩擦（长视频 ASR 进度、Twitter/TTS）记 Ops，不改 Archive 判定。
 
-> **业务 UAT 开局 · Taxonomy 与 Access 正交落地 · 大纲分组 UI 可测 · NEXT = Owner T1–T10。**
+> **业务 UAT 开局 · Taxonomy 与 Access 正交落地 · 大纲分组 UI 可测 · NEXT = Owner 从 [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) 进 T1–T10。**
