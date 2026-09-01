@@ -47,7 +47,7 @@ Helpers: `default_taxonomy_for_capture` · `default_access_for_ingest` (separate
 | Card is `restricted` / proprietary `source_project` | **proprietary** |
 | Card is `public` / `internal` | **general** works; proprietary also sees them under ceiling |
 
-UI (v0.6.1+): 重组 + 检索两侧有 **taxonomy 大纲**（Excel-like group）。点节点 = 设 `taxonomy_prefix`；与访问层正交。API：`GET /api/taxonomy/tree` · `GET /api/taxonomy/cards`.
+UI (v0.6.3+): 重组 + 检索两侧有 **taxonomy 大纲**（Excel-like group）。单击分组 = 设 `taxonomy_prefix`；展开到最底层知识节点 **双击** = 打开正文。与访问层正交。API：`GET /api/taxonomy/tree` · `GET /api/taxonomy/cards`.
 
 Do **not** say「专有知识 path ⇒ must use proprietary」。Say「**classification=restricted** ⇒ proprietary」。
 

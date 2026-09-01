@@ -127,6 +127,7 @@
                 <button type="button" class="btn ghost btn-sm" data-tax-refresh="reconstruct">刷新</button>
               </div>
               <p class="muted tax-selected" id="tax-selected-reconstruct">未选分组 · 全库</p>
+              <p class="muted tax-hint">单击分组填前缀；展开到最底层带 <span class="tax-doc">KO</span> 的知识节点后<strong>双击</strong>打开正文。</p>
               <div class="tax-tree" id="tax-tree-reconstruct"></div>
             </aside>
             <div class="tax-main">
@@ -155,6 +156,11 @@
                   <button class="btn ghost" type="button" id="reconstruct-tax-clear">清除前缀</button>
                 </div>
               </form>
+              <div class="tax-group-cards" id="tax-group-cards-reconstruct" hidden>
+                <h3>本组卡片</h3>
+                <p class="muted tax-hint">点击标题打开知识内容</p>
+                <ul id="tax-group-list-reconstruct" class="quiet-list"></ul>
+              </div>
               <pre class="out" id="out-reconstruct" hidden></pre>
             </div>
           </div>
@@ -172,6 +178,7 @@
                 <button type="button" class="btn ghost btn-sm" data-tax-refresh="retrieve">刷新</button>
               </div>
               <p class="muted tax-selected" id="tax-selected-retrieve">未选分组 · 当前访问层全库</p>
+              <p class="muted tax-hint">单击分组限定检索；展开到最底层带 <span class="tax-doc">KO</span> 的知识节点后<strong>双击</strong>打开正文。</p>
               <div class="tax-tree" id="tax-tree-retrieve"></div>
             </aside>
             <div class="tax-main">
@@ -193,6 +200,7 @@
               </form>
               <div class="tax-group-cards" id="tax-group-cards-retrieve" hidden>
                 <h3>本组卡片</h3>
+                <p class="muted tax-hint">点击标题打开知识内容（检索页同时填入查询）</p>
                 <ul id="tax-group-list-retrieve" class="quiet-list"></ul>
               </div>
               <pre class="out" id="out-retrieve" hidden></pre>

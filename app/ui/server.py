@@ -38,6 +38,10 @@ class CompileBody(BaseModel):
     async_job: bool = True
 
 
+class NarrateBody(BaseModel):
+    path: str = Field(..., description="Knowledge card path under data/ (.md)")
+
+
 class ReconstructBody(BaseModel):
     from_index: bool = True
     view: Literal["theme", "concept", "learning_path", "taxonomy", "contrast"] = "theme"
@@ -106,7 +110,7 @@ def create_app() -> FastAPI:
             "product": "KnowledgeForge",
             "engine": "PAILE",
             "root": str(config.ROOT),
-            "ui_version": "0.6.1",
+            "ui_version": "0.6.4",
             "features": {
                 "web_ui": True,
                 "multi_card_h1a": True,
@@ -114,6 +118,8 @@ def create_app() -> FastAPI:
                 "multi_card_h1c": True,
                 "knowledge_delete": True,
                 "taxonomy_outline": True,
+                "taxonomy_open_card": True,
+                "ko_narrate_preview": True,
             },
             "ui": {
                 "surface": "web",
@@ -580,6 +586,26 @@ def create_app() -> FastAPI:
             )
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(400, str(exc)) from exc
+
+    @app.post("/api/narrate")
+    def narrate_ko(body: NarrateBody) -> dict[str, Any]:
+        """V0 · KO → same-language narration → authorized voice → WAV."""
+        from app.expression.derive import AudioLanguageNotSupportedError
+
+        try:
+            return actions.run_narrate_ko(body.path)
+        except AudioLanguageNotSupportedError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except PermissionError as exc:
+            raise HTTPException(403, str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(503, str(exc)) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(500, str(exc)) from exc
 
     @app.get("/api/taxonomy/tree")
     def taxonomy_tree(

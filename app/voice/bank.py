@@ -76,6 +76,21 @@ def list_profiles() -> list[VoiceProfile]:
     return items
 
 
+def profile_exists(name: str) -> bool:
+    return meta_path(name).is_file()
+
+
+def voice_for_language(lang: str | None, explicit: str | None = None) -> str | None:
+    """Pick a voice profile. English material uses me_en when present; default stays me."""
+    chosen = (explicit or "").strip()
+    if chosen and chosen not in {"local_voice"}:
+        return chosen
+    tag = (lang or "").strip().lower()
+    if tag.startswith("en") and profile_exists("me_en"):
+        return "me_en"
+    return default_voice_name()
+
+
 def default_voice_name() -> str | None:
     name = (config.TTS_VOICE_NAME or "").strip()
     if name:

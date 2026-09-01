@@ -50,10 +50,13 @@ def render_narration_wav(
     if chosen == "clone":
         try:
             from app.voice.clone_tts import CloneTtsError, speak_with_voice
-            from app.voice.bank import resolve_voice
+            from app.voice.bank import resolve_voice, voice_for_language
 
-            if resolve_voice(voice_name) is not None:
-                return speak_with_voice(text, dest, voice_name=voice_name)
+            resolved_name = voice_name
+            if not (resolved_name or "").strip() or resolved_name == "local_voice":
+                resolved_name = voice_for_language(voice_hint)
+            if resolve_voice(resolved_name) is not None:
+                return speak_with_voice(text, dest, voice_name=resolved_name)
         except CloneTtsError as exc:
             # Fall through to system voice with a clear warning path.
             if chosen == "clone" and voice_name:

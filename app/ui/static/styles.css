@@ -759,8 +759,14 @@ body[data-access-lane="proprietary"] .lane-bar {
 }
 
 .tax-selected {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
   font-size: 0.78rem;
+}
+
+.tax-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .tax-tree {
@@ -810,6 +816,59 @@ body[data-access-lane="proprietary"] .lane-bar {
   font-size: 0.75rem;
 }
 
+.tax-node-row.is-knowledge .tax-label {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.tax-node-row.is-knowledge {
+  user-select: none;
+}
+
+.tax-card-leaf {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0.22rem 0.25rem 0.22rem 0.15rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  user-select: none;
+}
+
+.tax-card-leaf:hover {
+  background: color-mix(in srgb, var(--brass) 10%, transparent);
+}
+
+.tax-card-leaf .tax-label {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.tax-doc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 1.35rem;
+  padding: 0 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--paper-2) 60%, white);
+}
+
 .tax-children {
   margin-left: 0.85rem;
   border-left: 1px solid var(--line);
@@ -824,6 +883,33 @@ body[data-access-lane="proprietary"] .lane-bar {
   margin-top: 0.75rem;
   border-top: 1px solid var(--line);
   padding-top: 0.65rem;
+}
+
+.tax-group-cards h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.narration-hint {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+}
+
+.narration-block {
+  margin: 0.75rem 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--line);
+}
+
+.narration-script {
+  margin-top: 0.5rem;
+}
+
+.narration-script summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .btn-sm {

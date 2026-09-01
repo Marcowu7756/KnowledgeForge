@@ -4,6 +4,7 @@ from app.voice.bank import (
     list_profiles,
     resolve_voice,
     set_default_voice,
+    voice_for_language,
 )
 from app.voice.clone_tts import CloneTtsError, speak_with_voice
 from app.voice.record import VoiceRecordError, import_profile, record_profile
@@ -19,4 +20,5 @@ __all__ = [
     "resolve_voice",
     "set_default_voice",
     "speak_with_voice",
+    "voice_for_language",
 ]

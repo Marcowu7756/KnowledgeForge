@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app import config
-from app.voice.bank import VoiceProfile, resolve_voice
+from app.voice.bank import VoiceProfile, resolve_voice, voice_for_language
 
 _F5_MODEL: object | None = None
 
@@ -71,7 +71,16 @@ def speak_with_voice(
     voice_name: str | None = None,
 ) -> Path:
     """Clone narration using a recorded/imported voice sample (F5-TTS)."""
-    profile = voice or resolve_voice(voice_name)
+    import re
+
+    if voice is None:
+        if (voice_name or "").strip():
+            profile = resolve_voice(voice_name)
+        else:
+            lang = "zh" if re.search(r"[\u4e00-\u9fff]", text or "") else "en"
+            profile = resolve_voice(voice_for_language(lang))
+    else:
+        profile = voice
     if profile is None:
         raise CloneTtsError(
             "no voice sample — run: python main.py voice record --name me"

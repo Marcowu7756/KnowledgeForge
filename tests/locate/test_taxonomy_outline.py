@@ -55,8 +55,9 @@ def test_ui_taxonomy_tree_endpoint_and_shell_markers():
     h = client.get("/api/health")
     assert h.status_code == 200
     body = h.json()
-    assert body["ui_version"] == "0.6.1"
+    assert body["ui_version"] == "0.6.4"
     assert body["features"]["taxonomy_outline"] is True
+    assert body["features"]["taxonomy_open_card"] is True
 
     tree = client.get("/api/taxonomy/tree", params={"lane": "general"})
     assert tree.status_code == 200
@@ -70,9 +71,12 @@ def test_ui_taxonomy_tree_endpoint_and_shell_markers():
     assert b"tax-tree-reconstruct" in page.content
     assert b"tax-tree-retrieve" in page.content
     assert b"taxonomy_prefix" in page.content
+    assert b"tax-group-cards-reconstruct" in page.content
+    assert b"tax-hint" in page.content
+    assert b"tax-doc" in page.content
 
 
 def test_ui_shell_version_bump():
     client = TestClient(create_app())
     h = client.get("/api/health")
-    assert h.json()["ui_version"] == "0.6.1"
+    assert h.json()["ui_version"] == "0.6.4"

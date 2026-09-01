@@ -212,9 +212,167 @@ def derive_visual_from_ko(
 
 
 def _detect_language(text: str) -> str:
+    """Detect language tag from plain text (voice routing helper)."""
+    if re.search(r"[\u3040-\u309f\u30a0-\u30ff]", text):
+        return "ja"
     if re.search(r"[\u4e00-\u9fff]", text):
         return "zh-CN"
-    return "en"
+    if re.search(r"[A-Za-z]", text):
+        return "en"
+    return "unknown"
+
+
+class AudioLanguageNotSupportedError(RuntimeError):
+    """KO language has no registered narration template / voice gate."""
+
+    def __init__(self, language: str, *, ko_id: str = "") -> None:
+        self.language = language
+        self.ko_id = ko_id
+        super().__init__(
+            f"audio expression HOLD: language={language!r} not supported"
+            + (f" ko={ko_id!r}" if ko_id else "")
+        )
+
+
+SUPPORTED_AUDIO_LANGUAGES = frozenset({"zh-CN", "en"})
+
+
+def _voice_name_for_script(lang: str) -> str | None:
+    from app.voice.bank import voice_for_language
+
+    return voice_for_language(lang)
+
+
+def _ko_canonical_blob(obj: KnowledgeObject) -> str:
+    chunks: list[str] = [
+        obj.content.title,
+        obj.content.summary,
+        *obj.content.key_points,
+        *obj.content.mechanisms,
+        *obj.content.definitions,
+        *obj.content.claims,
+    ]
+    for edge in obj.relations:
+        chunks.extend([edge.from_node, edge.to_node, edge.label])
+    return " ".join(c.strip() for c in chunks if c and c.strip())
+
+
+def _detect_ko_language(obj: KnowledgeObject) -> str:
+    """Language of canonical KO meaning — not the derived narration script."""
+    blob = _ko_canonical_blob(obj)
+    if not blob.strip():
+        return "unknown"
+    if re.search(r"[\u3040-\u309f\u30a0-\u30ff]", blob):
+        return "ja"
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", blob))
+    latin = len(re.findall(r"[A-Za-z]", blob))
+    if cjk > 0 and cjk >= latin:
+        return "zh-CN"
+    if latin > 0:
+        return "en"
+    if re.search(r"[\u0400-\u04ff]", blob):
+        return "ru"
+    return "unknown"
+
+
+def _normalize_audio_language(tag: str) -> str:
+    low = (tag or "").strip().lower()
+    if low.startswith("zh"):
+        return "zh-CN"
+    if low.startswith("en"):
+        return "en"
+    return low or "unknown"
+
+
+def _ends_with_punct(text: str, endings: tuple[str, ...]) -> bool:
+    return any(text.endswith(end) for end in endings)
+
+
+def _ensure_end(text: str, endings: tuple[str, ...], default: str) -> str:
+    text = text.strip()
+    if not text:
+        return text
+    if _ends_with_punct(text, endings):
+        return text
+    return text + default
+
+
+def _ko_canonical_parts(obj: KnowledgeObject) -> dict[str, object]:
+    return {
+        "title": obj.content.title.strip(),
+        "summary": (obj.content.summary or "").strip(),
+        "mechanisms": [m.strip().lstrip("- ").strip() for m in obj.content.mechanisms if m.strip()],
+        "key_points": [k.strip() for k in obj.content.key_points if k.strip()],
+        "relations": obj.relations[:4],
+    }
+
+
+def _relation_phrase(edge: RelationEdge, lang: str) -> str:
+    if lang == "zh-CN":
+        if edge.type == "controls":
+            return f"{edge.from_node}作用于{edge.to_node}"
+        return f"{edge.from_node}关联{edge.to_node}"
+    if edge.label.strip():
+        return f"{edge.from_node} {edge.label.strip()} {edge.to_node}".strip()
+    if edge.type == "controls":
+        return f"{edge.from_node} controls {edge.to_node}"
+    return f"{edge.from_node} relates to {edge.to_node}"
+
+
+def _assemble_script_zh(parts: dict[str, object]) -> str:
+    title = str(parts["title"])
+    summary = str(parts["summary"])
+    mechanisms: list[str] = parts["mechanisms"]  # type: ignore[assignment]
+    key_points: list[str] = parts["key_points"]  # type: ignore[assignment]
+    relations: list[RelationEdge] = parts["relations"]  # type: ignore[assignment]
+
+    segments: list[str] = []
+    if title:
+        segments.append(_ensure_end(title, ("。", "！", "？"), "。"))
+    if summary:
+        segments.append(_ensure_end(summary, ("。", "！", "？"), "。"))
+    if relations:
+        rel = "；".join(_relation_phrase(edge, "zh-CN") for edge in relations)
+        segments.append(_ensure_end(rel, ("。",), "。"))
+    elif mechanisms:
+        segments.append(_ensure_end(mechanisms[0], ("。",), "。"))
+    elif key_points:
+        segments.append(_ensure_end("；".join(key_points[:3]), ("。",), "。"))
+
+    script = "".join(segments).strip()
+    if len(script) < 20:
+        script = f"{title}。{summary or '这是一个待展开的知识单元。'}".strip()
+    if len(script) > 400:
+        script = script[:397] + "…"
+    return script
+
+
+def _assemble_script_en(parts: dict[str, object]) -> str:
+    title = str(parts["title"])
+    summary = str(parts["summary"])
+    mechanisms: list[str] = parts["mechanisms"]  # type: ignore[assignment]
+    key_points: list[str] = parts["key_points"]  # type: ignore[assignment]
+    relations: list[RelationEdge] = parts["relations"]  # type: ignore[assignment]
+
+    segments: list[str] = []
+    if title:
+        segments.append(_ensure_end(title, (".", "!", "?"), "."))
+    if summary:
+        segments.append(_ensure_end(summary, (".", "!", "?"), "."))
+    if relations:
+        rel = "; ".join(_relation_phrase(edge, "en") for edge in relations)
+        segments.append(_ensure_end(rel, (".",), "."))
+    elif mechanisms:
+        segments.append(_ensure_end(mechanisms[0], (".",), "."))
+    elif key_points:
+        segments.append(_ensure_end("; ".join(key_points[:3]), (".",), "."))
+
+    script = " ".join(segments).strip()
+    if len(script) < 20:
+        script = f"{title}. {summary or 'This knowledge unit is pending expansion.'}".strip()
+    if len(script) > 400:
+        script = script[:397] + "…"
+    return script
 
 
 def derive_audio_from_ko(
@@ -223,44 +381,26 @@ def derive_audio_from_ko(
     voice: str | None = None,
     compile_source: str = "ko_structure",
 ) -> AudioExpression:
-    """Derive AudioExpression script from KO content + relations (no LLM)."""
-    title = obj.content.title.strip()
-    summary = (obj.content.summary or "").strip()
-    parts: list[str] = []
-    if title:
-        parts.append(f"我们来理解「{title}」。")
-    if summary:
-        parts.append(summary if summary.endswith(("。", "！", "？", ".", "!", "?")) else summary + "。")
+    """Derive AudioExpression from KO canonical meaning (no LLM, no cross-language shell)."""
+    lang_tag = _normalize_audio_language(_detect_ko_language(obj))
+    if lang_tag not in SUPPORTED_AUDIO_LANGUAGES:
+        raise AudioLanguageNotSupportedError(_detect_ko_language(obj), ko_id=obj.id)
 
-    if obj.relations:
-        chain = []
-        for edge in obj.relations[:4]:
-            chain.append(f"{edge.from_node}作用于{edge.to_node}" if edge.type == "controls" else f"{edge.from_node}关联{edge.to_node}")
-        parts.append("核心关系是：" + "；".join(chain) + "。")
-    elif obj.content.mechanisms:
-        mech = obj.content.mechanisms[0].strip().lstrip("- ").strip()
-        parts.append(f"关键机制是：{mech}。")
-    elif obj.content.key_points:
-        pts = "；".join(obj.content.key_points[:3])
-        parts.append(f"需要抓住这几点：{pts}。")
+    parts = _ko_canonical_parts(obj)
+    if lang_tag == "zh-CN":
+        script = _assemble_script_zh(parts)
+        resolved_voice = voice or _voice_name_for_script("zh-CN")
+    else:
+        script = _assemble_script_en(parts)
+        resolved_voice = voice or _voice_name_for_script("en")
 
-    script = "".join(parts).strip()
-    if len(script) < 20:
-        script = f"{title}。{summary or '这是一个待展开的知识单元。'}"
-
-    # Keep spoken length reasonable
-    if len(script) > 400:
-        script = script[:397] + "…"
-
-    voice_name = voice or config.TTS_VOICE_NAME or "local_voice"
-    lang = _detect_language(script)
     expr_id = f"ax_{obj.id}_{uuid4().hex[:6]}"
     return AudioExpression(
         id=expr_id,
         source_ko=obj.id,
         script=script,
-        voice=voice_name,
-        language=lang,
+        voice=resolved_voice,
+        language=lang_tag,
         evidence=ExpressionEvidence(
             derived_from=obj.id,
             expression_version=EXPRESSION_VERSION,

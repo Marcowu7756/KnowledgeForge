@@ -98,6 +98,8 @@ def test_distill_audio_expression_script_from_ko(sample_ko):
     assert ax.source_ko == sample_ko.id
     assert len(ax.script) >= 10
     assert ax.evidence.derived_from == sample_ko.id
+    assert ax.language == "zh-CN"
+    assert "我们来理解" not in ax.script
 
 
 # --- 小剧本：Harness artifact 校验 ---

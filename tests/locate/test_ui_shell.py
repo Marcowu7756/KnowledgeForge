@@ -13,7 +13,7 @@ def test_ui_health_and_home():
     assert h.status_code == 200
     body = h.json()
     assert body["product"] == "KnowledgeForge"
-    assert body["ui_version"] == "0.6.1"
+    assert body["ui_version"] == "0.6.4"
     assert body["features"]["web_ui"] is True
     assert body["features"]["taxonomy_outline"] is True
     assert body["ui"]["surface"] == "web"

@@ -98,6 +98,45 @@ def run_compile(
     return out
 
 
+def run_narrate_ko(
+    path: str,
+    progress: ProgressFn | None = None,
+) -> dict[str, Any]:
+    """KO → same-language narration script → authorized voice → WAV (V0 听讲解)."""
+    def p(pct: int, msg: str) -> None:
+        if progress:
+            progress(pct, msg)
+
+    from app.expression.from_ko import narrate_from_ko
+    from app.knowledge.parse import load_knowledge_object
+    from app.ui.preview import resolve_data_path
+
+    p(10, "loading KnowledgeObject")
+    resolved = resolve_data_path(path)
+    if resolved.suffix.lower() != ".md":
+        raise ValueError("narration only supported for knowledge cards (.md)")
+    obj = load_knowledge_object(resolved)
+    dest_dir = config.EXPRESSION_DIR / "ui_narrate" / obj.id
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    p(40, f"deriving {obj.id} narration")
+    wait_briefly()
+    p(70, "synthesizing audio")
+    result = narrate_from_ko(obj, dest_dir=dest_dir)
+    if result.wav_path is None or not result.wav_path.is_file():
+        raise RuntimeError("TTS failed — check F5-TTS / voice profiles (me / me_en)")
+    wav_rel = result.wav_path.resolve().relative_to(config.DATA_DIR.resolve()).as_posix()
+    p(100, "done")
+    return {
+        "ok": True,
+        "ko_id": obj.id,
+        "language": result.expression.language,
+        "voice": result.expression.voice,
+        "script": result.expression.script,
+        "wav": wav_rel,
+        "expression": result.expression_path.resolve().relative_to(config.ROOT).as_posix(),
+    }
+
+
 def run_reconstruct_action(
     *,
     from_index: bool = True,

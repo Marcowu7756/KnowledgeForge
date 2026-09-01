@@ -1,0 +1,12 @@
+---
+description: Match voice seed language to the material — English uses me_en, Mandarin uses me.
+alwaysApply: true
+---
+
+# Voice seed language
+
+- Default profile is **`me`** (Mandarin). Never switch `data/voices/DEFAULT` to `me_en`.
+- English material / English TTS / English `express` scripts use **`me_en`** when that profile exists. Do not clone English from the Mandarin `me` sample.
+- Import extra language profiles with `python main.py voice import ... --name me_en --no-default`.
+- `voice_for_language("en")` already picks `me_en`. Do not pass `--voice me` on English cards.
+- Seeds are clone references, not finished narration tracks. F5 samples stay ~10–12s mono + matching transcript.

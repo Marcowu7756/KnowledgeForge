@@ -68,26 +68,62 @@
     if (retrieveOpen) await refreshTaxonomyTree("retrieve");
   }
 
+  function pickLeafCard(cards, label) {
+    const list = cards || [];
+    if (!list.length) return null;
+    const hit = list.find((c) => (c.title || "") === (label || ""));
+    return hit || list[0];
+  }
+
+  function renderTaxCardLeaf(card, surface) {
+    const title = card.title || card.path || "";
+    return `<button type="button" class="tax-card-leaf" data-tax-open="${escapeAttr(
+      card.path || ""
+    )}" data-title="${escapeAttr(title)}" data-surface="${escapeAttr(surface)}" title="双击或单击打开知识内容">
+      <span class="tax-doc" aria-hidden="true">KO</span>
+      <span class="tax-label">${escapeHtml(title)}</span>
+    </button>`;
+  }
+
   function renderTaxNode(node, surface) {
     const hasKids = (node.children || []).length > 0;
-    const twist = hasKids ? "▾" : "·";
+    const cards = node.cards || [];
+    const leafCard = !hasKids && cards.length === 1 ? pickLeafCard(cards, node.label) : null;
+    const multiLeaf = !hasKids && cards.length > 1;
     const kids = (node.children || []).map((c) => renderTaxNode(c, surface)).join("");
-    return `<div class="tax-node" data-prefix="${escapeAttr(node.prefix_key || "")}">
-      <button type="button" class="tax-node-row" data-tax-select="${escapeAttr(
-        surface
-      )}" data-prefix="${escapeAttr(node.prefix_key || "")}" data-label="${escapeAttr(
+    // 多卡叶子：下列 KO；单卡知识节点：节点本身可双击打开，不再多挂一层
+    const cardLeaves = multiLeaf ? cards.map((c) => renderTaxCardLeaf(c, surface)).join("") : "";
+    const hasBody = hasKids || multiLeaf;
+    const twist = hasKids || multiLeaf ? "▾" : leafCard ? "·" : "·";
+    const openPath = leafCard ? leafCard.path || "" : "";
+    const openTitle = leafCard ? leafCard.title || node.label || "" : "";
+    const leafClass = leafCard ? " tax-node-knowledge" : "";
+    const leafTitle = leafCard
+      ? ` title="双击打开知识内容"`
+      : "";
+    return `<div class="tax-node${leafClass}" data-prefix="${escapeAttr(node.prefix_key || "")}">
+      <button type="button" class="tax-node-row${leafCard ? " is-knowledge" : ""}" data-tax-select="${escapeAttr(
+      surface
+    )}" data-prefix="${escapeAttr(node.prefix_key || "")}" data-label="${escapeAttr(
       node.label || ""
-    )}" data-count="${Number(node.count || 0)}">
+    )}" data-count="${Number(node.count || 0)}" data-tax-open-path="${escapeAttr(
+      openPath
+    )}" data-tax-open-title="${escapeAttr(openTitle)}"${leafTitle}>
         <span class="tax-twist" data-tax-twist>${twist}</span>
+        ${leafCard ? `<span class="tax-doc" aria-hidden="true">KO</span>` : ""}
         <span class="tax-label">${escapeHtml(node.label || "")}</span>
         <span class="tax-count">${Number(node.count || 0)}</span>
       </button>
-      ${
-        hasKids
-          ? `<div class="tax-children">${kids}</div>`
-          : ""
-      }
+      ${hasBody ? `<div class="tax-children">${kids}${cardLeaves}</div>` : ""}
     </div>`;
+  }
+
+  function openTaxonomyKnowledge(path, title, surface) {
+    if (surface === "retrieve" && title) {
+      const q = $("#form-retrieve input[name='query']");
+      if (q) q.value = title;
+    }
+    if (path) openPreview(path);
   }
 
   async function refreshTaxonomyTree(surface) {
@@ -108,6 +144,30 @@
           const prefix = btn.getAttribute("data-prefix") || "";
           selectTaxonomyPrefix(surface, prefix, btn.getAttribute("data-label") || "");
         });
+        btn.addEventListener("dblclick", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const path = btn.getAttribute("data-tax-open-path") || "";
+          if (!path) return;
+          openTaxonomyKnowledge(
+            path,
+            btn.getAttribute("data-tax-open-title") || btn.getAttribute("data-label") || "",
+            surface
+          );
+        });
+      });
+      tree.querySelectorAll("[data-tax-open]").forEach((btn) => {
+        const open = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openTaxonomyKnowledge(
+            btn.getAttribute("data-tax-open") || "",
+            btn.getAttribute("data-title") || "",
+            btn.getAttribute("data-surface") || surface
+          );
+        };
+        btn.addEventListener("click", open);
+        btn.addEventListener("dblclick", open);
       });
       tree.querySelectorAll("[data-tax-twist]").forEach((twist) => {
         twist.addEventListener("click", (e) => {
@@ -131,7 +191,9 @@
     if (selected) {
       selected.textContent = prefix
         ? `已选：${prefix.replace(/\//g, " › ")}`
-        : "未选分组 · 全库";
+        : surface === "retrieve"
+          ? "未选分组 · 当前访问层全库"
+          : "未选分组 · 全库";
     }
     $$(`#tax-tree-${surface} .tax-node-row`).forEach((btn) => {
       btn.classList.toggle("active", (btn.getAttribute("data-prefix") || "") === prefix);
@@ -141,17 +203,18 @@
       const view = $("#reconstruct-view");
       if (input) input.value = prefix;
       if (view && prefix) view.value = "taxonomy";
+      await loadTaxonomyGroupCards("reconstruct", prefix);
     }
     if (surface === "retrieve") {
       const input = $("#retrieve-taxonomy-prefix");
       if (input) input.value = prefix;
-      await loadTaxonomyGroupCards(prefix);
+      await loadTaxonomyGroupCards("retrieve", prefix);
     }
   }
 
-  async function loadTaxonomyGroupCards(prefix) {
-    const box = $("#tax-group-cards-retrieve");
-    const list = $("#tax-group-list-retrieve");
+  async function loadTaxonomyGroupCards(surface, prefix) {
+    const box = $(`#tax-group-cards-${surface}`);
+    const list = $(`#tax-group-list-${surface}`);
     if (!box || !list) return;
     if (!prefix) {
       box.hidden = true;
@@ -177,9 +240,9 @@
           (c) => `<li>
           <button type="button" class="linkish tax-card-pick" data-title="${escapeAttr(
             c.title || ""
-          )}" data-path="${escapeAttr(c.path || "")}">${escapeHtml(
-            c.title || c.path || ""
-          )}</button>
+          )}" data-path="${escapeAttr(c.path || "")}" data-surface="${escapeAttr(
+            surface
+          )}" title="打开知识内容">${escapeHtml(c.title || c.path || "")}</button>
           <span class="chip access-${escapeAttr(c.classification || "")}">${escapeHtml(
             c.classification || ""
           )}</span>
@@ -188,10 +251,11 @@
         .join("");
       list.querySelectorAll(".tax-card-pick").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const q = $("#form-retrieve input[name='query']");
-          if (q) q.value = btn.getAttribute("data-title") || "";
-          const path = btn.getAttribute("data-path");
-          if (path) openPreview(path);
+          openTaxonomyKnowledge(
+            btn.getAttribute("data-path") || "",
+            btn.getAttribute("data-title") || "",
+            btn.getAttribute("data-surface") || surface
+          );
         });
       });
     } catch (err) {
@@ -602,6 +666,48 @@
     return escapeHtml(s).replaceAll("'", "&#39;");
   }
 
+  async function narrateKnowledgeCard(path) {
+    const btn = $("#modal-narrate-btn");
+    const slot = $("#preview-narration");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "生成讲解…";
+    }
+    if (slot) {
+      slot.hidden = false;
+      slot.innerHTML = `<p class="muted">同语言旁白生成中…</p>`;
+    }
+    try {
+      const data = await api("/api/narrate", {
+        method: "POST",
+        body: JSON.stringify({ path }),
+      });
+      const wavUrl = `/api/preview/file?path=${encodeURIComponent(data.wav)}`;
+      if (slot) {
+        slot.hidden = false;
+        slot.innerHTML = `<div class="narration-block">
+          <p class="muted">语言 ${escapeHtml(data.language || "")} · 音色 ${escapeHtml(
+          data.voice || ""
+        )}</p>
+          <audio class="preview-media" controls src="${wavUrl}"></audio>
+          <details class="narration-script">
+            <summary>旁白稿</summary>
+            <pre class="preview-text">${escapeHtml(data.script || "")}</pre>
+          </details>
+        </div>`;
+      }
+    } catch (err) {
+      if (slot) {
+        slot.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "▶ 听讲解";
+      }
+    }
+  }
+
   async function openPreview(path) {
     const modal = $("#preview-modal");
     const body = $("#preview-body");
@@ -624,8 +730,14 @@
         : `<p class="muted">外发导出已关闭（${escapeHtml(
             data.access?.policy?.export || "local_only"
           )}）— 仅可在 KF 内预览。</p>`;
+      const narrateBtn =
+        data.suffix === ".md"
+          ? `<p><button type="button" class="btn primary btn-sm" id="modal-narrate-btn">▶ 听讲解</button>
+             <span class="muted narration-hint">同语言旁白 · 不翻译 · zh→me · en→me_en</span></p>
+             <div id="preview-narration" hidden></div>`
+          : "";
       if (data.kind === "text") {
-        body.innerHTML = `${exportBtn}<pre class="preview-text">${escapeHtml(
+        body.innerHTML = `${exportBtn}${narrateBtn}<pre class="preview-text">${escapeHtml(
           data.text || ""
         )}</pre>`;
       } else if (
@@ -644,6 +756,7 @@
         body.innerHTML = `${exportBtn}<p><a href="${data.file_url}" target="_blank" rel="noopener">打开文件</a></p>`;
       }
       $("#modal-export-btn")?.addEventListener("click", () => tryExport(path));
+      $("#modal-narrate-btn")?.addEventListener("click", () => narrateKnowledgeCard(path));
     } catch (err) {
       body.innerHTML = `<p class="error-text">${escapeHtml(String(err.message || err))}</p>`;
     }
