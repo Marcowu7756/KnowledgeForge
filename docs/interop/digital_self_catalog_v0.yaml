@@ -86,22 +86,28 @@ skills:
 
   S15_ResearchOp:
     aliases: [S15, ResearchOp, S14, SetvQuery]
-    live: false
-    kf_use: plan neighbor research; cite SETV / never trade
+    live: setv_cite_only
+    kf_use: plan neighbor research; live-read SETV setv_cite only; never trade / never express
     required: [--scene, --task]
     flags:
-      --scene: {type: enum, values: [mt5_backtest, ashare, setv], required: true}
+      --scene: {type: enum, values: [mt5_backtest, ashare, setv, setv_cite], required: true}
       --task: {type: string, required: true}
       --action: {type: string, default: research}
-      --live: {type: flag, effect: deny LIVE_COMPUTE_NOT_AUTHORIZED}
+      --live: {type: flag, effect: "ALLOW only scene setv|setv_cite + action list_manifest|get_by_id|cite|resolve_card; else LIVE_COMPUTE_NOT_AUTHORIZED / LIVE_OP_NOT_AUTHORIZED"}
+      --artifact-id: {type: string, required: false}
+      --class: {type: enum, values: [snapshot, evolution, family], required: false}
+      --symbol: {type: string, required: false}
+      --limit: {type: int, required: false}
+      --setv-root: {type: path, required: false, default: "D:\fxtrading or SETV_ROOT"}
     l4_actions_denied: [place_order, cancel_order, modify_order, withdraw, transfer_money, transfer, deposit, live_trade]
     l4_error: L4_NO_AUTHORIZABLE_PATH
     usage_error: DS_INVOKE_USAGE
+    authorize_live: "AUTHORIZE DS · S15 Producer live-read · SETV · setv_cite"
 
     stdout_ok:
       skill: S15_ResearchOp
       danger_class: L1
-      live: false
+      live: "false | true when setv_cite live-read"
 
   S16_Compose:
     aliases: [S16, Compose, S08, Summarize, S09, Explain]

@@ -19,7 +19,8 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 | Language ≠ Translation | [`LANGUAGE_EXPRESSION_V0.md`](LANGUAGE_EXPRESSION_V0.md) |
 | NTW → KF 可平移 | [`NTW_TO_KF_TRANSFER_V0.md`](NTW_TO_KF_TRANSFER_V0.md) |
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
-| **Digital Self Skills（consume）** | [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) |
+| Digital Self Skills（consume） | [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) |
+| **DS Producer 消费政策（S15 only）** | [`DS_PRODUCER_CONSUMPTION_V0.md`](../interop/DS_PRODUCER_CONSUMPTION_V0.md) · SoT `D:\DigitalSelf\docs\PRODUCER_CONSUMPTION_V0.md` |
 | **Skill 消费 · legacy phase-out** | [`KF_SKILL_CONSUME_PHASEOUT_V0.md`](KF_SKILL_CONSUME_PHASEOUT_V0.md) |
 | **Delete-only maintain** | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
 | Local Web UI | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · `main.py ui` browser-first |

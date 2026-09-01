@@ -38,7 +38,7 @@ $$
 | 注意力 / 是否打断 Owner | （无独立门 · 或人工） | **S00** `AttentionGate` | **优先写进 SOP** |
 | 同语言朗读（嘴） | `voice speak` · UI ▶ 听讲解 · `express` TTS | **S02** `ReadAloud`（DS Identity） | 旁路并存 → 后迁口 |
 | 浏览观察计划 | （无 / 手工） | **S06** Browser（plan only · 禁 `--live`） | 仅 Skill |
-| 研究计划 / SETV cite 场景 | `retrieve` / compose 草稿 | **S15** ResearchOp（禁 L4） | 并存；L4 永不进 KF |
+| 研究计划 / SETV·FactorLib·AShareLib cite | `retrieve` / compose 草稿 | **S15** ResearchOp ONLY（禁 L4 · Read ⇏ Express） | 并存；Producer 政策见 [`DS_PRODUCER_CONSUMPTION_V0.md`](../interop/DS_PRODUCER_CONSUMPTION_V0.md) |
 | 草稿标注 / 不发布 | `compose` lecture/paper | **S16** Compose（禁 `--publish`） | 并存；发布仍 Owner |
 
 **KF 仍永久拥有（不 phase out）：** Capture 沉淀 · KO / Admission · Index · Retrieve · Taxonomy · Access · Archive 判定。  
@@ -49,6 +49,7 @@ Skills **只传候选**；不在 DS 内 compile 知识。
 | 顺序 | 文档 | 改法 |
 |------|------|------|
 | 1 | [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) | 消费协议 SoT（已有） |
+| 1b | [`DS_PRODUCER_CONSUMPTION_V0.md`](../interop/DS_PRODUCER_CONSUMPTION_V0.md) | S15-only Producer 消费 · SoT on DS |
 | 2 | **本页** | phase-out 地图 |
 | 3 | [`OPS_RUNBOOK_V0.md`](OPS_RUNBOOK_V0.md) | 操作清单加 `ds list` / `ds invoke`；标 legacy |
 | 4 | [`CONSUME_USER_HANDBOOK_V0.md`](CONSUME_USER_HANDBOOK_V0.md) | 消费主线旁挂 S00 / 可选 S02 |
@@ -56,6 +57,18 @@ Skills **只传候选**；不在 DS 内 compile 知识。
 | 6 | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · README | 入口指针；不强制砍 UI narrate |
 
 **代码替换规则（以后做，不是现在）：** 仅当 Skill 门禁 + 测试绿 + Owner 签收后，才把某 native 入口标 `DEPRECATED` 或改薄壳为 `ds invoke`。
+
+### 本轮（2026-09-01 晚）
+
+```text
+TEST_SKILLS     = PASS
+INTERFACE_CUT   = HOLD
+```
+
+已测：DS `34 OK`；KF `tests/interop/test_digital_self_skills.py` **30 passed · 2 skipped**（S02 实跑 TTS 需 `KF_RUN_SLOW=1`）。
+
+**不改接口：** `voice speak` / `express` / UI narrate / `ds invoke` 旗标 / Catalog JSON 一律不动。稳定后再切入口。
+
 
 ## 硬停
 

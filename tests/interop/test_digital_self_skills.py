@@ -167,6 +167,45 @@ def test_s15_live_compute_denied():
     assert denied["error"] == "LIVE_COMPUTE_NOT_AUTHORIZED"
 
 
+def test_s15_live_setv_cite_list():
+    listed = invoke(
+        "S15",
+        "--scene",
+        "setv_cite",
+        "--live",
+        "--action",
+        "list_manifest",
+        "--task",
+        "list",
+        "--class",
+        "snapshot",
+        "--limit",
+        "3",
+    )
+    if listed.get("error") and "manifest" in str(listed.get("message", "")).lower():
+        pytest.skip("SETV manifest not available")
+    assert listed["ok"] is True, listed
+    assert listed.get("live") is True
+    assert listed.get("surface") == "setv_cite"
+    assert listed.get("express_forbidden") is True
+    assert listed.get("count", 0) >= 1
+
+
+def test_s15_live_setv_bad_op_denied():
+    denied = invoke(
+        "S15",
+        "--scene",
+        "setv",
+        "--task",
+        "x",
+        "--action",
+        "research",
+        "--live",
+    )
+    assert denied["ok"] is False
+    assert denied["error"] == "LIVE_OP_NOT_AUTHORIZED"
+
+
 @pytest.mark.parametrize(
     "action",
     [

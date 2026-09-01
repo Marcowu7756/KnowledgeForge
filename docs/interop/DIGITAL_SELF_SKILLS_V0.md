@@ -19,6 +19,9 @@ $$
 
 **Phase-out：** 旧 native 程序（`voice` / `express` / UI narrate 等）**暂时保留**；能力逐步改为 **Skill 调用**。文档与 SOP 先换，代码后迁。地图：[`../ops/KF_SKILL_CONSUME_PHASEOUT_V0.md`](../ops/KF_SKILL_CONSUME_PHASEOUT_V0.md)。
 
+**Producer 消费（DS SoT）：** SETV / FactorLib / AShareLib → **仅 S15** · Read ⇏ Express。  
+[`DS_PRODUCER_CONSUMPTION_V0.md`](DS_PRODUCER_CONSUMPTION_V0.md) · Producer：`D:\DigitalSelf\docs\PRODUCER_CONSUMPTION_V0.md`
+
 Machine flags: [`digital_self_catalog_v0.yaml`](digital_self_catalog_v0.yaml)  
 Producer SoT: `D:\DigitalSelf\skills\CATALOG.yaml` · `D:\DigitalSelf\docs\SKILL_EXPORT.md`
 
@@ -32,6 +35,8 @@ cd D:\KnowledgeForge
 .\.venv\Scripts\python.exe main.py ds invoke S00 --text "NAS100 H1 回测值得沉淀"
 .\.venv\Scripts\python.exe main.py ds invoke S06 --intent "打开 YouTube 搜 NVIDIA"
 .\.venv\Scripts\python.exe main.py ds invoke S15 --scene setv --task "cite artifact_id=demo"
+.\.venv\Scripts\python.exe main.py ds invoke S15 --scene setv_cite --live --action list_manifest --task list --limit 5
+.\.venv\Scripts\python.exe main.py ds invoke S15 --scene setv --live --action cite --task cite --artifact-id SETV-INST-AAPL-H4-2024 --class snapshot
 .\.venv\Scripts\python.exe main.py ds invoke S16 --text "一段草稿" --depth W0
 .\.venv\Scripts\python.exe main.py ds invoke S02 --text "核心观点先读出来。" --language zh -o data\expression\_ds_s02.wav
 ```
@@ -47,7 +52,7 @@ Stdout is **one JSON object**. Use KF venv: S02 TTS runs neighbor F5 inside that
 | S00 AttentionGate | Filter before Owner interrupt / `submit_candidate` | rules |
 | S02 ReadAloud | Optional mouth using DS Identity pack | F5 via this venv |
 | S06 Browser | Observation **plan** only | no |
-| S15 ResearchOp | Research **plan**; SETV cite scene | no |
+| S15 ResearchOp | Research plan + **SETV setv_cite live-read**; 唯一 Producer Consumer (v0) | setv_cite only |
 | S16 Compose | W0 local marks; not KF Reader / not LLM Writer | no |
 
 KF still owns: classify / index / Admission / KO.  
@@ -100,14 +105,18 @@ Sites are scenes. Do not add YouTube/Gmail Skills in KF.
 
 | Flag | Type | Required | Meaning |
 |---|---|---|---|
-| `--scene` | mt5_backtest \| ashare \| setv | yes | neighbor system |
+| `--scene` | mt5_backtest \| ashare \| setv \| setv_cite | yes | neighbor system |
 | `--task` | string | yes | research intent |
-| `--action` | string | no, default `research` | L4 verbs denied |
-| `--live` | flag | no | **denied** `LIVE_COMPUTE_NOT_AUTHORIZED` |
+| `--action` | string | no, default `research` | live setv_cite: `list_manifest`\|`get_by_id`\|`cite`\|`resolve_card`; L4 verbs denied |
+| `--live` | flag | no | **OPEN** only for SETV · setv_cite ops; else `LIVE_COMPUTE_NOT_AUTHORIZED` / `LIVE_OP_NOT_AUTHORIZED` |
+| `--artifact-id` | string | no | for get_by_id / cite / resolve_card |
+| `--class` | snapshot\|evolution\|family | no | disambiguate artifact |
+| `--symbol` / `--limit` / `--setv-root` | | no | list filters / producer root |
 
 L4 (`place_order`, `cancel_order`, `modify_order`, `withdraw`, `deposit`, `transfer`, `transfer_money`, `live_trade`, …) → `L4_NO_AUTHORIZABLE_PATH`. No order API.
 
-Aliases: `S14` / `SetvQuery` → this Skill, `--scene setv`.
+Aliases: `S14` / `SetvQuery` → this Skill, `--scene setv` / `setv_cite`.  
+Authorize: `AUTHORIZE DS · S15 Producer live-read · SETV · setv_cite`. **Read ⇏ Express.**
 
 ### S16 Compose
 
