@@ -113,8 +113,8 @@ def test_s06_live_denied():
 def test_s06_missing_intent_fails():
     bad = invoke("S06")
     assert bad["ok"] is False
-    assert bad["error"] == "DS_INVOKE_EMPTY_STDOUT"
-    assert "--intent" in bad.get("message", "")
+    assert bad["error"] == "DS_INVOKE_USAGE"
+    assert "intent" in bad.get("message", "").lower()
 
 
 # --- S15 ResearchOp ---
@@ -175,6 +175,8 @@ def test_s15_live_compute_denied():
         "modify_order",
         "withdraw",
         "transfer_money",
+        "transfer",
+        "deposit",
         "live_trade",
     ],
 )
@@ -190,24 +192,6 @@ def test_s15_l4_verbs_denied(action: str):
     )
     assert denied["ok"] is False
     assert denied["error"] == "L4_NO_AUTHORIZABLE_PATH"
-
-
-def test_s15_catalog_aliases_deposit_transfer_not_in_ds_l4_set():
-    """Catalog lists deposit/transfer; DS authority uses transfer_money and omits deposit.
-
-    Recorded as ISSUE for Digital Self — KF must not silently grant money verbs.
-    """
-    deposit = invoke(
-        "S15", "--scene", "mt5_backtest", "--task", "x", "--action", "deposit"
-    )
-    transfer = invoke(
-        "S15", "--scene", "mt5_backtest", "--task", "x", "--action", "transfer"
-    )
-    # Current DS behavior (2026-09-01): both return ok plan — gap vs KF catalog.
-    assert deposit.get("ok") is True, "expected DS gap: deposit not in L4 set"
-    assert transfer.get("ok") is True, "expected DS gap: transfer alias not mapped"
-    assert deposit.get("action") == "deposit"
-    assert transfer.get("action") == "transfer"
 
 
 
@@ -300,5 +284,5 @@ def test_s02_en_live_read_aloud(tmp_path: Path):
 def test_s02_missing_output_fails():
     bad = invoke("S02", "--text", "no output path", "--language", "zh")
     assert bad["ok"] is False
-    assert bad["error"] == "DS_INVOKE_EMPTY_STDOUT"
-    assert "--output" in bad.get("message", "") or "-o" in bad.get("message", "")
+    assert bad["error"] == "DS_INVOKE_USAGE"
+    assert "output" in bad.get("message", "").lower()

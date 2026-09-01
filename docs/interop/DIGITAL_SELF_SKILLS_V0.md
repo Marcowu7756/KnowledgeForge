@@ -105,9 +105,7 @@ Sites are scenes. Do not add YouTube/Gmail Skills in KF.
 | `--action` | string | no, default `research` | L4 verbs denied |
 | `--live` | flag | no | **denied** `LIVE_COMPUTE_NOT_AUTHORIZED` |
 
-L4 (`place_order`, `cancel_order`, `modify_order`, `withdraw`, `transfer_money`, `live_trade`, …) → `L4_NO_AUTHORIZABLE_PATH`. No order API.
-
-**Gap (DS-I1):** catalog aliases `deposit` / `transfer` are **not** currently denied by DS `authority.py` (uses `transfer_money`, omits `deposit`). KF unit test records the gap; fix belongs in Digital Self.
+L4 (`place_order`, `cancel_order`, `modify_order`, `withdraw`, `deposit`, `transfer`, `transfer_money`, `live_trade`, …) → `L4_NO_AUTHORIZABLE_PATH`. No order API.
 
 Aliases: `S14` / `SetvQuery` → this Skill, `--scene setv`.
 
