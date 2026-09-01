@@ -26,6 +26,7 @@ $$
 6. **HOLD 部分解冻**：一源多卡 H1 · Manim H2 · GNN H3 已落地；chunk-RAG 仍 HOLD。  
    排期：[`HOLD_THAW_SCHEDULE_V0.md`](../audit/HOLD_THAW_SCHEDULE_V0.md)。
 7. **维护只删**：垃圾 / 不重要知识只提供 delete；新增与更新 = 重新获取。
+8. **Skill 消费**：KF 只调 Digital Self Skills（`ds invoke`）；车间 ▶ 听讲解等为 **legacy**，逐步 phase out。地图：[`KF_SKILL_CONSUME_PHASEOUT_V0.md`](../ops/KF_SKILL_CONSUME_PHASEOUT_V0.md)。
 
 ## Launch
 
@@ -39,7 +40,7 @@ $$
 
 How to consume (SOP): [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md).
 
-Health: `ui_version` ≥ `0.6.1` · `features.web_ui: true` · `features.taxonomy_outline: true`.
+Health: `ui_version` ≥ `0.6.3` · `features.web_ui: true` · `features.taxonomy_outline: true` · `features.taxonomy_open_card: true`（最底层知识节点双击打开正文）。
 
 ## Information architecture
 

@@ -15,7 +15,12 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 |------|------|
 | Access audit | [`ACCESS_AUDIT_V0.md`](../audit/ACCESS_AUDIT_V0.md) |
 | Encrypted export | [`ENCRYPTED_EXPORT_V0.md`](../audit/ENCRYPTED_EXPORT_V0.md) |
+| Voice identity | [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md) |
+| Language ≠ Translation | [`LANGUAGE_EXPRESSION_V0.md`](LANGUAGE_EXPRESSION_V0.md) |
+| NTW → KF 可平移 | [`NTW_TO_KF_TRANSFER_V0.md`](NTW_TO_KF_TRANSFER_V0.md) |
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
+| **Digital Self Skills（consume）** | [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) |
+| **Skill 消费 · legacy phase-out** | [`KF_SKILL_CONSUME_PHASEOUT_V0.md`](KF_SKILL_CONSUME_PHASEOUT_V0.md) |
 | **Delete-only maintain** | [`KNOWLEDGE_MAINTAIN_DELETE_V0.md`](KNOWLEDGE_MAINTAIN_DELETE_V0.md) |
 | Local Web UI | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) · `main.py ui` browser-first |
 | **消费 SOP（给使用者）** | [`CONSUME_USER_HANDBOOK_V0.md`](CONSUME_USER_HANDBOOK_V0.md) |
@@ -82,6 +87,19 @@ Uses `methodology/SETV/export/manifest_v0.jsonl` → sidecars. Dest: `data/knowl
 ```
 
 If the settled card is one-off noise → delete later (section **6**). Do not invent update flows.
+
+### 1e · Digital Self Skills（consume only · 逐步替入口）
+
+KF **只调用** DS 目录；不抄 Skill 实现。旧 `voice` / `express` **暂留**。Phase-out 地图：[`KF_SKILL_CONSUME_PHASEOUT_V0.md`](KF_SKILL_CONSUME_PHASEOUT_V0.md)。
+
+```powershell
+.\.venv\Scripts\python.exe main.py ds list
+.\.venv\Scripts\python.exe main.py ds invoke S00 --text "NAS100 H1 回测值得沉淀"
+.\.venv\Scripts\python.exe main.py ds invoke S02 --text "核心观点先读出来。" --language zh -o data\expression\_ds_s02.wav
+# L4 / --live / --publish 必须被拒（见 DIGITAL_SELF_SKILLS_V0）
+```
+
+Protocol：[`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md)。
 
 **Skip / escalate:** CARD without producer `SETV-INST-*` when required → Class **A** · [`PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md).
 

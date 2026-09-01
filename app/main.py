@@ -75,9 +75,12 @@ USAGE = """KnowledgeForge — PAILE knowledge reconstruction engine
   python main.py compose paper|lecture "主题" [--top 5] [--graph DIR]
   python main.py voice record --name me [--seconds 12]
   python main.py voice import <WAV> --name me
+  python main.py voice import <WAV> --name me_en --no-default
   python main.py voice list
   python main.py voice use <NAME>
   python main.py voice speak "文本" [--voice NAME] [-o out.wav]
+  python main.py ds list
+  python main.py ds invoke S00|S02|S06|S15|S16 [skill flags...]
   python main.py knowledge delete <PATH|ID> [<PATH|ID> ...] [--dry-run] [--yes]
   python main.py index rebuild [--subdir NAME]
   python main.py models status
@@ -681,6 +684,11 @@ def build_parser() -> argparse.ArgumentParser:
     v_imp.add_argument("file", help="Path to audio sample (5–15s recommended)")
     v_imp.add_argument("--name", required=True)
     v_imp.add_argument("--transcript", default=None)
+    v_imp.add_argument(
+        "--no-default",
+        action="store_true",
+        help="Do not switch the DEFAULT profile (use when adding me_en beside me)",
+    )
     voice_sub.add_parser("list", help="List voice profiles")
     v_use = voice_sub.add_parser("use", help="Set default voice profile")
     v_use.add_argument("name")
@@ -688,6 +696,20 @@ def build_parser() -> argparse.ArgumentParser:
     v_spk.add_argument("text")
     v_spk.add_argument("--voice", default=None)
     v_spk.add_argument("-o", "--output", default=None, help="Output wav path")
+
+    ds = sub.add_parser(
+        "ds",
+        help="Consume Digital Self exported Skills (catalog invoke; not a Skill Runtime)",
+    )
+    ds_sub = ds.add_subparsers(dest="ds_command")
+    ds_sub.add_parser("list", help="List exported Digital Self Skills")
+    ds_inv = ds_sub.add_parser("invoke", help="Invoke one exported Skill; remaining argv is forwarded")
+    ds_inv.add_argument("skill", help="S00 / S02 / S06 / S15 / S16 or catalog alias")
+    ds_inv.add_argument(
+        "skill_args",
+        nargs=argparse.REMAINDER,
+        help="Skill flags, e.g. --text '...' --language zh -o out.wav",
+    )
 
     sub.add_parser("status", help="Show environment and phase status")
 
@@ -845,9 +867,52 @@ def cmd_status() -> int:
         mark = "ok" if state == "ready" else state
         print(f"  {name:12} {mark:14} {path}")
     print()
-    print("Ready: youtube | bilibili | twitter | pdf | file | image | search | derive | express | animate | compile | voice | models")
+    print("Ready: youtube | bilibili | twitter | pdf | file | image | search | derive | express | animate | compile | voice | ds | models")
     print("Loop: 获取信号源 → 沉淀知识 → 展示知识  (Harness: compile)")
     return 0
+
+
+def cmd_ds(args: argparse.Namespace) -> int:
+    import json
+
+    from app.interop.digital_self import DigitalSelfError, invoke, list_skills
+
+    if args.ds_command == "list":
+        try:
+            payload = list_skills()
+        except DigitalSelfError as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+            return 1
+        code = int(payload.pop("_returncode", 0) or 0)
+        payload.pop("_stderr", None)
+        print(json.dumps(payload, ensure_ascii=False), flush=True)
+        return code
+
+    if args.ds_command == "invoke":
+        rest = list(args.skill_args or [])
+        if rest[:1] == ["--"]:
+            rest = rest[1:]
+        skill = str(args.skill)
+        timeout = 900.0 if skill.upper().replace("_", "").startswith("S02") or skill in {
+            "ReadAloud",
+            "S02_ReadAloud",
+        } else 60.0
+        try:
+            payload = invoke(skill, *rest, timeout=timeout)
+        except DigitalSelfError as extra:
+            print(json.dumps({"ok": False, "error": str(extra)}, ensure_ascii=False), flush=True)
+            return 1
+        code = int(payload.pop("_returncode", 0) or 0)
+        payload.pop("_stderr", None)
+        print(json.dumps(payload, ensure_ascii=False), flush=True)
+        if payload.get("ok") is True:
+            return 0
+        if payload.get("ok") is False:
+            return code or 1
+        return code
+
+    print("Usage: python main.py ds list | python main.py ds invoke SKILL [flags]", file=sys.stderr)
+    return 2
 
 
 def cmd_voice(args: argparse.Namespace) -> int:
@@ -885,10 +950,13 @@ def cmd_voice(args: argparse.Namespace) -> int:
         except Exception as exc:  # noqa: BLE001
             print(f"Import failed: {exc}", file=sys.stderr)
             return 1
-        set_default_voice(profile.name)
+        if not getattr(args, "no_default", False):
+            set_default_voice(profile.name)
         print(f"[ok] voice:      {profile.name}")
         print(f"[ok] sample:     {profile.sample_path}")
         print(f"[ok] transcript: {profile.transcript}")
+        if getattr(args, "no_default", False):
+            print(f"[ok] default:    {default_voice_name()} (unchanged)")
         return 0
 
     if args.voice_command == "list":
@@ -1808,6 +1876,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_compose(args)
     if args.command == "voice":
         return cmd_voice(args)
+    if args.command == "ds":
+        return cmd_ds(args)
     if args.command == "models":
         if args.models_command == "pull":
             return cmd_models_pull(args.only, force=args.force)

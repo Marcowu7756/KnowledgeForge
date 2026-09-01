@@ -26,6 +26,11 @@ VOICES_DIR = DATA_DIR / "voices"
 AUDIT_DIR = DATA_DIR / "audit"
 UI_DIR = DATA_DIR / "ui"
 
+# Neighbor Digital Self (consume Skills; do not become that Runtime).
+DIGITAL_SELF_ROOT = Path(
+    os.getenv("DIGITAL_SELF_ROOT", r"D:\DigitalSelf")
+).expanduser().resolve()
+
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")

@@ -1,0 +1,120 @@
+# KnowledgeForge consume snapshot of Digital Self exported Skills.
+# Not a Skill Runtime. SoT remains D:\DigitalSelf\skills\CATALOG.yaml.
+# Human protocol: docs/interop/DIGITAL_SELF_SKILLS_V0.md
+
+doc_id: KF-DS-CATALOG-CONSUME-V0
+as_of: "2026-09-01"
+status: CONSUME_ONLY
+mutate_digital_self: FORBIDDEN
+kf_becomes_ds_runtime: FORBIDDEN
+l4_trade: NO_AUTHORIZABLE_PATH
+
+roots:
+  digital_self: D:\DigitalSelf
+  catalog: D:\DigitalSelf\skills\CATALOG.yaml
+  invoke: D:\DigitalSelf\skills\invoke.py
+  python: D:\KnowledgeForge\.venv\Scripts\python.exe
+  identity: D:\DigitalSelf\data\identity\voice
+
+protocol:
+  stdout: one JSON object
+  stderr: logs
+  encoding: utf-8
+  cli: "python main.py ds list | python main.py ds invoke <SKILL> [flags]"
+
+skills:
+  S00_AttentionGate:
+    aliases: [S00, Attention, AttentionGate]
+    live: false
+    kf_use: triage before Owner interrupt or submit_candidate
+    required: []
+    flags:
+      --text: {type: string, required: false, default: ""}
+      --relevance: {type: float, required: false}
+      --importance: {type: float, required: false}
+      --utility: {type: float, required: false}
+    stdout_ok:
+      skill: S00_AttentionGate
+      class: [garbage, useful, important]
+      interrupt: bool
+      pass_kf: bool
+      compile_in_ds: false
+    notes: Useful → KF candidate pass only. Important → 奏折. KF classifies/indexes.
+
+  S02_ReadAloud:
+    aliases: [S02, ReadAloud]
+    live: true
+    kf_use: optional mouth; does not replace native voice speak / derive_audio_from_ko
+    required: [exactly_one_of_text_or_file, -o]
+    flags:
+      --text: {type: string, required: one_of_text_or_file}
+      --file: {type: path, required: one_of_text_or_file}
+      --language: {type: enum, values: [zh, en], required: false, default: detect}
+      -o / --output: {type: path, required: true}
+    routing:
+      zh: me
+      en: me_en
+    identity:
+      me: D:\DigitalSelf\data\identity\voice\me\f5_sample.wav
+      me_en: D:\DigitalSelf\data\identity\voice\me_en\f5_sample.wav
+    engine: neighbor_kf_f5
+    forbidden:
+      - cross_language_clone
+      - implicit_translation
+      - shanghai_dialect
+      - kf_knowledge_write
+    stdout_ok:
+      skill: S02_ReadAloud
+      audio: path
+      language: [zh, en]
+      voice: [me, me_en]
+      duration_sec: number
+
+  S06_Browser:
+    aliases: [S06, Browser]
+    live: false
+    kf_use: plan a web observation; do not expect pages
+    required: [--intent]
+    flags:
+      --intent: {type: string, required: true}
+      --url: {type: string, required: false}
+      --live: {type: flag, effect: deny LIVE_BROWSER_NOT_AUTHORIZED}
+    stdout_ok:
+      skill: S06_Browser
+      live: false
+      actions: list
+
+  S15_ResearchOp:
+    aliases: [S15, ResearchOp, S14, SetvQuery]
+    live: false
+    kf_use: plan neighbor research; cite SETV / never trade
+    required: [--scene, --task]
+    flags:
+      --scene: {type: enum, values: [mt5_backtest, ashare, setv], required: true}
+      --task: {type: string, required: true}
+      --action: {type: string, default: research}
+      --live: {type: flag, effect: deny LIVE_COMPUTE_NOT_AUTHORIZED}
+    l4_actions_denied: [place_order, cancel_order, modify_order, withdraw, deposit, transfer]
+    l4_error: L4_NO_AUTHORIZABLE_PATH
+    stdout_ok:
+      skill: S15_ResearchOp
+      danger_class: L1
+      live: false
+
+  S16_Compose:
+    aliases: [S16, Compose, S08, Summarize, S09, Explain]
+    live: false
+    llm: false
+    kf_use: W0 local marks; KF remains Knowledge SoT; Can Write ≠ Can Publish
+    required: [--text]
+    flags:
+      --text: {type: string, required: true}
+      --depth: {type: enum, values: [W0, W1, W2, W3, W4], default: W0}
+      --publish: {type: flag, effect: deny CAN_WRITE_NEQ_CAN_PUBLISH}
+      --claims-json: {type: json_list, required: false, item: {tag: FACT|EVIDENCE|INFERENCE|HYPOTHESIS|UNCERTAIN|CONFLICT|KNOWLEDGE_GAP, evidence_ref: required_if_FACT}}
+    stdout_ok:
+      skill: S16_Compose
+      llm: false
+      marks: list
+    w4_error: CAN_WRITE_NEQ_CAN_PUBLISH
+    fact_without_evidence: UNMARKED_ERROR

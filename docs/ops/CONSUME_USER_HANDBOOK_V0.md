@@ -21,11 +21,12 @@ freeze: H4 HOLD · SETV Scope HOLD · KF 不向 SETV 提需求
                 └── 不可用 → §10 分类 Gap → §11 记录
 ```
 
-**UAT 入口（Owner 从这里进）：** [`UAT_ENTRY_V0.md`](../audit/UAT_ENTRY_V0.md)  
-**本轮填写本：** [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md)（勾选 T6–T10 / T1–T5 · 轨 A/B）  
+**唯一 UAT 开工门：** [`UAT_ENTRY_V0.md`](../audit/UAT_ENTRY_V0.md)（先读再测）。  
+**本轮填写本（不是入口）：** [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md)（先 T6–T10，再 T1–T5 · 轨 A/B）。  
 章程：[`UAT_USER_CONSUME_V0.md`](../audit/UAT_USER_CONSUME_V0.md)。  
 首轮签收（已结案，勿当入口）：[`UAT_CONSUME_V0.md`](../audit/UAT_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260828.md`](../audit/UAT_SESSION_LOG_20260828.md)。  
-入库、索引、加密、删除：[`OPS_RUNBOOK_V0.md`](OPS_RUNBOOK_V0.md)。
+入库、索引、加密、删除：[`OPS_RUNBOOK_V0.md`](OPS_RUNBOOK_V0.md)。  
+**Skill 消费（KF 只调 DS · 旧口暂留）：** [`KF_SKILL_CONSUME_PHASEOUT_V0.md`](KF_SKILL_CONSUME_PHASEOUT_V0.md) · [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md)。
 
 ---
 
@@ -73,10 +74,16 @@ cd D:\KnowledgeForge
 .\.venv\Scripts\python.exe main.py ui
 ```
 
-浏览器打开 `http://127.0.0.1:8765`。可选：`/api/health` 中 `ok: true`、`ui_version` ≥ `0.6.1`、`taxonomy_outline: true`。
+浏览器打开 `http://127.0.0.1:8765`。可选：`/api/health` 中 `ok: true`、`ui_version` ≥ `0.6.4`、`taxonomy_outline: true`、`ko_narrate_preview: true`。
 
 检索通道按 **access**，不按 taxonomy 根：`classification=restricted`（或专有 `source_project`）用通道 **proprietary**。`general` 检不出 restricted 卡，属设计而非故障。  
 内容树（纲举目张）是另一轴：`taxonomy.path`，目标 4–5 段 —— 见 [`TAXONOMY_VS_ACCESS_V0.md`](../audit/TAXONOMY_VS_ACCESS_V0.md)。重组/检索左侧有大纲分组（Excel-like）。
+
+可选 · 注意力门（Skill 消费，不打断主线）：
+
+```powershell
+.\.venv\Scripts\python.exe main.py ds invoke S00 --text "你刚想到的观察摘要"
+```
 
 进入主线 §5。
 
@@ -230,5 +237,8 @@ cd D:\KnowledgeForge
 | 界面五段 | [`WEB_UI_v0.md`](../ui/WEB_UI_v0.md) |
 | 治理冻结 | [`OWNER_INTERPRET_UAT_SPLIT_20260828.md`](../audit/OWNER_INTERPRET_UAT_SPLIT_20260828.md) |
 | Taxonomy ≠ Access | [`TAXONOMY_VS_ACCESS_V0.md`](../audit/TAXONOMY_VS_ACCESS_V0.md) |
-| **UAT 入口** | [`UAT_ENTRY_V0.md`](../audit/UAT_ENTRY_V0.md) |
-| 用户业务 UAT | [`UAT_USER_CONSUME_V0.md`](../audit/UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md) |
+| **唯一 UAT 开工门** | [`UAT_ENTRY_V0.md`](../audit/UAT_ENTRY_V0.md) |
+| 填写本（非入口） | [`UAT_SESSION_LOG_20260829.md`](../audit/UAT_SESSION_LOG_20260829.md) |
+| 用户业务 UAT 章程 | [`UAT_USER_CONSUME_V0.md`](../audit/UAT_USER_CONSUME_V0.md) |
+| Digital Self Skills 消费 | [`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) |
+| Skill 消费 · legacy phase-out | [`KF_SKILL_CONSUME_PHASEOUT_V0.md`](KF_SKILL_CONSUME_PHASEOUT_V0.md) |

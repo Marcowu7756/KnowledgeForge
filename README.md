@@ -157,7 +157,7 @@ Runtime intelligence should not depend on cloud APIs or HuggingFace downloads:
 | TTS clone | `models/F5-TTS` + `models/vocos-mel-24khz` | `models pull --only tts,vocos` |
 | OCR | `models/paddlex` (PP-OCRv6) | `models pull --only ocr` |
 | Formula OCR | `models/pix2tex` | `models pull --only pix2tex` |
-| Voice sample | `data/voices/<name>/` | `voice record --name me` |
+| Voice sample | `data/voices/me/` + `me_en/` | Mandarin default; English uses `me_en` |
 
 One-shot pull everything:
 
@@ -180,10 +180,18 @@ python main.py voice record --name me --seconds 12
 
 # 3) 用你的声音读任意文本
 python main.py voice speak "这是知识讲解测试。" --voice me
+python main.py voice speak "This is an English narration test." --voice me_en
 
-# 4) 展示层 express 也会优先用你的样本
-python main.py express data\knowledge\某卡片.md --voice me
+# 4) 展示层 express 也会按语言选 seed：中文 → me，英语 → me_en
+python main.py express data\knowledge\某卡片.md
 ```
+
+| Profile | 语言 | 何时用 |
+| --- | --- | --- |
+| `me` | 普通话 | 默认；汉语素材 |
+| `me_en` | 英语 | 英语素材；**不要**设成 DEFAULT |
+
+英语 seed 来自 NTW OP 原英文字幕朗读（`D:\NTW_Shanghai_OP\voice\my_voice_en.wav` 截 10s），不是成品配音轨。导入时加 `--no-default`。跨项目边界见 [`docs/ops/VOICE_IDENTITY_V0.md`](docs/ops/VOICE_IDENTITY_V0.md)。NTW 可平移项见 [`docs/ops/NTW_TO_KF_TRANSFER_V0.md`](docs/ops/NTW_TO_KF_TRANSFER_V0.md)。
 
 ### 动图（纯动画，无需 TTS）
 
@@ -230,7 +238,9 @@ python main.py compile --rerun-step manifest --package data\packages\<id>
 | `knowledge.md` | 兼容 distill 时代的 Markdown 卡 |
 | `animation.gif` / `narration.wav` | 由 Expression 渲染的产物（KO 不直接绑定文件） |
 
-也可导入已有 WAV：`python main.py voice import sample.wav --name me --transcript "..."`
+也可导入已有 WAV：`python main.py voice import sample.wav --name me --transcript "..."`  
+英语旁路：`python main.py voice import en_ref.wav --name me_en --no-default --transcript "..."`  
+跨项目音色边界（Identity ≠ 引擎合同；语言对语言采样）：[`docs/ops/VOICE_IDENTITY_V0.md`](docs/ops/VOICE_IDENTITY_V0.md)。
 
 ---
 
@@ -249,7 +259,14 @@ python main.py image path\to\scan.png --dest-subdir physics
 python main.py search D:\folder --keyword methodology --dest-subdir methodology
 python main.py derive path\to\card.md --mode auto   # english|physics|finance|generic
 python main.py voice record --name me --seconds 12
+python main.py voice import en_ref.wav --name me_en --no-default
 python main.py voice speak "用我的声音读这段话"
+python main.py ds list
+python main.py ds invoke S00 --text "NAS100 H1 回测值得沉淀"
+python main.py ds invoke S02 --text "核心观点先读出来。" --language zh -o data\expression\_ds_s02.wav
+# Digital Self consume (KF = skill consumer · legacy voice/express phase out gradually):
+#   docs/interop/DIGITAL_SELF_SKILLS_V0.md
+#   docs/ops/KF_SKILL_CONSUME_PHASEOUT_V0.md
 python main.py animate path\to\card.md --fast --renderer auto   # manim|mpl|pillow
 python main.py animate --golden
 python main.py compile path\to\card.md --from-card --animate --fast
@@ -362,6 +379,8 @@ Amplifies learning speed, depth, cross-domain links, and creation — it does no
 ```
 
 设计说明：`docs/ui/WEB_UI_v0.md`（获取→沉淀→重组→检索→表达）。旧 Windows 桌面叙事见 `docs/ui/WINDOWS_UI_v0.md`（已 superseded）。
+
+**Owner 业务 UAT（OPEN）唯一开工门：** [`docs/audit/UAT_ENTRY_V0.md`](docs/audit/UAT_ENTRY_V0.md)（填写本是会话日志，不是入口）。
 
 异步任务会显示进度条；表达页可预览 MD / GIF / WAV。获取支持 Twitter/X 单条 URL。
 
