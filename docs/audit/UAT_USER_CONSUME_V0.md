@@ -11,8 +11,8 @@ freeze: H4 HOLD · SETV Scope HOLD · KF 不向 SETV 提需求
 session_log: UAT_SESSION_LOG_20260829.md
 ```
 
-> **Owner 从这里进测：** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)（三步开工 · 勾选顺序 · 三份必开）。  
-> 本文件是章程细则；日常填写写在 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)。
+> **唯一开工门：** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)。  
+> 本文件是章程细则；勾选与记录写在 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)（填写本，不是入口）。
 
 \[
 \boxed{\mathrm{Engineering\ UAT}\neq\mathrm{User\ Consume}}
@@ -22,13 +22,14 @@ session_log: UAT_SESSION_LOG_20260829.md
 \boxed{\mathrm{only\ D}\rightarrow\mathrm{SETV}}
 \]
 
-## 0. 入口（先读）
+## 0. 入口（只认一份）
 
-| 顺序 | 打开 | 作用 |
+| 角色 | 打开 | 作用 |
 |------|------|------|
-| 1 | [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) | **开工入口** |
-| 2 | [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) | 勾选 T6–T10 / T1–T5 · 轨 A/B |
-| 3 | [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) | 操作步骤 |
+| **入口** | [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) | 每次开测第一眼 · 三步开工 |
+| 填写本 | [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) | 勾选 T6–T10 → T1–T5 → S-DS · 轨 A/B |
+| 操作法 | [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) | 忘步骤时 |
+| Skill 消费 | [`../interop/DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md) · [`../ops/KF_SKILL_CONSUME_PHASEOUT_V0.md`](../ops/KF_SKILL_CONSUME_PHASEOUT_V0.md) | KF = 消费端 · legacy 暂留 |
 
 ---
 

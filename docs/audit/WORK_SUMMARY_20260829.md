@@ -108,7 +108,7 @@ Owner 反馈：除长视频时长外，其他正常。
 | SoT 正交 | [`TAXONOMY_VS_ACCESS_V0.md`](TAXONOMY_VS_ACCESS_V0.md) |
 | 正交审计 | [`TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md`](TAXONOMY_ACCESS_SPLIT_AUDIT_20260829.md) |
 | 大纲审计 | [`TAXONOMY_OUTLINE_UI_AUDIT_20260829.md`](TAXONOMY_OUTLINE_UI_AUDIT_20260829.md) |
-| 用户 UAT | [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) · [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) |
+| 用户 UAT | **入口** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) · 填写本 [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md) · 章程 [`UAT_USER_CONSUME_V0.md`](UAT_USER_CONSUME_V0.md) |
 | 消费 SOP | [`../ops/CONSUME_USER_HANDBOOK_V0.md`](../ops/CONSUME_USER_HANDBOOK_V0.md) |
 | UI | [`../ui/WEB_UI_v0.md`](../ui/WEB_UI_v0.md) |
 | 看板 | [`POSTURE_NAIL_20260828.md`](POSTURE_NAIL_20260828.md) |
@@ -119,10 +119,13 @@ Owner 反馈：除长视频时长外，其他正常。
 
 ## 七、待 Owner
 
-重启 UI 后勾会话日志：
+**唯一开工门：** [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)（勿直接从本总结开测）。
 
-- **T1–T5**：正交 / 捕获 taxonomy / 通道回归  
-- **T6–T10**：重组+检索大纲分组  
+按入口三步：重启 UI → 填写本勾选 → 卡住开 SOP。
+
+- **先 T6–T10**：重组+检索大纲  
+- **再 T1–T5**：正交 / 捕获 taxonomy / 通道回归  
+- 然后轨 A / 轨 B  
 
 健康：`GET /api/health` → `ui_version` ≥ `0.6.1` · `taxonomy_outline: true`。
 
@@ -132,4 +135,4 @@ Owner 反馈：除长视频时长外，其他正常。
 
 继续 **业务问题消费 → Gap A/B/C/D**。仅 **D** 可回 SETV；摩擦（长视频 ASR 进度、Twitter/TTS）记 Ops，不改 Archive 判定。
 
-> **业务 UAT 开局 · Taxonomy 与 Access 正交落地 · 大纲分组 UI 可测 · NEXT = Owner 从 [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md) 进 T1–T10。**
+> **业务 UAT 开局 · Taxonomy 与 Access 正交落地 · 大纲分组 UI 可测 · NEXT = [`UAT_ENTRY_V0.md`](UAT_ENTRY_V0.md)。**
