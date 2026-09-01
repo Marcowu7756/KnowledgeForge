@@ -94,8 +94,9 @@ skills:
       --task: {type: string, required: true}
       --action: {type: string, default: research}
       --live: {type: flag, effect: deny LIVE_COMPUTE_NOT_AUTHORIZED}
-    l4_actions_denied: [place_order, cancel_order, modify_order, withdraw, deposit, transfer]
+    l4_actions_denied: [place_order, cancel_order, modify_order, withdraw, transfer_money, live_trade, deposit, transfer]
     l4_error: L4_NO_AUTHORIZABLE_PATH
+    l4_gap_note: "DS authority.py denies transfer_money not transfer; deposit not listed — KF audit ISSUE"
     stdout_ok:
       skill: S15_ResearchOp
       danger_class: L1

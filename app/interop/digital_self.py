@@ -47,9 +47,14 @@ def run_ds(*argv: str, timeout: float | None = 60.0) -> dict[str, Any]:
     )
     stdout = (proc.stdout or "").strip()
     if not stdout:
-        raise DigitalSelfError(
-            f"empty stdout from Digital Self (code={proc.returncode}): {(proc.stderr or '')[:500]}"
-        )
+        # Argparse / crashes often print usage on stderr only — normalize for KF consume.
+        return {
+            "ok": False,
+            "error": "DS_INVOKE_EMPTY_STDOUT",
+            "message": (proc.stderr or "").strip()[:800] or "empty stdout from Digital Self",
+            "_returncode": proc.returncode,
+            "_stderr": proc.stderr or "",
+        }
     try:
         payload = json.loads(stdout)
     except json.JSONDecodeError as exc:
