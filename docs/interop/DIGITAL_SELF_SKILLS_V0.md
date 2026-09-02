@@ -52,11 +52,13 @@ Stdout is **one JSON object**. Use KF venv: S02 TTS runs neighbor F5 inside that
 | S00 AttentionGate | Filter before Owner interrupt / `submit_candidate` | rules |
 | S02 ReadAloud | Optional mouth using DS Identity pack | F5 via this venv |
 | S06 Browser | Observation **plan** only | no |
-| S15 ResearchOp | Research plan + **SETV setv_cite live-read**; 唯一 Producer Consumer (v0) | setv_cite only |
+| S15 ResearchOp | Research plan + **SETV export+Card+Evidence live-read**; 唯一 Producer Consumer (v0) | scene `setv`/`setv_cite` only |
 | S16 Compose | W0 local marks; not KF Reader / not LLM Writer | no |
+| S03 Dubbing | **不消费** · DS 合同 only · `implementation: NOT_AUTHORIZED` | — |
 
 KF still owns: classify / index / Admission / KO.  
-DS Skills **pass candidates**. They do not compile knowledge inside Digital Self.
+DS Skills **pass candidates**. They do not compile knowledge inside Digital Self.  
+S03 不在 `CATALOG`；KF 不配视频，也不用 S02 冒充配音。
 
 Native `python main.py voice speak` / UI ▶ 听讲解 / `express` TTS remain as **legacy** until phased out.  
 S02 is the **exported Skill call** for mouth; prefer documenting `ds invoke S02` for new SOP steps. See phase-out map.
@@ -72,7 +74,7 @@ S02 is the **exported Skill call** for mouth; prefer documenting `ds invoke S02`
 | `--text` | string | no (empty → garbage) | observation / abstract |
 | `--relevance` | float | no | &lt; 0.2 → garbage |
 | `--importance` | float | no | ≥ 0.8 → important |
-| `--utility` | float | no | reserved |
+| `--utility` | float | no | optional signal → reasons；不单独改分流规则 |
 
 OK JSON: `class` ∈ {garbage, useful, important}; `interrupt` only if important; `pass_kf` if useful.
 
@@ -116,7 +118,9 @@ Sites are scenes. Do not add YouTube/Gmail Skills in KF.
 L4 (`place_order`, `cancel_order`, `modify_order`, `withdraw`, `deposit`, `transfer`, `transfer_money`, `live_trade`, …) → `L4_NO_AUTHORIZABLE_PATH`. No order API.
 
 Aliases: `S14` / `SetvQuery` → this Skill, `--scene setv` / `setv_cite`.  
-Authorize: `AUTHORIZE DS · S15 Producer live-read · SETV · setv_cite`. **Read ⇏ Express.**
+Authorize (sealed): `AUTHORIZE DS · S15 Producer live-read · SETV · export+Card+Evidence`.  
+Scene alias `setv` / `setv_cite` is the consume door for that Surface. **Read ⇏ Express.**  
+FactorLib / AShareLib / other SETV Surface / `mt5 --live` → **WAITING / HOLD** until a new named AUTHORIZE.
 
 ### S16 Compose
 
@@ -142,6 +146,7 @@ KF ↛ Playwright / live browser from this consume door
 KF ↛ MT5 / AShareLib executor from this consume door
 KF ↛ order / money movement   (no authorizable path)
 KF ↛ auto-publish because Compose returned JSON
+KF ↛ S03 invoke / video dubbing / copy NTW pipeline
 S02 ↛ replace Language ≠ Translation
 ```
 
@@ -151,10 +156,12 @@ S02 ↛ replace Language ≠ Translation
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/interop/test_digital_self_skills.py -v
+# 2026-09-02: 32 passed, 2 skipped (S02 live needs KF_RUN_SLOW=1)
 $env:KF_RUN_SLOW="1"   # optional S02 live zh/en
 .\.venv\Scripts\python.exe -m pytest tests/interop/test_digital_self_skills.py -k s02_ -v
 ```
 
-Unit consume audit: [`../audit/DS_SKILL_UNIT_CONSUME_20260901.md`](../audit/DS_SKILL_UNIT_CONSUME_20260901.md)
+Evidence: [`../audit/DS_SKILL_CONSUME_20260901.md`](../audit/DS_SKILL_CONSUME_20260901.md) · unit: [`../audit/DS_SKILL_UNIT_CONSUME_20260901.md`](../audit/DS_SKILL_UNIT_CONSUME_20260901.md)  
+DS mirror: `D:\DigitalSelf\docs\audit\ARCH_20260901_KF_CONSUME.md`
 
-*KF · consume DS Skills · 2026-09-01*
+*KF · consume DS Skills · 2026-09-01 · align seal 2026-09-02*

@@ -102,7 +102,7 @@ skills:
     l4_actions_denied: [place_order, cancel_order, modify_order, withdraw, transfer_money, transfer, deposit, live_trade]
     l4_error: L4_NO_AUTHORIZABLE_PATH
     usage_error: DS_INVOKE_USAGE
-    authorize_live: "AUTHORIZE DS · S15 Producer live-read · SETV · setv_cite"
+    authorize_live: "AUTHORIZE DS · S15 Producer live-read · SETV · export+Card+Evidence"
 
     stdout_ok:
       skill: S15_ResearchOp

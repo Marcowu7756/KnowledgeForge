@@ -15,7 +15,7 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 |------|------|
 | Access audit | [`ACCESS_AUDIT_V0.md`](../audit/ACCESS_AUDIT_V0.md) |
 | Encrypted export | [`ENCRYPTED_EXPORT_V0.md`](../audit/ENCRYPTED_EXPORT_V0.md) |
-| Voice identity | [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md) |
+| Voice identity | [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md) · evidence [`ME_EN_SON_SEED_20260901.md`](../audit/ME_EN_SON_SEED_20260901.md) |
 | Language ≠ Translation | [`LANGUAGE_EXPRESSION_V0.md`](LANGUAGE_EXPRESSION_V0.md) |
 | NTW → KF 可平移 | [`NTW_TO_KF_TRANSFER_V0.md`](NTW_TO_KF_TRANSFER_V0.md) |
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
@@ -97,10 +97,13 @@ KF **只调用** DS 目录；不抄 Skill 实现。旧 `voice` / `express` **暂
 .\.venv\Scripts\python.exe main.py ds list
 .\.venv\Scripts\python.exe main.py ds invoke S00 --text "NAS100 H1 回测值得沉淀"
 .\.venv\Scripts\python.exe main.py ds invoke S02 --text "核心观点先读出来。" --language zh -o data\expression\_ds_s02.wav
-# L4 / --live / --publish 必须被拒（见 DIGITAL_SELF_SKILLS_V0）
+.\.venv\Scripts\python.exe main.py ds invoke S15 --scene setv_cite --live --action list_manifest --task list --limit 5
+# L4 / S06 --live / S16 --publish / 非 SETV --live → 必须被拒
+# SETV export+Card+Evidence live-read 已 OPEN（见 DIGITAL_SELF_SKILLS_V0）
 ```
 
-Protocol：[`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md)。
+Protocol：[`DIGITAL_SELF_SKILLS_V0.md`](../interop/DIGITAL_SELF_SKILLS_V0.md)。  
+Evidence：[`../audit/DS_SKILL_CONSUME_20260901.md`](../audit/DS_SKILL_CONSUME_20260901.md)。
 
 **Skip / escalate:** CARD without producer `SETV-INST-*` when required → Class **A** · [`PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md`](../interop/PRODUCER_GAP_AAPL_INST_SIDECAR_V0.md).
 

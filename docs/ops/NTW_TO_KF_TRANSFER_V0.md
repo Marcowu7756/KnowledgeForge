@@ -22,9 +22,9 @@ Napoleon 是 **Dubbing 实验场**。KF 是 **知识保存 / 检索 / 表达**�
 |---|---|
 | Voice Identity ⟂ Language ⟂ Script | `docs/ops/VOICE_IDENTITY_V0.md` |
 | 英语素材用英语 seed | `voice_for_language("en")` → `me_en`；`.cursor/rules/voice-language-seed.mdc` |
-| Seed 是身份，不是成品声轨 | `me` / `me_en` 各 10–12s；源 WAV 仍在 NTW |
+| Seed 是身份，不是成品声轨 | `me` / `me_en` 各 10–12s；zh 长源仍在 NTW；**en 长源** = Owner 授权儿子样本（见 [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md)） |
 | 引擎合同不同 | NTW 可用长 seed + Qwen-VC；KF/F5 要短样本 + transcript |
-| 授权音色 | 只 `me` / `me_en`；亲属另 profile |
+| 授权音色 | 槽位只 `me` / `me_en`；`me`=Owner zh · `me_en`=授权英语（现为儿子样本）；其它亲属另 profile |
 
 这些已经对。不要为了「对齐 NTW」再做一套配音流水线。
 
@@ -85,7 +85,7 @@ KF 现在只稳中/英。NTW 证明：能合成 ≠ 可当教材。
 
 不要把「要朗读的知识稿」录进 seed 再生成同一段。那是复读，不是 Identity。
 
-`me_en` 截的是 Napoleon 英文字幕，只当 **F5 注册参考**，不要循环拿它当英语知识旁白的正文来源。
+`me_en` 的 F5 短样本只当 **注册参考**（当前 transcript：作业句片段），不要循环拿 seed 正文当英语知识旁白来源。证据：[`../audit/ME_EN_SON_SEED_20260901.md`](../audit/ME_EN_SON_SEED_20260901.md)。
 
 ### 5. Visual Identity 继续正交
 
@@ -124,7 +124,8 @@ SoT：[`LANGUAGE_EXPRESSION_V0.md`](LANGUAGE_EXPRESSION_V0.md)
 ```text
 NTW     Identity × Language × Rendering 实验场（视频配音 · 听感）
 KF      Knowledge First — KO → Expression → Renderer（Text / Audio / Visual / …）
-共享    授权 Voice Identity（me / me_en）+ 正交规则
+DS      S15 只读 Research Producer（SEALED）；S03 = 配音合同 only · invoke DENY
+共享    授权 Voice Identity 槽（me / me_en）+ 正交规则 · SoT [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md)
 ```
 
 NTW 验证「同一 Identity 在不同 Language 下听感如何」；KF 只消费 **已允许进入表达层** 的能力，不因 NTW 某语言「好听」就自动获得教学/知识表达资格。
