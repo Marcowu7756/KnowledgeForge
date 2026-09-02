@@ -16,6 +16,7 @@ Thin checklist for proprietary content fill and day-2 ops. Doctrine unchanged: *
 | Access audit | [`ACCESS_AUDIT_V0.md`](../audit/ACCESS_AUDIT_V0.md) |
 | Encrypted export | [`ENCRYPTED_EXPORT_V0.md`](../audit/ENCRYPTED_EXPORT_V0.md) |
 | Voice identity | [`VOICE_IDENTITY_V0.md`](VOICE_IDENTITY_V0.md) · evidence [`ME_EN_SON_SEED_20260901.md`](../audit/ME_EN_SON_SEED_20260901.md) |
+| **Cursor 统一根** | [`MAIN_WORKSPACE_ROOT_V0.md`](MAIN_WORKSPACE_ROOT_V0.md) · `D:\main` |
 | Language ≠ Translation | [`LANGUAGE_EXPRESSION_V0.md`](LANGUAGE_EXPRESSION_V0.md) |
 | NTW → KF 可平移 | [`NTW_TO_KF_TRANSFER_V0.md`](NTW_TO_KF_TRANSFER_V0.md) |
 | SETV ingest | [`SETV_OPEN_KF_INGEST_V0.md`](../interop/SETV_OPEN_KF_INGEST_V0.md) |
