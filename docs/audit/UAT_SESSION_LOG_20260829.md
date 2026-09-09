@@ -88,7 +88,7 @@ KF **只调用** DS；不抄 Runtime。legacy `voice speak` / ▶ 听讲解仍�
 
 | # | 动作 | 期望 | Owner 结果 |
 |---|------|------|------------|
-| S-DS1 | `main.py ds list` | 列出 S00/S02/S06/S15/S16（或目录等价） | ☐ |
+| S-DS1 | `main.py ds list` | 列出 S00…S25（live CATALOG 为准 · 含 S24/S25） | ☐ |
 | S-DS2 | `ds invoke S00 --text "NAS100 H1 回测值得沉淀"` | JSON · `class` 合理 · 非空 stdout | ☐ |
 | S-DS3 | `ds invoke S02 --text "核心观点先读出来。" --language zh -o data\expression\_ds_s02.wav` | `ok` · wav 写出 · 同语言（zh→me） | ☐ |
 | S-DS4 | （可选）`ds invoke S06 --live …` 或 S15 `place_order` / S16 `--publish` | **拒绝**（设计门禁，非 Archive FAIL） | ☐ |

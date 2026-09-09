@@ -3,7 +3,7 @@
 # Human protocol: docs/interop/DIGITAL_SELF_SKILLS_V0.md
 
 doc_id: KF-DS-CATALOG-CONSUME-V0
-as_of: "2026-09-01"
+as_of: "2026-09-08"
 status: CONSUME_ONLY
 mutate_digital_self: FORBIDDEN
 kf_becomes_ds_runtime: FORBIDDEN
@@ -126,3 +126,16 @@ skills:
       marks: list
     w4_error: CAN_WRITE_NEQ_CAN_PUBLISH
     fact_without_evidence: UNMARKED_ERROR
+
+  # Live SoT for S17–S25 remains D:\DigitalSelf\skills\CATALOG.yaml (not duplicated here).
+  # 2026-09-08 Output Layer:
+  S24_ExportExcel:
+    aliases: [S24, Excel, Xlsx]
+    live: dataset_renderer
+    kf_use: take Dataset away as .xlsx · no compute
+    notes: invoke via DS skills/invoke.py · payload-file
+  S25_ExportPowerPoint:
+    aliases: [S25, Pptx, Deck]
+    live: knowledge_node_renderer
+    kf_use: take Node away as .pptx · no invent relations
+    notes: invoke via DS skills/invoke.py · payload-file

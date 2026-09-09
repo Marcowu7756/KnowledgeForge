@@ -389,10 +389,10 @@ def derive_audio_from_ko(
     parts = _ko_canonical_parts(obj)
     if lang_tag == "zh-CN":
         script = _assemble_script_zh(parts)
-        resolved_voice = voice or _voice_name_for_script("zh-CN")
+        resolved_voice = voice or _voice_name_for_script("zh-CN") or "me"
     else:
         script = _assemble_script_en(parts)
-        resolved_voice = voice or _voice_name_for_script("en")
+        resolved_voice = voice or _voice_name_for_script("en") or "me_en"
 
     expr_id = f"ax_{obj.id}_{uuid4().hex[:6]}"
     return AudioExpression(

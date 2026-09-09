@@ -59,6 +59,8 @@ cd D:\KnowledgeForge
 .\.venv\Scripts\python.exe main.py ds invoke S00 --text "NAS100 H1 回测值得沉淀"
 ```
 
+`ds list` 以 DigitalSelf live CATALOG 为准（2026-09-08 起含 **S24/S25**）。消费侧审计：[`ARCH_20260908_CROSS_STACK_CONSUME.md`](ARCH_20260908_CROSS_STACK_CONSUME.md)。
+
 ### ② 打开填写本（勾选与记录只写这里）
 
 → [`UAT_SESSION_LOG_20260829.md`](UAT_SESSION_LOG_20260829.md)

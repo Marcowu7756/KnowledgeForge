@@ -2,11 +2,12 @@
 
 ```yaml
 doc_id: KF-DS-SKILLS-CONSUME-V0
-as_of: 2026-09-01
+as_of: 2026-09-08
 status: LANDED · CONSUME ONLY
 owner_gate: DS G4_NARROW_SKILL_PACKAGES
 kf_rewrite_of_ds: FORBIDDEN
 ds_rewrite_of_kf: FORBIDDEN
+live_catalog_note: SoT = D:\DigitalSelf\skills\CATALOG.yaml · includes S17–S25 Output Layer
 ```
 
 $$
@@ -54,6 +55,9 @@ Stdout is **one JSON object**. Use KF venv: S02 TTS runs neighbor F5 inside that
 | S06 Browser | Observation **plan** only | no |
 | S15 ResearchOp | Research plan + **SETV export+Card+Evidence live-read**; 唯一 Producer Consumer (v0) | scene `setv`/`setv_cite` only |
 | S16 Compose | W0 local marks; not KF Reader / not LLM Writer | no |
+| S17–S23 | Explore / Show / Backtest / Monitor / Result / Polymarket | per DS CATALOG |
+| S24 ExportExcel | Dataset → `.xlsx` 消费可调用（带走≠加工） | DS package |
+| S25 ExportPowerPoint | Node → `.pptx` 消费可调用（带走≠加工） | DS package |
 | S03 Dubbing | **不消费** · DS 合同 only · `implementation: NOT_AUTHORIZED` | — |
 
 KF still owns: classify / index / Admission / KO.  
